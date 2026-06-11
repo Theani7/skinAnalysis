@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { LayoutDashboard, ScanLine, History, LogOut, Activity, Menu, X } from 'lucide-react';
 import { PageRoute } from '../../App';
 import { AuthUser } from '../../services/auth';
@@ -12,33 +12,12 @@ interface DashboardShellProps {
   user?: AuthUser | null;
 }
 
-function useStaggerAnimation(isExpanded: boolean, itemCount: number) {
-  const [visibleItems, setVisibleItems] = useState(0);
-
-  useEffect(() => {
-    if (isExpanded) {
-      setVisibleItems(0);
-      const timers: ReturnType<typeof setTimeout>[] = [];
-      for (let i = 0; i <= itemCount; i++) {
-        timers.push(setTimeout(() => setVisibleItems(i + 1), i * 40));
-      }
-      return () => timers.forEach(clearTimeout);
-    } else {
-      setVisibleItems(0);
-    }
-  }, [isExpanded, itemCount]);
-
-  return visibleItems;
-}
-
 export default function DashboardShell({ children, currentRoute, onNavigate, onLogout, user }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLElement>(null);
-
-  const visibleItems = useStaggerAnimation(expanded, 3);
 
   const userInitials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)

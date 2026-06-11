@@ -4,7 +4,6 @@ import * as faceapi from 'face-api.js';
 interface FaceDetection {
   box: { x: number; y: number; width: number; height: number };
   landmarks?: faceapi.FaceLandmarks68;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   detection: any;
 }
 

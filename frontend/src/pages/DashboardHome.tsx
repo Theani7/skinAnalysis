@@ -22,7 +22,6 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
   const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
   const [latestStats, setLatestStats] = useState<{ acne_count: number; severity: string; confidence: number } | null>(null);
   const [modelOnline, setModelOnline] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,8 +32,7 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
         setRecentScans(data.recent_scans);
         setLatestStats(data.latest_stats);
       })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .catch(() => {});
 
     fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/model/status`)
       .then((r) => r.json())
