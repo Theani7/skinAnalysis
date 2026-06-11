@@ -5,14 +5,13 @@ Uses SQLAlchemy async sessions for user persistence.
 """
 
 import os
-import uuid
 from datetime import datetime, timedelta, timezone
 
 import jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

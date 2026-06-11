@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from services.database import init_db, get_db
-from services.models import User, Scan
+from services.models import Scan
 from services.image_processor import image_processor
 from services.predictor import predictor
 from services.auth import (
