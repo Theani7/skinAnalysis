@@ -78,3 +78,6 @@ htmlcov/
 
 # Superpowers Docs
 docs/superpowers/
+
+# AI assistant context
+GEMINI.md
