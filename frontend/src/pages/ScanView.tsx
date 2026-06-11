@@ -7,7 +7,7 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
   const { videoRef, canvasRef, isActive, error: cameraError, startCamera, stopCamera, capturePhoto } = useCamera();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [visionMetrics, setVisionMetrics] = useState({ lighting: 92, alignment: 85, focus: 98 });
+  const [visionMetrics, setVisionMetrics] = useState({ lighting: 0, alignment: 0, focus: 0 });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,18 +39,62 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
     }
   };
 
-  // Simulate vision engine metrics fluctuation
+  // Real-time Clinical Vision Engine
   useEffect(() => {
-    if (isAnalyzing || !isActive) return;
-    const interval = setInterval(() => {
+    if (isAnalyzing || !isActive || !videoRef.current || !canvasRef.current) return;
+
+    let animationFrame: number;
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas'); // Offscreen sampling
+    canvas.width = 160;
+    canvas.height = 120;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const analyzeFrame = () => {
+      if (!ctx || video.paused || video.ended) {
+        animationFrame = requestAnimationFrame(analyzeFrame);
+        return;
+      }
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = frame.data;
+      
+      let totalLuminance = 0;
+      let totalContrast = 0;
+      
+      // Sample pixels for performance (step 4 for speed)
+      for (let i = 0; i < data.length; i += 16) {
+        const r = data[i];
+        const g = data[i+1];
+        const b = data[i+2];
+        
+        // Perceptual Luminance
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b);
+        totalLuminance += lum;
+
+        // Simple contrast check (difference from neighbors)
+        if (i > 0) {
+          totalContrast += Math.abs(lum - (0.299 * data[i-16] + 0.587 * data[i-15] + 0.114 * data[i-14]));
+        }
+      }
+
+      const pixelCount = data.length / 16;
+      const avgLum = (totalLuminance / pixelCount) / 255 * 100;
+      const avgContrast = (totalContrast / pixelCount) / 100 * 100;
+
       setVisionMetrics({
-        lighting: 90 + Math.random() * 8,
-        alignment: 80 + Math.random() * 15,
-        focus: 95 + Math.random() * 5
+        lighting: Math.min(100, avgLum * 1.5), 
+        focus: Math.min(100, avgContrast * 4),
+        alignment: avgLum > 20 && avgContrast > 15 ? 95 : 10
       });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isAnalyzing, isActive]);
+
+      animationFrame = requestAnimationFrame(analyzeFrame);
+    };
+
+    analyzeFrame();
+    return () => cancelAnimationFrame(animationFrame);
+  }, [isAnalyzing, isActive, videoRef]);
 
   const handleCapture = async () => {
     try {
@@ -131,9 +175,6 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
                   <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-80 border-2 transition-all duration-300 rounded-[48px] flex items-center justify-center
                     ${visionMetrics.alignment > 80 ? 'border-emerald-500 bg-emerald-500/5 shadow-[0_0_50px_rgba(16,185,129,0.2)]' : 'border-white/40 bg-white/5'}
                   `}>
-                    {/* Scanning Laser Line */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-[scan_3s_ease-in-out_infinite]"></div>
-                    
                     {/* Corner Brackets */}
                     <div className="w-4 h-4 border-t border-l border-white/60 absolute top-8 left-8"></div>
                     <div className="w-4 h-4 border-t border-r border-white/60 absolute top-8 right-8"></div>
@@ -273,15 +314,6 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
           </div>
         </div>
       </div>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes scan {
-          0% { transform: translateY(0); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateY(400px); opacity: 0; }
-        }
-      `}} />
     </div>
   );
 }
