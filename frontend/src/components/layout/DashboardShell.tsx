@@ -18,7 +18,7 @@ function useStaggerAnimation(isExpanded: boolean, itemCount: number) {
   useEffect(() => {
     if (isExpanded) {
       setVisibleItems(0);
-      const timers: NodeJS.Timeout[] = [];
+      const timers: ReturnType<typeof setTimeout>[] = [];
       for (let i = 0; i <= itemCount; i++) {
         timers.push(setTimeout(() => setVisibleItems(i + 1), i * 40));
       }

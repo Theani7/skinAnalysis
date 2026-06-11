@@ -22,6 +22,7 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
   const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
   const [latestStats, setLatestStats] = useState<{ acne_count: number; severity: string; confidence: number } | null>(null);
   const [modelOnline, setModelOnline] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
