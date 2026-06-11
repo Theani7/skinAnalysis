@@ -6,50 +6,71 @@ import DashboardHome from './pages/DashboardHome';
 import ScanView from './pages/ScanView';
 import ReportView from './pages/ReportView';
 import HistoryPage from './pages/HistoryPage';
+import ProfilePage from './pages/ProfilePage';
 import { AnalysisResponse } from './services/api';
+import { AuthUser, getStoredUser, isAuthenticated, clearAuth } from './services/auth';
 
-export type PageRoute = 'landing' | 'login' | 'dashboard' | 'scan' | 'report' | 'history';
+export type PageRoute = 'landing' | 'login' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<PageRoute>('landing');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentPage, setCurrentPage] = useState<PageRoute>(() => {
+    return isAuthenticated() ? 'dashboard' : 'landing';
+  });
+  const [authUser, setAuthUser] = useState<AuthUser | null>(getStoredUser());
   const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null);
 
-  // Simple Router Logic
+  // Keep authUser in sync with localStorage
+  useEffect(() => {
+    if (isAuthenticated() && !authUser) {
+      setAuthUser(getStoredUser());
+    }
+  }, [currentPage]);
+
   const navigate = (page: PageRoute) => {
     window.scrollTo(0, 0);
     setCurrentPage(page);
   };
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    navigate('dashboard');
+  const handleLogin = (user: AuthUser) => {
+    setAuthUser(user);
+    setCurrentPage('dashboard');
+    window.scrollTo(0, 0);
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    clearAuth();
+    setAuthUser(null);
     setAnalysisResult(null);
-    navigate('landing');
+    setCurrentPage('landing');
+    window.scrollTo(0, 0);
   };
 
   const handleAnalysisComplete = (result: AnalysisResponse) => {
     setAnalysisResult(result);
-    navigate('report');
+    setCurrentPage('report');
+    window.scrollTo(0, 0);
+  };
+
+  const handleUserUpdate = (user: AuthUser) => {
+    setAuthUser(user);
   };
 
   // Unauthenticated Routes
-  if (!isAuthenticated) {
-    if (currentPage === 'login') return <LoginPage onLogin={handleLogin} onBack={() => navigate('landing')} />;
-    return <LandingPage onStart={() => navigate('login')} />;
+  if (!isAuthenticated()) {
+    if (currentPage === 'login') {
+      return <LoginPage onLogin={handleLogin} onBack={() => setCurrentPage('landing')} />;
+    }
+    return <LandingPage onStart={() => setCurrentPage('login')} />;
   }
 
   // Authenticated Dashboard Layout
   return (
-    <DashboardShell currentRoute={currentPage} onNavigate={navigate} onLogout={handleLogout}>
-      {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} />}
+    <DashboardShell currentRoute={currentPage} onNavigate={navigate} onLogout={handleLogout} user={authUser}>
+      {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onViewHistory={() => navigate('history')} user={authUser} />}
       {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} />}
       {currentPage === 'report' && <ReportView result={analysisResult} onBack={() => navigate('dashboard')} />}
-      {currentPage === 'history' && <HistoryPage />}
+      {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}
+      {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} />}
     </DashboardShell>
   );
 }

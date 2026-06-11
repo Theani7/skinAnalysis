@@ -29,20 +29,19 @@ export function useCamera(): UseCameraReturn {
         },
         audio: false,
       });
-      
+
       setStream(mediaStream);
       setIsActive(true);
-      
+
       if (videoRef.current) {
         const video = videoRef.current;
         video.srcObject = mediaStream;
-        
+
         const startPlayback = () => {
-          console.log('Starting video playback. Dimensions:', video.videoWidth, 'x', video.videoHeight);
-          video.play().catch(e => console.error('Error playing video:', e));
+          video.play().catch(() => {});
         };
 
-        if (video.readyState >= 1) { // HAVE_METADATA
+        if (video.readyState >= 1) {
           startPlayback();
         } else {
           video.onloadedmetadata = startPlayback;
@@ -51,7 +50,6 @@ export function useCamera(): UseCameraReturn {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to access camera';
       setError(message);
-      console.error('Camera error:', err);
     }
   }, []);
 
@@ -67,18 +65,15 @@ export function useCamera(): UseCameraReturn {
 
   const capturePhoto = useCallback((): Promise<Blob | null> => {
     return new Promise((resolve) => {
-      console.log('Capture requested...');
       if (!videoRef.current || !canvasRef.current) {
-        console.error('Refs missing:', { video: !!videoRef.current, canvas: !!canvasRef.current });
         resolve(null);
         return;
       }
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      
+
       if (video.videoWidth === 0 || video.videoHeight === 0) {
-        console.error('Video dimensions are zero');
         resolve(null);
         return;
       }
@@ -88,13 +83,10 @@ export function useCamera(): UseCameraReturn {
 
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        console.error('Could not get canvas context');
         resolve(null);
         return;
       }
 
-      console.log('Drawing video to canvas...', video.videoWidth, 'x', video.videoHeight);
-      // Mirror the image
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -102,11 +94,6 @@ export function useCamera(): UseCameraReturn {
 
       canvas.toBlob(
         (b) => {
-          if (b) {
-            console.log('Blob created successfully, size:', b.size);
-          } else {
-            console.error('toBlob returned null');
-          }
           resolve(b);
         },
         'image/jpeg',

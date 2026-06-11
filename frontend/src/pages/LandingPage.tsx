@@ -1,91 +1,253 @@
-import { ArrowRight, Activity, ShieldCheck, Zap, Menu } from 'lucide-react';
+import { ArrowRight, Activity, Camera, BarChart3, FileText, Sparkles, Shield, ChevronRight } from 'lucide-react';
 
 export default function LandingPage({ onStart }: { onStart: () => void }) {
   return (
-    <div className="min-h-screen bg-white text-[#0F172A] selection:bg-blue-100">
-      {/* Premium Header */}
-      <header className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#1E3A8A] rounded-lg flex items-center justify-center">
-              <Activity className="w-5 h-5 text-white" />
+    <div className="min-h-screen bg-white text-surface-900 selection:bg-primary-100">
+      <header className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-surface-200">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-primary-600 rounded-xl flex items-center justify-center">
+              <Activity className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tighter text-[#0F172A]">SkinAI<span className="text-[#1E3A8A]">.</span></span>
+            <span className="text-lg md:text-xl font-extrabold tracking-tight text-surface-900">SkinAI</span>
           </div>
-          
-          <nav className="hidden md:flex items-center gap-10">
-            <a href="#" className="text-sm font-semibold text-[#64748B] hover:text-[#1E3A8A] transition-colors">Technology</a>
-            <a href="#" className="text-sm font-semibold text-[#64748B] hover:text-[#1E3A8A] transition-colors">Clinical Studies</a>
-            <a href="#" className="text-sm font-semibold text-[#64748B] hover:text-[#1E3A8A] transition-colors">Enterprise</a>
+
+          <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
+            <a href="#how-it-works" className="text-sm font-semibold text-surface-500 hover:text-primary-600 transition-colors">How It Works</a>
+            <a href="#features" className="text-sm font-semibold text-surface-500 hover:text-primary-600 transition-colors">Features</a>
           </nav>
 
-          <div className="flex items-center gap-4">
-            <button onClick={onStart} className="text-sm font-bold text-[#0F172A] hover:text-[#1E3A8A] px-4">Log In</button>
-            <button onClick={onStart} className="bg-[#1E3A8A] text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#112D75] transition-all shadow-lg shadow-blue-900/10">
+          <div className="flex items-center gap-3">
+            <button onClick={onStart} className="text-sm font-bold text-surface-600 hover:text-primary-600 px-4 py-2 transition-colors">Log In</button>
+            <button onClick={onStart} className="bg-primary-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/15">
               Get Started
             </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="pt-40 pb-32 px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 mb-8">
-            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-[0.2em]">Next-Gen Dermatology</span>
-          </div>
-          
-          <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight text-[#0F172A] mb-8 leading-[0.95]">
-            Clinical-Grade AI Skin Analysis. <br/>
-            <span className="text-[#1E3A8A]">Powered by IoT.</span>
-          </h1>
-          
-          <p className="text-xl text-[#64748B] max-w-2xl mx-auto mb-12 leading-relaxed">
-            The world's first integrated skin health ecosystem combining real-time hardware sensors with clinical-grade artificial intelligence. 
-          </p>
+      <main>
+        {/* Hero */}
+        <section className="pt-32 md:pt-44 pb-20 md:pb-32 px-4 md:px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              <div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.05] mb-6">
+                  AI Skin Analysis
+                  <br />
+                  <span className="text-primary-600">You Can Trust.</span>
+                </h1>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-            <button onClick={onStart} className="group w-full md:w-auto bg-[#1E3A8A] text-white px-10 py-5 rounded-2xl text-lg font-bold hover:bg-[#112D75] transition-all flex items-center justify-center gap-3">
-              Start Free Analysis
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <p className="text-base md:text-lg text-surface-500 leading-relaxed mb-8 max-w-lg">
+                  Upload a photo, get instant acne detection with severity scoring, personalized skincare routines, and clinical PDF reports.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button onClick={onStart} className="group bg-primary-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-primary-700 transition-all flex items-center justify-center gap-2.5 shadow-lg shadow-primary-600/15">
+                    Start Analysis
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                  <a href="#how-it-works" className="bg-white border border-surface-200 text-surface-700 px-8 py-4 rounded-2xl font-bold hover:bg-surface-50 hover:border-surface-300 transition-all text-center">
+                    See How It Works
+                  </a>
+                </div>
+              </div>
+
+              {/* Hero Visual — App Screenshot Mockup */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-100/60 to-primary-50/30 rounded-3xl blur-3xl"></div>
+                <div className="relative bg-white rounded-3xl border border-surface-200 shadow-2xl shadow-surface-200/50 overflow-hidden">
+                  <div className="flex items-center gap-1.5 px-4 py-3 bg-surface-50 border-b border-surface-200">
+                    <div className="w-2.5 h-2.5 rounded-full bg-surface-300"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-surface-300"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-surface-300"></div>
+                    <span className="ml-2 text-xs font-medium text-surface-400">skinai.app</span>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                        <Camera className="w-5 h-5 text-primary-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-surface-900">Capture or Upload</div>
+                        <div className="text-xs text-surface-400">Take a selfie or choose a photo</div>
+                      </div>
+                    </div>
+                    <div className="h-px bg-surface-100"></div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                        <BarChart3 className="w-5 h-5 text-primary-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-surface-900">AI Analysis</div>
+                        <div className="text-xs text-surface-400">YOLOv8 detects and counts acne</div>
+                      </div>
+                    </div>
+                    <div className="h-px bg-surface-100"></div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-primary-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-surface-900">Clinical Report</div>
+                        <div className="text-xs text-surface-400">PDF export with routine &amp; score</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section id="how-it-works" className="py-20 md:py-28 bg-surface-50 border-y border-surface-200">
+          <div className="max-w-6xl mx-auto px-4 md:px-6">
+            <div className="text-center mb-14">
+              <span className="text-xs font-bold text-primary-600 uppercase tracking-widest">How It Works</span>
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mt-3">Three Steps to Better Skin</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+              {[
+                {
+                  step: '01',
+                  icon: Camera,
+                  title: 'Capture',
+                  desc: 'Take a selfie or upload a photo of your face. Our face detection guides you to the optimal position.',
+                },
+                {
+                  step: '02',
+                  icon: BarChart3,
+                  title: 'Analyze',
+                  desc: 'YOLOv8 detects acne, pigmentation, and dryness. You get severity scoring and detailed metrics.',
+                },
+                {
+                  step: '03',
+                  icon: FileText,
+                  title: 'Report',
+                  desc: 'Get a personalized AM/PM routine, product conflict warnings, and a clinical PDF report.',
+                },
+              ].map((item) => (
+                <div key={item.step} className="relative">
+                  <div className="text-6xl font-extrabold text-surface-100 absolute -top-3 -left-1 select-none">{item.step}</div>
+                  <div className="relative pt-10">
+                    <div className="w-12 h-12 bg-white rounded-2xl border border-surface-200 flex items-center justify-center mb-5 shadow-sm">
+                      <item.icon className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                    <p className="text-sm text-surface-500 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="py-20 md:py-28">
+          <div className="max-w-6xl mx-auto px-4 md:px-6">
+            <div className="text-center mb-14">
+              <span className="text-xs font-bold text-primary-600 uppercase tracking-widest">Features</span>
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mt-3">Built for Real Results</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  icon: BarChart3,
+                  title: 'Multi-Signal Detection',
+                  desc: 'Combines color analysis (HSV/LAB/YCrCb), texture analysis (Laplacian), and morphological detection for accurate lesion classification.',
+                },
+                {
+                  icon: Sparkles,
+                  title: 'Personalized Routines',
+                  desc: 'AM/PM skincare routines built from your results. Includes product recommendations and application order.',
+                },
+                {
+                  icon: Shield,
+                  title: 'Conflict Detection',
+                  desc: 'Warns when recommended products conflict with each other (e.g., retinol + AHA/BHA) to prevent irritation.',
+                },
+                {
+                  icon: FileText,
+                  title: 'Clinical PDF Reports',
+                  desc: 'Export detailed reports with severity scores, face quality metrics, pigmentation analysis, and progress tracking.',
+                },
+                {
+                  icon: Activity,
+                  title: 'Face Quality Assessment',
+                  desc: 'Real-time feedback on face positioning, lighting, and angle to ensure optimal capture quality.',
+                },
+                {
+                  icon: Camera,
+                  title: 'Progress Tracking',
+                  desc: 'Scan history with charts showing your skin health score over time. See trends and improvements.',
+                },
+              ].map((item) => (
+                <div key={item.title} className="flex gap-4 p-6 rounded-2xl border border-surface-200 hover:border-primary-200 hover:bg-surface-50/50 transition-all group">
+                  <div className="w-11 h-11 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-100 transition-colors">
+                    <item.icon className="w-5 h-5 text-primary-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-surface-900 mb-1">{item.title}</h3>
+                    <p className="text-sm text-surface-500 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Tech Stack */}
+        <section className="py-20 md:py-28 bg-surface-900 text-white">
+          <div className="max-w-6xl mx-auto px-4 md:px-6">
+            <div className="text-center mb-14">
+              <span className="text-xs font-bold text-primary-400 uppercase tracking-widest">Tech Stack</span>
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mt-3">Under the Hood</h2>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { label: 'YOLOv8', sub: 'Object Detection' },
+                { label: 'OpenCV', sub: 'Image Processing' },
+                { label: 'FastAPI', sub: 'Backend API' },
+                { label: 'React', sub: 'Frontend UI' },
+              ].map((item) => (
+                <div key={item.label} className="bg-white/5 backdrop-blur-sm rounded-2xl p-5 border border-white/10 text-center">
+                  <div className="text-lg font-bold">{item.label}</div>
+                  <div className="text-xs text-surface-400 mt-1">{item.sub}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-20 md:py-28">
+          <div className="max-w-3xl mx-auto px-4 md:px-6 text-center">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Ready to Analyze Your Skin?</h2>
+            <p className="text-surface-500 text-base md:text-lg mb-8 max-w-lg mx-auto">
+              Upload a photo and get results in seconds.
+            </p>
+            <button onClick={onStart} className="group bg-primary-600 text-white px-10 py-4 rounded-2xl font-bold hover:bg-primary-700 transition-all inline-flex items-center gap-2.5 shadow-lg shadow-primary-600/15">
+              Start Analysis
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
-            <button className="w-full md:w-auto bg-white border border-gray-200 text-[#0F172A] px-10 py-5 rounded-2xl text-lg font-bold hover:bg-gray-50 transition-all">
-              Watch Demo
-            </button>
           </div>
-        </div>
-
-        {/* Feature Highlights */}
-        <div className="max-w-7xl mx-auto mt-40 grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="p-10 rounded-3xl border border-gray-100 bg-gray-50/30 hover:bg-white hover:shadow-2xl hover:shadow-gray-200/50 transition-all group">
-            <div className="w-14 h-14 bg-white rounded-2xl border border-gray-100 flex items-center justify-center mb-8 shadow-sm group-hover:border-blue-200 transition-colors">
-              <Zap className="w-6 h-6 text-[#1E3A8A]" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4 tracking-tight">Multi-Spectral AI</h3>
-            <p className="text-[#64748B] leading-relaxed">Advanced computer vision models trained on millions of clinical images for unmatched detection accuracy.</p>
-          </div>
-
-          <div className="p-10 rounded-3xl border border-gray-100 bg-gray-50/30 hover:bg-white hover:shadow-2xl hover:shadow-gray-200/50 transition-all group">
-            <div className="w-14 h-14 bg-white rounded-2xl border border-gray-100 flex items-center justify-center mb-8 shadow-sm group-hover:border-blue-200 transition-colors">
-              <Activity className="w-6 h-6 text-[#1E3A8A]" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4 tracking-tight">ESP32 Sensor Integration</h3>
-            <p className="text-[#64748B] leading-relaxed">Live biometric data streams for temperature, moisture, and sebum levels directly into your clinical dashboard.</p>
-          </div>
-
-          <div className="p-10 rounded-3xl border border-gray-100 bg-gray-50/30 hover:bg-white hover:shadow-2xl hover:shadow-gray-200/50 transition-all group">
-            <div className="w-14 h-14 bg-white rounded-2xl border border-gray-100 flex items-center justify-center mb-8 shadow-sm group-hover:border-blue-200 transition-colors">
-              <ShieldCheck className="w-6 h-6 text-[#1E3A8A]" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4 tracking-tight">HIPAA Compliant</h3>
-            <p className="text-[#64748B] leading-relaxed">Your data is encrypted with enterprise-grade protocols, ensuring your clinical history remains private and secure.</p>
-          </div>
-        </div>
+        </section>
       </main>
 
-      <footer className="py-20 border-t border-gray-100 text-center">
-        <p className="text-[#64748B] text-sm font-medium">© 2026 SkinAI Clinical Systems. All rights reserved.</p>
+      <footer className="border-t border-surface-200 py-10">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-primary-600 rounded-lg flex items-center justify-center">
+              <Activity className="w-3 h-3 text-white" />
+            </div>
+            <span className="text-sm font-bold text-surface-900">SkinAI</span>
+          </div>
+          <p className="text-xs text-surface-400">&copy; 2026 SkinAI. AI-powered skin analysis.</p>
+        </div>
       </footer>
     </div>
   );

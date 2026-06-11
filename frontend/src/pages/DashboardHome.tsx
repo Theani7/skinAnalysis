@@ -1,92 +1,298 @@
-import { ArrowRight, Activity, Users, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Activity, ScanLine, TrendingUp, Droplets, Shield, Sun, Calendar, Clock, ChevronRight, Sparkles, Heart, AlertCircle } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ProgressRing } from '../components/ui/ProgressRing';
+import { AuthUser } from '../services/auth';
+import { getProgressData, ProgressDataPoint, RecentScanItem, ApiError } from '../services/api';
 
-export default function DashboardHome({ onStartScan }: { onStartScan: () => void }) {
+interface DashboardHomeProps {
+  onStartScan: () => void;
+  onViewHistory?: () => void;
+  user?: AuthUser | null;
+}
+
+const quickTips = [
+  { id: 1, icon: Droplets, text: 'Apply hyaluronic acid to damp skin for maximum absorption', color: 'text-blue-500' },
+  { id: 2, icon: Sun, text: 'Reapply SPF 50+ every 2 hours when outdoors', color: 'text-amber-500' },
+  { id: 3, icon: Heart, text: 'Get 7-9 hours of sleep for optimal skin repair', color: 'text-rose-500' },
+];
+
+export default function DashboardHome({ onStartScan, onViewHistory, user }: DashboardHomeProps) {
+  const [progress, setProgress] = useState<ProgressDataPoint[]>([]);
+  const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
+  const [latestStats, setLatestStats] = useState<{ acne_count: number; severity: string; confidence: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [modelOnline, setModelOnline] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getProgressData()
+      .then((data) => {
+        if (cancelled) return;
+        setProgress(data.progress);
+        setRecentScans(data.recent_scans);
+        setLatestStats(data.latest_stats);
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/model/status`)
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setModelOnline(data.model_loaded); })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, []);
+
+  const now = new Date();
+  const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 18 ? 'Good afternoon' : 'Good evening';
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const firstName = user?.name?.split(' ')[0] || 'there';
+
+  const healthScore = progress.length > 0 ? progress[progress.length - 1].score : 0;
+  const prevScore = progress.length > 1 ? progress[progress.length - 2].score : healthScore;
+  const scoreTrend = healthScore - prevScore;
+
+  const acneCount = latestStats?.acne_count ?? 0;
+  const severity = latestStats?.severity ?? 'No scans yet';
+
   return (
-    <div className="space-y-12">
-      <header className="flex justify-between items-end">
+    <div className="space-y-6 md:space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
-          <h2 className="text-sm font-bold text-blue-600 uppercase tracking-[0.2em] mb-3">Medical Intelligence</h2>
-          <h1 className="text-5xl font-extrabold tracking-tight">Welcome, <br/>Dr. Johnson</h1>
+          <p className="text-surface-500 text-sm font-medium mb-1">{dateStr}</p>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-surface-900">{greeting}, {firstName}</h1>
+          <p className="text-surface-500 text-sm mt-1">Here's your skin health overview</p>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <p className="text-[#64748B] text-sm font-bold uppercase tracking-widest">Vision Engine</p>
-          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="text-[10px] font-black uppercase tracking-widest">Neural Terminal Active</span>
-          </div>
-        </div>
-      </header>
+        <button 
+          onClick={onStartScan}
+          className="bg-primary-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-primary-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-600/10 text-sm w-fit"
+        >
+          <ScanLine className="w-4 h-4" aria-hidden="true" />
+          New Analysis
+        </button>
+      </div>
 
-      {/* Main Analysis Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-[32px] p-10 border border-[#E2E8F0] shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
-            <Activity className="w-64 h-64" />
-          </div>
+      {/* Health Score + Quick Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Health Score */}
+        <div className="lg:col-span-1 bg-gradient-to-br from-primary-600 to-primary-800 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-10 -mt-10" aria-hidden="true"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-10 -mb-10" aria-hidden="true"></div>
           
           <div className="relative z-10">
-            <h3 className="text-[#64748B] font-bold uppercase tracking-widest text-xs mb-8">Clinical Overview</h3>
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <Activity className="w-4 h-4" aria-hidden="true" />
+              </div>
+              <span className="text-sm font-bold uppercase tracking-wider text-primary-200">Skin Health Index</span>
+            </div>
             
-            <div className="flex flex-col md:flex-row items-center gap-12">
-              <div className="relative w-56 h-56 flex-shrink-0">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="112" cy="112" r="100" stroke="#F1F5F9" strokeWidth="16" fill="transparent" />
-                  <circle cx="112" cy="112" r="100" stroke="#1E3A8A" strokeWidth="16" fill="transparent" strokeDasharray="628" strokeDashoffset={628 - (628 * 82) / 100} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-6xl font-black tracking-tighter text-[#0F172A]">82</span>
-                  <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mt-1">Skin Index</span>
+            <div className="flex items-center gap-6">
+              <ProgressRing value={healthScore} size={120} strokeWidth={8} color="#ffffff" bgColor="rgba(255,255,255,0.2)" />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {scoreTrend >= 0 ? (
+                    <TrendingUp className="w-4 h-4 text-emerald-300" aria-hidden="true" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-rose-300" aria-hidden="true" />
+                  )}
+                  <span className={`text-sm font-bold ${scoreTrend >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                    {scoreTrend >= 0 ? '+' : ''}{scoreTrend}% this scan
+                  </span>
                 </div>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-2xl font-bold tracking-tight mb-2">Patient is performing well.</h4>
-                  <p className="text-[#64748B] leading-relaxed">Analysis suggests a 14% improvement in surface hydration compared to last month. Sebaceous activity remains within optimal parameters.</p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button onClick={onStartScan} className="bg-[#1E3A8A] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#112D75] transition-all flex items-center justify-center gap-3 shadow-lg shadow-blue-900/10">
-                    Execute New Analysis
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                  <button onClick={onStartScan} className="bg-white border border-[#E2E8F0] text-[#0F172A] px-8 py-4 rounded-2xl font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-3">
-                    Upload for Analysis
-                  </button>
-                </div>
+                <p className="text-primary-200 text-sm leading-relaxed">
+                  {progress.length === 0
+                    ? 'Complete your first scan to see your health trend.'
+                    : 'Your skin health score based on your latest analysis.'}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="space-y-8">
-          <div className="bg-white rounded-[32px] p-8 border border-[#E2E8F0] shadow-sm">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#1E3A8A]">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="font-bold text-lg">Patient Data</h4>
-                <p className="text-xs text-[#64748B] font-medium">Syncing live history</p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {[1,2,3].map(i => (
-                <div key={i} className="h-2 bg-gray-50 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.random() * 100}%` }}></div>
+        {/* Quick Stats */}
+        <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: 'Acne', value: String(acneCount), subtext: 'spots detected', icon: Shield, color: 'bg-rose-50 text-rose-600' },
+            { label: 'Severity', value: severity, subtext: 'current level', icon: AlertCircle, color: 'bg-amber-50 text-amber-600' },
+            { label: 'Scans', value: String(progress.length), subtext: 'total analyses', icon: ScanLine, color: 'bg-blue-50 text-blue-600' },
+            { label: 'Score', value: progress.length > 0 ? `${healthScore}` : '--', subtext: 'health index', icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600' },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-white rounded-2xl p-4 md:p-5 border border-surface-200 hover:border-primary-200 transition-all group cursor-pointer">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-9 h-9 ${stat.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                  <stat.icon className="w-4 h-4" aria-hidden="true" />
                 </div>
-              ))}
+              </div>
+              <div className="text-2xl font-black text-surface-900">{stat.value}</div>
+              <div className="text-2xs text-surface-500 font-medium mt-0.5">{stat.subtext}</div>
             </div>
-          </div>
+          ))}
+        </div>
+      </div>
 
-          <div className="bg-[#1E3A8A] rounded-[32px] p-8 shadow-xl shadow-blue-900/20 text-white relative overflow-hidden">
-            <Star className="absolute -top-4 -right-4 w-32 h-32 text-blue-400 opacity-20 rotate-12" />
-            <h4 className="text-xl font-bold mb-3 relative z-10">Premium Plan</h4>
-            <p className="text-blue-100 text-sm leading-relaxed mb-6 relative z-10">You have access to high-resolution multi-spectral analysis.</p>
-            <button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3 rounded-xl text-sm font-bold transition-all relative z-10">
-              Manage License
+      {/* Progress Chart + Recent Scans */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Progress Chart */}
+        <div className="lg:col-span-2 bg-white rounded-3xl p-5 md:p-6 border border-surface-200">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-bold text-surface-900">Progress Over Time</h3>
+              <p className="text-xs text-surface-500 mt-0.5">{progress.length === 0 ? 'No data yet' : `Last ${progress.length} scans`}</p>
+            </div>
+            {progress.length >= 2 && (
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${scoreTrend >= 0 ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+                {scoreTrend >= 0 ? (
+                  <TrendingUp className="w-3 h-3 text-emerald-600" aria-hidden="true" />
+                ) : (
+                  <AlertCircle className="w-3 h-3 text-rose-600" aria-hidden="true" />
+                )}
+                <span className={`text-2xs font-bold ${scoreTrend >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {scoreTrend >= 0 ? '+' : ''}{scoreTrend}%
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="h-48 md:h-56">
+            {progress.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-surface-400 text-sm">
+                Complete your first scan to see your progress chart.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={progress} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} dy={10} fontWeight={600} />
+                  <YAxis domain={[0, 100]} stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} fontWeight={600} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', padding: '8px 12px' }}
+                    itemStyle={{ color: '#1E3A8A', fontWeight: '800', fontSize: '14px' }}
+                    labelStyle={{ color: '#64748B', fontWeight: '600', marginBottom: '2px', fontSize: '11px' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="#1E3A8A" 
+                    strokeWidth={3} 
+                    dot={{ fill: '#1E3A8A', strokeWidth: 2, r: 4, stroke: '#fff' }} 
+                    activeDot={{ r: 6, strokeWidth: 0, fill: '#1E3A8A' }} 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Scans */}
+        <div className="bg-white rounded-3xl p-5 md:p-6 border border-surface-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-surface-900">Recent Scans</h3>
+            {onViewHistory && (
+              <button onClick={onViewHistory} className="text-2xs font-bold text-primary-600 hover:text-primary-800 transition-colors">
+                View All
+              </button>
+            )}
+          </div>
+          <div className="space-y-3">
+            {recentScans.length === 0 ? (
+              <div className="text-center py-8 text-surface-400 text-sm">
+                No scans yet. Start your first analysis!
+              </div>
+            ) : (
+              recentScans.map((scan) => (
+                <div key={scan.id} className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl hover:bg-surface-100 transition-colors cursor-pointer group">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-surface-200 group-hover:border-primary-200 transition-colors flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-surface-400" aria-hidden="true" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-surface-900 truncate">{scan.date}</div>
+                    <div className="text-2xs text-surface-500 flex items-center gap-1">
+                      <Clock className="w-2.5 h-2.5" aria-hidden="true" />
+                      {scan.time}
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-lg font-black text-primary-600">{scan.score}</div>
+                    <div className={`text-2xs font-bold ${scan.severity === 'Clear' ? 'text-emerald-600' : scan.severity === 'Mild' ? 'text-amber-600' : 'text-rose-600'}`}>
+                      {scan.severity}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions + Tips */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Quick Actions */}
+        <div className="bg-white rounded-3xl p-5 md:p-6 border border-surface-200">
+          <h3 className="font-bold text-surface-900 mb-4">Quick Actions</h3>
+          <div className="space-y-3">
+            <button 
+              onClick={onStartScan}
+              className="w-full flex items-center gap-4 p-4 bg-primary-50 rounded-2xl hover:bg-primary-100 transition-colors text-left group"
+            >
+              <div className="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center text-white group-hover:scale-105 transition-transform">
+                <ScanLine className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div className="flex-1">
+                <div className="font-bold text-surface-900">Start New Scan</div>
+                <div className="text-xs text-surface-500">Capture or upload an image for analysis</div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-surface-400 group-hover:text-primary-600 transition-colors" aria-hidden="true" />
             </button>
+
+            {onViewHistory && (
+              <button 
+                onClick={onViewHistory}
+                className="w-full flex items-center gap-4 p-4 bg-surface-50 rounded-2xl hover:bg-surface-100 transition-colors text-left group"
+              >
+                <div className="w-12 h-12 bg-surface-200 rounded-xl flex items-center justify-center text-surface-600 group-hover:scale-105 transition-transform">
+                  <TrendingUp className="w-5 h-5" aria-hidden="true" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-bold text-surface-900">View Progress</div>
+                  <div className="text-xs text-surface-500">Track your skin health improvements</div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-surface-400 group-hover:text-surface-600 transition-colors" aria-hidden="true" />
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Daily Tips */}
+        <div className="bg-gradient-to-br from-surface-50 to-white rounded-3xl p-5 md:p-6 border border-surface-200">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-4 h-4 text-primary-600" aria-hidden="true" />
+            <h3 className="font-bold text-surface-900">Daily Skincare Tips</h3>
+          </div>
+          <div className="space-y-3">
+            {quickTips.map((tip) => (
+              <div key={tip.id} className="flex items-start gap-3 p-3 bg-white rounded-xl border border-surface-100">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${tip.color.replace('text-', 'bg-').replace('-50', '-50')}`}>
+                  <tip.icon className={`w-4 h-4 ${tip.color}`} aria-hidden="true" />
+                </div>
+                <p className="text-sm text-surface-600 leading-relaxed">{tip.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* System Status Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-2xl border border-surface-200">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${modelOnline ? 'bg-emerald-500 animate-pulse' : 'bg-surface-300'}`} aria-hidden="true"></div>
+            <span className="text-2xs font-bold text-surface-500 uppercase tracking-widest">AI Engine {modelOnline ? 'Online' : 'Offline'}</span>
+          </div>
+        </div>
+        <span className="text-2xs text-surface-400">
+          {recentScans.length > 0 ? `Last scan: ${recentScans[0].date}` : 'No scans yet'}
+        </span>
       </div>
     </div>
   );

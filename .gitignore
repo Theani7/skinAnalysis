@@ -54,13 +54,17 @@ backend/results/*
 !backend/results/.gitkeep
 backend/processed/*
 !backend/processed/.gitkeep
+backend/*.db
 
 # Model files (large)
 model/*.h5
 model/*.keras
 model/*.weights.h5
+model/*.pt
 backend/model/*.h5
 backend/model/*.keras
+backend/models/*.pt
+frontend/public/models/
 
 # Misc
 *.pem

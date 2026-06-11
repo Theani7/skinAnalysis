@@ -3,12 +3,12 @@ import numpy as np
 import os
 import uuid
 from datetime import datetime
-from pathlib import Path
 import logging
 
 logger = logging.getLogger(__name__)
 
-PROCESSED_DIR = "/Users/theani7x/Downloads/skin-diseases/backend/processed"
+BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROCESSED_DIR = os.path.join(BACKEND_DIR, "processed")
 TARGET_SIZE = (224, 224)
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 
@@ -18,7 +18,6 @@ class ImageProcessor:
 
     def __init__(self):
         os.makedirs(PROCESSED_DIR, exist_ok=True)
-        logger.info(f"ImageProcessor initialized. Output dir: {PROCESSED_DIR}")
 
     def validate_image(self, filename: str) -> bool:
         """Validate image file extension."""
@@ -37,14 +36,6 @@ class ImageProcessor:
     def resize_image(self, image: np.ndarray, size: tuple = TARGET_SIZE) -> np.ndarray:
         """Resize image to target size."""
         return cv2.resize(image, size, interpolation=cv2.INTER_LANCZOS4)
-
-    def normalize_image(self, image: np.ndarray) -> np.ndarray:
-        """Normalize pixel values to 0-1 range."""
-        return image.astype(np.float32) / 255.0
-
-    def denormalize_image(self, image: np.ndarray) -> np.ndarray:
-        """Convert normalized image back to uint8 for saving."""
-        return (image * 255).astype(np.uint8)
 
     def apply_clahe(self, image: np.ndarray) -> np.ndarray:
         """Apply Contrast Limited Adaptive Histogram Equalization."""
@@ -68,8 +59,7 @@ class ImageProcessor:
         2. Apply CLAHE enhancement
         3. Reduce noise
         4. Resize to 224x224
-        5. Normalize pixel values
-        6. Save processed image
+        5. Save processed image
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         unique_id = uuid.uuid4().hex[:8]
@@ -80,26 +70,11 @@ class ImageProcessor:
         processed_filename = f"{timestamp}_{unique_id}_{original_name_no_ext}_processed.png"
         processed_path = os.path.join(PROCESSED_DIR, processed_filename)
 
-        logger.info(f"Processing image: {original_filename}")
-
         image = self.read_image(image_path)
-        logger.info(f"Image read successfully. Shape: {image.shape}")
-
         enhanced = self.apply_clahe(image)
-        logger.info("CLAHE enhancement applied")
-
         denoised = self.reduce_noise(enhanced)
-        logger.info("Noise reduction applied")
-
         resized = self.resize_image(denoised)
-        logger.info(f"Image resized to: {resized.shape}")
-
-        normalized = self.normalize_image(resized)
-        logger.info("Image normalized")
-
-        savable = self.denormalize_image(normalized)
-        cv2.imwrite(processed_path, savable)
-        logger.info(f"Processed image saved: {processed_path}")
+        cv2.imwrite(processed_path, resized)
 
         return {
             "original_filename": original_filename,
@@ -109,7 +84,7 @@ class ImageProcessor:
             "original_size": os.path.getsize(image_path),
             "processed_size": os.path.getsize(processed_path),
             "dimensions": {"width": TARGET_SIZE[0], "height": TARGET_SIZE[1]},
-            "normalized": True,
+            "normalized": False,
         }
 
 

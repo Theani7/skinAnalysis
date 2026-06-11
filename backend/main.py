@@ -3,40 +3,69 @@ SkinAI Backend - FastAPI Application
 
 Main entry point for the acne detection API.
 Provides endpoints for image upload, processing, and AI analysis.
+JWT-based authentication for all clinical endpoints.
 """
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
+from contextlib import asynccontextmanager
 import os
 import uuid
+import json
 from datetime import datetime
 import logging
 import traceback
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
+
+from services.database import init_db, get_db
+from services.models import User, Scan
 from services.image_processor import image_processor
 from services.predictor import predictor
+from services.auth import (
+    register_user,
+    login_user,
+    get_current_user,
+    update_user_profile,
+    UserCreate,
+    UserLogin,
+    UserUpdate,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize database tables on startup."""
+    logger.info("Initializing database...")
+    await init_db()
+    logger.info("Database ready.")
+    yield
+
+
 app = FastAPI(
     title="SkinAI API",
     description="API for acne detection and skin analysis",
-    version="3.0.0"
+    version="3.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=os.getenv("SKINAI_CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = "/Users/theani7x/Downloads/skin-diseases/backend/uploads"
-PROCESSED_DIR = "/Users/theani7x/Downloads/skin-diseases/backend/processed"
-RESULTS_DIR = "/Users/theani7x/Downloads/skin-diseases/backend/results"
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.path.join(BACKEND_DIR, "uploads")
+PROCESSED_DIR = os.path.join(BACKEND_DIR, "processed")
+RESULTS_DIR = os.path.join(BACKEND_DIR, "results")
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(PROCESSED_DIR, exist_ok=True)
@@ -62,10 +91,10 @@ def save_uploaded_file(file: UploadFile, contents: bytes, directory: str) -> str
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     unique_filename = f"{timestamp}_{uuid.uuid4().hex}.{extension}"
     file_path = os.path.join(directory, unique_filename)
-    
+
     with open(file_path, "wb") as f:
         f.write(contents)
-    
+
     return unique_filename
 
 
@@ -75,19 +104,71 @@ async def root():
     return {"message": "SkinAI API v3.0", "status": "healthy"}
 
 
+# ═══════════════════════════════════════════
+# AUTH ROUTES
+# ═══════════════════════════════════════════
+
+@app.post("/auth/register")
+async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
+    """Register a new user account."""
+    try:
+        return await register_user(data, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Registration error: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Registration failed. Please try again.")
+
+
+@app.post("/auth/login")
+async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
+    """Authenticate and receive a JWT token."""
+    try:
+        return await login_user(data, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Login failed. Please try again.")
+
+
+@app.get("/auth/me")
+async def get_me(user: dict = Depends(get_current_user)):
+    """Get the current authenticated user's profile."""
+    return user
+
+
+@app.put("/auth/profile")
+async def update_profile(
+    data: UserUpdate,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update the current user's profile (name)."""
+    try:
+        return await update_user_profile(user["id"], data, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Profile update error: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Failed to update profile.")
+
+
+# ═══════════════════════════════════════════
+# PROTECTED CLINICAL ROUTES
+# ═══════════════════════════════════════════
+
 @app.post("/upload")
-async def upload_image(file: UploadFile = File(...)):
-    """
-    Upload an image file.
-    
-    Returns:
-        JSON with upload status and file information
-    """
+async def upload_image(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    """Upload an image file. (Requires authentication)"""
     try:
         if not validate_image(file):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid file format. Only JPG, JPEG, and PNG files are allowed"
+                detail="Invalid file format. Only JPG, JPEG, and PNG files are allowed",
             )
 
         contents = await file.read()
@@ -114,18 +195,16 @@ async def upload_image(file: UploadFile = File(...)):
 
 
 @app.post("/process")
-async def process_image(file: UploadFile = File(...)):
-    """
-    Process image with OpenCV preprocessing pipeline.
-    
-    Returns:
-        JSON with processing results and file paths
-    """
+async def process_image(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    """Process image with OpenCV preprocessing pipeline. (Requires authentication)"""
     try:
         if not validate_image(file):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid file format. Only JPG, JPEG, and PNG files are allowed"
+                detail="Invalid file format. Only JPG, JPEG, and PNG files are allowed",
             )
 
         contents = await file.read()
@@ -157,18 +236,17 @@ async def process_image(file: UploadFile = File(...)):
 
 
 @app.post("/analyze")
-async def analyze_image(file: UploadFile = File(...)):
-    """
-    Analyze image for acne detection using YOLOv8 model.
-    
-    Returns:
-        JSON with detection results including acne count, severity, and confidence
-    """
+async def analyze_image(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Analyze image for acne detection using YOLOv8 model. (Requires authentication)"""
     try:
         if not validate_image(file):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid file format. Only JPG, JPEG, and PNG files are allowed"
+                detail="Invalid file format. Only JPG, JPEG, and PNG files are allowed",
             )
 
         contents = await file.read()
@@ -178,21 +256,41 @@ async def analyze_image(file: UploadFile = File(...)):
         if not predictor.model_loaded:
             raise HTTPException(
                 status_code=503,
-                detail="AI model not available. Please check model file."
+                detail="AI model not available. Please check model file.",
             )
 
         filename = save_uploaded_file(file, contents, UPLOAD_DIR)
         file_path = os.path.join(UPLOAD_DIR, filename)
 
-        logger.info(f"Analyzing image: {filename}")
-        
+        logger.info(f"Analyzing image: {filename} (user: {user['email']})")
+
         result = predictor.analyze_image(file_path)
 
         if result["status"] == "error":
             raise HTTPException(
                 status_code=500,
-                detail=f"Analysis failed: {result.get('message', 'Unknown error')}"
+                detail=f"Analysis failed: {result.get('message', 'Unknown error')}",
             )
+
+        # Save scan to database
+        scan = Scan(
+            user_id=user["id"],
+            original_image=filename,
+            result_image=result["result_image"],
+            acne_count=result["acne_count"],
+            severity=result["severity"],
+            confidence=result["confidence"],
+            spot_types=json.dumps(result.get("spot_types", {})),
+            pigmentation_data=json.dumps(result.get("pigmentation_data")),
+            dryness_data=json.dumps(result.get("dryness_data")),
+            recommendations=json.dumps(result.get("recommendations", [])),
+            conflicts=json.dumps(result.get("conflicts", [])),
+            routine=json.dumps(result.get("routine", {"morning": [], "evening": [], "tips": []})),
+            face_quality=json.dumps(result.get("face_quality")),
+        )
+        db.add(scan)
+        await db.flush()
+        logger.info(f"Scan saved: {scan.id} (user: {user['email']})")
 
         return JSONResponse(
             status_code=200,
@@ -209,6 +307,9 @@ async def analyze_image(file: UploadFile = File(...)):
                 "pigmentation_data": result.get("pigmentation_data"),
                 "dryness_data": result.get("dryness_data"),
                 "recommendations": result.get("recommendations", []),
+                "conflicts": result.get("conflicts", []),
+                "routine": result.get("routine", {"morning": [], "evening": [], "tips": []}),
+                "face_quality": result.get("face_quality"),
             },
         )
     except HTTPException as he:
@@ -217,6 +318,148 @@ async def analyze_image(file: UploadFile = File(...)):
         logger.error(f"Analysis error: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
+
+# ═══════════════════════════════════════════
+# SCAN HISTORY ROUTES
+# ═══════════════════════════════════════════
+
+@app.get("/scans")
+async def list_scans(
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    limit: int = 20,
+    offset: int = 0,
+):
+    """List the current user's scan history, newest first."""
+    result = await db.execute(
+        select(Scan)
+        .where(Scan.user_id == user["id"])
+        .order_by(Scan.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    scans = result.scalars().all()
+
+    # Get total count for pagination
+    count_result = await db.execute(
+        select(func.count()).select_from(Scan).where(Scan.user_id == user["id"])
+    )
+    total = count_result.scalar()
+
+    return {
+        "scans": [
+            {
+                "id": s.id,
+                "created_at": s.created_at.isoformat(),
+                "original_image": s.original_image,
+                "result_image": s.result_image,
+                "acne_count": s.acne_count,
+                "severity": s.severity,
+                "confidence": s.confidence,
+                "original_path": f"/images/original/{s.original_image}",
+                "result_path": f"/results/{s.result_image}",
+            }
+            for s in scans
+        ],
+        "total": total,
+    }
+
+
+@app.get("/scans/history/progress")
+async def get_progress_data(
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get progress data for charts: scores over time for this user."""
+    result = await db.execute(
+        select(Scan)
+        .where(Scan.user_id == user["id"])
+        .order_by(Scan.created_at.asc())
+    )
+    scans = result.scalars().all()
+
+    if not scans:
+        return {"progress": [], "recent_scans": [], "latest_stats": None}
+
+    # Build progress data points (date → severity score)
+    severity_scores = {"Clear": 100, "Mild": 75, "Moderate": 50, "Severe": 25}
+    progress = []
+    for s in scans:
+        progress.append({
+            "date": s.created_at.strftime("%b %d"),
+            "score": severity_scores.get(s.severity, 50),
+            "acne_count": s.acne_count,
+            "severity": s.severity,
+            "id": s.id,
+        })
+
+    # Get latest scan stats
+    latest = scans[-1]
+    latest_stats = {
+        "acne_count": latest.acne_count,
+        "severity": latest.severity,
+        "confidence": latest.confidence,
+    }
+
+    # Get recent 5 scans for dashboard list
+    recent = list(reversed(scans[-5:]))
+    recent_scans = [
+        {
+            "id": s.id,
+            "date": s.created_at.strftime("%B %d, %Y"),
+            "time": s.created_at.strftime("%I:%M %p"),
+            "score": severity_scores.get(s.severity, 50),
+            "severity": s.severity,
+            "acne": s.acne_count,
+        }
+        for s in recent
+    ]
+
+    return {
+        "progress": progress,
+        "recent_scans": recent_scans,
+        "latest_stats": latest_stats,
+    }
+
+
+@app.get("/scans/{scan_id}")
+async def get_scan(
+    scan_id: str,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get a single scan's full details."""
+    result = await db.execute(
+        select(Scan).where(Scan.id == scan_id, Scan.user_id == user["id"])
+    )
+    scan = result.scalar_one_or_none()
+
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found.")
+
+    return {
+        "id": scan.id,
+        "created_at": scan.created_at.isoformat(),
+        "original_image": scan.original_image,
+        "result_image": scan.result_image,
+        "acne_count": scan.acne_count,
+        "severity": scan.severity,
+        "confidence": scan.confidence,
+        "spot_types": json.loads(scan.spot_types),
+        "pigmentation_data": json.loads(scan.pigmentation_data),
+        "dryness_data": json.loads(scan.dryness_data),
+        "recommendations": json.loads(scan.recommendations),
+        "conflicts": json.loads(scan.conflicts),
+        "routine": json.loads(scan.routine),
+        "face_quality": json.loads(scan.face_quality),
+        "original_path": f"/images/original/{scan.original_image}",
+        "result_path": f"/results/{scan.result_image}",
+    }
+
+
+# ═══════════════════════════════════════════
+# IMAGE SERVING ROUTES
+# ═══════════════════════════════════════════
 
 @app.get("/images/original/{filename}")
 async def get_original_image(filename: str):
@@ -245,36 +488,14 @@ async def get_result_image(filename: str):
     return FileResponse(file_path, media_type="image/jpeg")
 
 
-@app.get("/uploads")
-async def list_uploads():
-    """List all uploaded images."""
-    try:
-        files = os.listdir(UPLOAD_DIR)
-        file_info = []
-        for filename in files:
-            filepath = os.path.join(UPLOAD_DIR, filename)
-            if os.path.isfile(filepath):
-                stat = os.stat(filepath)
-                file_info.append({
-                    "filename": filename,
-                    "size": stat.st_size,
-                    "modified": stat.st_mtime,
-                })
-        return {"files": file_info}
-    except Exception as e:
-        logger.error(f"Error listing uploads: {e}")
-        raise HTTPException(status_code=500, detail="Failed to list uploaded files")
-
-
 @app.get("/model/status")
 async def get_model_status():
     """Check AI model status."""
     return {
         "model_loaded": predictor.model_loaded,
-        "opencv_fallback": predictor.use_opencv_fallback,
         "model_path": "/model/model.h5",
         "input_size": "640x640",
-        "confidence_threshold": 0.25
+        "confidence_threshold": 0.25,
     }
 
 
