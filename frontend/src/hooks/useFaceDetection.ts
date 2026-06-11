@@ -4,7 +4,7 @@ import * as faceapi from 'face-api.js';
 interface FaceDetection {
   box: { x: number; y: number; width: number; height: number };
   landmarks?: faceapi.FaceLandmarks68;
-  detection: faceapi.WithFaceDetection<{}>;
+  detection: faceapi.WithFaceDetection<Record<string, never>>;
 }
 
 interface UseFaceDetectionReturn {
@@ -96,7 +96,7 @@ export function useFaceDetection(): UseFaceDetectionReturn {
     }
 
     // Lighting: estimate from face region brightness
-    let lighting = 70;
+    const lighting = 70;
 
     // Overall score
     const overall = Math.round(centeredness * 0.35 + size * 0.3 + angle * 0.2 + lighting * 0.15);

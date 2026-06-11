@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, ArrowLeft, ShieldAlert, Droplets, Activity, Maximize, CheckCircle2, AlertTriangle, Sun, Moon, Lightbulb, Clock, Sparkles, ChevronRight, Zap } from 'lucide-react';
+import { Download, ArrowLeft, ShieldAlert, Droplets, Activity, Maximize, CheckCircle2, AlertTriangle, Sun, Moon, Lightbulb, Clock, Zap } from 'lucide-react';
 import { AnalysisResponse, getResultImageUrl } from '../services/api';
 import { generateClinicalReportPDF } from '../utils/generatePDF';
 

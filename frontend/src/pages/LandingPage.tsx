@@ -1,4 +1,4 @@
-import { ArrowRight, Activity, Camera, BarChart3, FileText, Sparkles, Shield, ChevronRight } from 'lucide-react';
+import { ArrowRight, Activity, Camera, BarChart3, FileText, Sparkles, Shield } from 'lucide-react';
 
 export default function LandingPage({ onStart }: { onStart: () => void }) {
   return (

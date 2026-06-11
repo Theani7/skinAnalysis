@@ -3,7 +3,7 @@ import { Activity, ScanLine, TrendingUp, Droplets, Shield, Sun, Calendar, Clock,
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ProgressRing } from '../components/ui/ProgressRing';
 import { AuthUser } from '../services/auth';
-import { getProgressData, ProgressDataPoint, RecentScanItem, ApiError } from '../services/api';
+import { getProgressData, ProgressDataPoint, RecentScanItem } from '../services/api';
 
 interface DashboardHomeProps {
   onStartScan: () => void;
@@ -21,7 +21,6 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
   const [progress, setProgress] = useState<ProgressDataPoint[]>([]);
   const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
   const [latestStats, setLatestStats] = useState<{ acne_count: number; severity: string; confidence: number } | null>(null);
-  const [loading, setLoading] = useState(true);
   const [modelOnline, setModelOnline] = useState(false);
 
   useEffect(() => {
