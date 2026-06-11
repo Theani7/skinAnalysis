@@ -45,10 +45,12 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
 
     let animationFrame: number;
     const video = videoRef.current;
-    const canvas = document.createElement('canvas'); // Offscreen sampling
-    canvas.width = 160;
-    canvas.height = 120;
+    const canvas = document.createElement('canvas');
+    canvas.width = 100; // Small for performance
+    canvas.height = 100;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    let smoothedMetrics = { lighting: 0, alignment: 0, focus: 0 };
 
     const analyzeFrame = () => {
       if (!ctx || video.paused || video.ended) {
@@ -60,33 +62,55 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
       const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = frame.data;
       
-      let totalLuminance = 0;
-      let totalContrast = 0;
+      let totalLum = 0;
+      let centerLum = 0;
+      let variance = 0;
       
-      // Sample pixels for performance (step 4 for speed)
-      for (let i = 0; i < data.length; i += 16) {
-        const r = data[i];
-        const g = data[i+1];
-        const b = data[i+2];
-        
-        // Perceptual Luminance
-        const lum = (0.299 * r + 0.587 * g + 0.114 * b);
-        totalLuminance += lum;
+      const centerStart = 30; // 30% to 70% is center
+      const centerEnd = 70;
 
-        // Simple contrast check (difference from neighbors)
-        if (i > 0) {
-          totalContrast += Math.abs(lum - (0.299 * data[i-16] + 0.587 * data[i-15] + 0.114 * data[i-14]));
+      for (let y = 0; y < canvas.height; y += 2) {
+        for (let x = 0; x < canvas.width; x += 2) {
+          const i = (y * canvas.width + x) * 4;
+          const r = data[i];
+          const g = data[i+1];
+          const b = data[i+2];
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+          
+          totalLum += lum;
+          
+          // Center Weighting
+          if (x > centerStart && x < centerEnd && y > centerStart && y < centerEnd) {
+            centerLum += lum;
+          }
+
+          // Laplacian Variance (Sharpness detection)
+          // Simple check against previous pixel
+          if (x > 0) {
+            const prevLum = 0.299 * data[i-4] + 0.587 * data[i-3] + 0.114 * data[i-2];
+            variance += Math.pow(lum - prevLum, 2);
+          }
         }
       }
 
-      const pixelCount = data.length / 16;
-      const avgLum = (totalLuminance / pixelCount) / 255 * 100;
-      const avgContrast = (totalContrast / pixelCount) / 100 * 100;
+      const pixelCount = (canvas.width * canvas.height) / 4;
+      const centerPixelCount = (40 * 40) / 4;
+      
+      const avgLum = (totalLum / pixelCount) / 255 * 100;
+      const avgCenterLum = (centerLum / centerPixelCount) / 255 * 100;
+      const sharpness = Math.sqrt(variance / pixelCount) * 2; // Normalized sharpness
+
+      // Exponential smoothing for stable UI
+      smoothedMetrics = {
+        lighting: smoothedMetrics.lighting * 0.8 + avgLum * 0.2,
+        focus: smoothedMetrics.focus * 0.8 + Math.min(100, sharpness * 5) * 0.2,
+        alignment: smoothedMetrics.alignment * 0.8 + (avgCenterLum > 35 && avgCenterLum < 85 && sharpness > 8 ? 95 : 10) * 0.2
+      };
 
       setVisionMetrics({
-        lighting: Math.min(100, avgLum * 1.5), 
-        focus: Math.min(100, avgContrast * 4),
-        alignment: avgLum > 20 && avgContrast > 15 ? 95 : 10
+        lighting: smoothedMetrics.lighting,
+        focus: smoothedMetrics.focus,
+        alignment: smoothedMetrics.alignment
       });
 
       animationFrame = requestAnimationFrame(analyzeFrame);
@@ -98,6 +122,10 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
 
   const handleCapture = async () => {
     try {
+      if (visionMetrics.alignment < 50) {
+        setError('Please align your face correctly before capturing.');
+        return;
+      }
       console.log('Starting capture process...');
       setError(null);
       const blob = await capturePhoto();
@@ -191,24 +219,25 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
                   <div className="absolute bottom-8 right-8 w-12 h-12 border-b-2 border-r-2 border-white/40 rounded-br-xl"></div>
 
                   {/* Central Reticle */}
-                  <div className={`w-64 h-80 border-2 transition-all duration-500 rounded-[48px] flex items-center justify-center
-                    ${visionMetrics.alignment > 80 ? 'border-emerald-500 bg-emerald-500/5' : 'border-white/20'}
+                  <div className={`w-64 h-80 border-[1px] transition-all duration-700 rounded-[60px] flex items-center justify-center
+                    ${visionMetrics.alignment > 80 ? 'border-emerald-500 bg-emerald-500/5' : 'border-white/10'}
                   `}>
-                    {/* Status Hint Overlaid on Image */}
-                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-72">
-                      <div className="bg-black/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl text-center">
-                        <p className="text-white text-sm font-bold tracking-tight leading-tight">
-                          {visionMetrics.alignment < 80 ? "Position face in center" : 
-                           visionMetrics.lighting < 50 ? "Increase ambient light" :
-                           "Optimal capture ready"}
+                    {/* Status Hint Overlaid on Image - Moved Up to avoid shutter */}
+                    <div className="absolute -bottom-2 w-72">
+                      <div className="bg-black/60 backdrop-blur-xl border border-white/10 p-4 rounded-2xl text-center shadow-2xl">
+                        <p className="text-white text-xs font-bold tracking-tight leading-tight">
+                          {visionMetrics.alignment < 50 ? "Center face in frame" : 
+                           visionMetrics.focus < 30 ? "Hold steady for focus" :
+                           visionMetrics.lighting < 30 ? "Increase ambient light" :
+                           "Optimal Capture State"}
                         </p>
                       </div>
                     </div>
 
                     {/* AI Target State */}
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full ${visionMetrics.alignment > 80 ? 'bg-emerald-500' : 'bg-white/40'}`}></div>
-                      <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                      <div className={`w-1.5 h-1.5 rounded-full ${visionMetrics.alignment > 80 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-white/20'}`}></div>
+                      <span className="text-[9px] font-black text-white uppercase tracking-[0.3em] opacity-60">
                         {visionMetrics.alignment > 80 ? 'Ready' : 'Analyzing'}
                       </span>
                     </div>
@@ -229,16 +258,16 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
                     <p className="text-white/40 font-bold uppercase tracking-widest text-xs">Initializing Optics...</p>
                   </div>
                 ) : (
-                  <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
+                  <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
+                    {/* High-End Leica Style Shutter */}
                     <button 
                       onClick={handleCapture}
-                      className="group relative w-20 h-20 bg-white rounded-full p-1.5 shadow-2xl transition-transform active:scale-90"
+                      className="group relative w-20 h-20 flex items-center justify-center transition-transform active:scale-95"
                     >
-                      <div className="w-full h-full border-4 border-[#0F172A] rounded-full flex items-center justify-center">
-                        <div className="w-12 h-12 bg-[#0F172A] rounded-full transition-all group-hover:scale-110"></div>
-                      </div>
-                      <span className="absolute -top-12 left-1/2 -translate-x-1/2 text-white font-bold text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Capture</span>
+                      <div className="absolute inset-0 border-2 border-white rounded-full opacity-40 group-hover:opacity-100 transition-opacity"></div>
+                      <div className="w-[68px] h-[68px] bg-white rounded-full border-[6px] border-transparent transition-all group-hover:scale-90 group-active:bg-gray-200"></div>
                     </button>
+                    <span className="text-white/40 text-[9px] font-black uppercase tracking-[0.3em]">Capture Frame</span>
                   </div>
                 )}
               </div>
