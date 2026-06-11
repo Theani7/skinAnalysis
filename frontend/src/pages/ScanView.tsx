@@ -118,11 +118,47 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
               />
               <canvas ref={canvasRef} className="hidden" />
 
-              {/* Scanning Reticle */}
-              <div className="absolute inset-16 border-2 border-dashed border-blue-500/20 rounded-full animate-[spin_20s_linear_infinite] pointer-events-none"></div>
-              
-              {/* Laser Line */}
-              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-[scan_3s_ease-in-out_infinite] z-10 pointer-events-none"></div>
+              {/* Professional YOLO-style Targeting System */}
+              {isActive && !isAnalyzing && (
+                <div className="absolute inset-0 pointer-events-none z-10">
+                  {/* Outer Framing Corners */}
+                  <div className="absolute top-10 left-10 w-20 h-20 border-t-4 border-l-4 border-white/30 rounded-tl-3xl"></div>
+                  <div className="absolute top-10 right-10 w-20 h-20 border-t-4 border-r-4 border-white/30 rounded-tr-3xl"></div>
+                  <div className="absolute bottom-10 left-10 w-20 h-20 border-b-4 border-l-4 border-white/30 rounded-bl-3xl"></div>
+                  <div className="absolute bottom-10 right-10 w-20 h-20 border-b-4 border-r-4 border-white/30 rounded-br-3xl"></div>
+
+                  {/* Central Face Target Box (Simulates YOLO BBox) */}
+                  <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-80 border-2 transition-all duration-300 rounded-[48px] flex items-center justify-center
+                    ${visionMetrics.alignment > 80 ? 'border-emerald-500 bg-emerald-500/5 shadow-[0_0_50px_rgba(16,185,129,0.2)]' : 'border-white/40 bg-white/5'}
+                  `}>
+                    {/* Scanning Laser Line */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-[scan_3s_ease-in-out_infinite]"></div>
+                    
+                    {/* Corner Brackets */}
+                    <div className="w-4 h-4 border-t border-l border-white/60 absolute top-8 left-8"></div>
+                    <div className="w-4 h-4 border-t border-r border-white/60 absolute top-8 right-8"></div>
+                    <div className="w-4 h-4 border-b border-l border-white/60 absolute bottom-8 left-8"></div>
+                    <div className="w-4 h-4 border-b border-r border-white/60 absolute bottom-8 right-8"></div>
+
+                    {/* AI Target Label */}
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-2 whitespace-nowrap">
+                      <div className={`w-2 h-2 rounded-full ${visionMetrics.alignment > 80 ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
+                      <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] drop-shadow-lg">
+                        {visionMetrics.alignment > 80 ? 'Target Locked: Optimal' : 'Seeking Optimal Alignment...'}
+                      </span>
+                    </div>
+
+                    {/* Real-time Hint */}
+                    <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-64 bg-black/60 backdrop-blur-xl border border-white/10 p-3 rounded-2xl text-center">
+                      <p className="text-white text-[10px] font-bold leading-tight">
+                        {visionMetrics.alignment < 80 ? "Center your face in the emerald reticle for multi-spectral analysis." : 
+                         visionMetrics.lighting < 50 ? "Increase ambient lighting for better pathology detection." :
+                         "Perfect alignment. Hold steady for high-resolution capture."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="z-20 text-center">
                 {isAnalyzing ? (
