@@ -6,7 +6,9 @@ Provides endpoints for image upload, processing, and AI analysis.
 JWT-based authentication for all clinical endpoints.
 """
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+import asyncio
+import re
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from contextlib import asynccontextmanager
@@ -37,6 +39,36 @@ from services.auth import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# ── Rate limiting ──
+
+_rate_limit_store: dict[str, list[float]] = {}
+RATE_LIMIT_WINDOW = 60  # seconds
+RATE_LIMIT_MAX_REQUESTS = 30
+
+
+def _check_rate_limit(key: str, max_requests: int = RATE_LIMIT_MAX_REQUESTS) -> bool:
+    now = datetime.now().timestamp()
+    if key not in _rate_limit_store:
+        _rate_limit_store[key] = []
+    _rate_limit_store[key] = [t for t in _rate_limit_store[key] if now - t < RATE_LIMIT_WINDOW]
+    if len(_rate_limit_store[key]) >= max_requests:
+        return False
+    _rate_limit_store[key].append(now)
+    return True
+
+
+# ── Filename validation ──
+
+SAFE_FILENAME_RE = re.compile(r"^[a-zA-Z0-9_\-\.]+$")
+
+
+def _safe_filename(filename: str) -> str:
+    """Sanitize filename to prevent path traversal."""
+    name = os.path.basename(filename)
+    if not SAFE_FILENAME_RE.match(name):
+        raise HTTPException(status_code=400, detail="Invalid filename.")
+    return name
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,12 +86,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ── CORS ──
+
+CORS_ORIGINS = os.getenv("SKINAI_CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("SKINAI_CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(","),
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -87,6 +122,8 @@ def validate_image(file: UploadFile) -> bool:
 
 def save_uploaded_file(file: UploadFile, contents: bytes, directory: str) -> str:
     """Save uploaded file to specified directory."""
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Missing filename.")
     extension = file.filename.split(".")[-1].lower()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     unique_filename = f"{timestamp}_{uuid.uuid4().hex}.{extension}"
@@ -98,10 +135,25 @@ def save_uploaded_file(file: UploadFile, contents: bytes, directory: str) -> str
     return unique_filename
 
 
+def _clean_up_file(file_path: str):
+    """Remove file if it exists, ignore errors."""
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except OSError:
+        pass
+
+
 @app.get("/")
 async def root():
     """Health check endpoint."""
     return {"message": "SkinAI API v3.0", "status": "healthy"}
+
+
+@app.get("/health")
+async def health():
+    """Health check endpoint for Docker."""
+    return {"status": "healthy"}
 
 
 # ═══════════════════════════════════════════
@@ -109,8 +161,11 @@ async def root():
 # ═══════════════════════════════════════════
 
 @app.post("/auth/register")
-async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
+async def register(data: UserCreate, request: Request, db: AsyncSession = Depends(get_db)):
     """Register a new user account."""
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_rate_limit(f"register:{client_ip}", max_requests=5):
+        raise HTTPException(status_code=429, detail="Too many registration attempts. Please try again later.")
     try:
         return await register_user(data, db)
     except HTTPException:
@@ -121,8 +176,11 @@ async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 
 @app.post("/auth/login")
-async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
+async def login(data: UserLogin, request: Request, db: AsyncSession = Depends(get_db)):
     """Authenticate and receive a JWT token."""
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_rate_limit(f"login:{client_ip}", max_requests=10):
+        raise HTTPException(status_code=429, detail="Too many login attempts. Please try again later.")
     try:
         return await login_user(data, db)
     except HTTPException:
@@ -200,6 +258,7 @@ async def process_image(
     user: dict = Depends(get_current_user),
 ):
     """Process image with OpenCV preprocessing pipeline. (Requires authentication)"""
+    file_path = None
     try:
         if not validate_image(file):
             raise HTTPException(
@@ -232,7 +291,9 @@ async def process_image(
         raise he
     except Exception as e:
         logger.error(f"Processing error: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Image processing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Image processing failed.")
+    finally:
+        pass  # Keep uploaded file for serving
 
 
 @app.post("/analyze")
@@ -242,6 +303,7 @@ async def analyze_image(
     db: AsyncSession = Depends(get_db),
 ):
     """Analyze image for acne detection using YOLOv8 model. (Requires authentication)"""
+    file_path = None
     try:
         if not validate_image(file):
             raise HTTPException(
@@ -264,12 +326,13 @@ async def analyze_image(
 
         logger.info(f"Analyzing image: {filename} (user: {user['email']})")
 
-        result = predictor.analyze_image(file_path)
+        # Run synchronous inference in a thread to avoid blocking the event loop
+        result = await asyncio.to_thread(predictor.analyze_image, file_path)
 
         if result["status"] == "error":
             raise HTTPException(
                 status_code=500,
-                detail=f"Analysis failed: {result.get('message', 'Unknown error')}",
+                detail="Analysis failed. Please try again.",
             )
 
         # Save scan to database
@@ -316,7 +379,9 @@ async def analyze_image(
         raise he
     except Exception as e:
         logger.error(f"Analysis error: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Analysis failed. Please try again.")
+    finally:
+        pass  # Keep uploaded file for serving
 
 
 # ═══════════════════════════════════════════
@@ -331,6 +396,7 @@ async def list_scans(
     offset: int = 0,
 ):
     """List the current user's scan history, newest first."""
+    limit = min(limit, 100)  # Cap at 100
     result = await db.execute(
         select(Scan)
         .where(Scan.user_id == user["id"])
@@ -340,7 +406,6 @@ async def list_scans(
     )
     scans = result.scalars().all()
 
-    # Get total count for pagination
     count_result = await db.execute(
         select(func.count()).select_from(Scan).where(Scan.user_id == user["id"])
     )
@@ -381,7 +446,6 @@ async def get_progress_data(
     if not scans:
         return {"progress": [], "recent_scans": [], "latest_stats": None}
 
-    # Build progress data points (date → severity score)
     severity_scores = {"Clear": 100, "Mild": 75, "Moderate": 50, "Severe": 25}
     progress = []
     for s in scans:
@@ -393,7 +457,6 @@ async def get_progress_data(
             "id": s.id,
         })
 
-    # Get latest scan stats
     latest = scans[-1]
     latest_stats = {
         "acne_count": latest.acne_count,
@@ -401,7 +464,6 @@ async def get_progress_data(
         "confidence": latest.confidence,
     }
 
-    # Get recent 5 scans for dashboard list
     recent = list(reversed(scans[-5:]))
     recent_scans = [
         {
@@ -437,6 +499,12 @@ async def get_scan(
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found.")
 
+    def _safe_json(text: str, default):
+        try:
+            return json.loads(text)
+        except (json.JSONDecodeError, TypeError):
+            return default
+
     return {
         "id": scan.id,
         "created_at": scan.created_at.isoformat(),
@@ -445,26 +513,27 @@ async def get_scan(
         "acne_count": scan.acne_count,
         "severity": scan.severity,
         "confidence": scan.confidence,
-        "spot_types": json.loads(scan.spot_types),
-        "pigmentation_data": json.loads(scan.pigmentation_data),
-        "dryness_data": json.loads(scan.dryness_data),
-        "recommendations": json.loads(scan.recommendations),
-        "conflicts": json.loads(scan.conflicts),
-        "routine": json.loads(scan.routine),
-        "face_quality": json.loads(scan.face_quality),
+        "spot_types": _safe_json(scan.spot_types, {}),
+        "pigmentation_data": _safe_json(scan.pigmentation_data, None),
+        "dryness_data": _safe_json(scan.dryness_data, None),
+        "recommendations": _safe_json(scan.recommendations, []),
+        "conflicts": _safe_json(scan.conflicts, []),
+        "routine": _safe_json(scan.routine, {"morning": [], "evening": [], "tips": []}),
+        "face_quality": _safe_json(scan.face_quality, None),
         "original_path": f"/images/original/{scan.original_image}",
         "result_path": f"/results/{scan.result_image}",
     }
 
 
 # ═══════════════════════════════════════════
-# IMAGE SERVING ROUTES
+# IMAGE SERVING ROUTES (with path traversal protection)
 # ═══════════════════════════════════════════
 
 @app.get("/images/original/{filename}")
 async def get_original_image(filename: str):
     """Serve original uploaded images."""
-    file_path = os.path.join(UPLOAD_DIR, filename)
+    safe = _safe_filename(filename)
+    file_path = os.path.join(UPLOAD_DIR, safe)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(file_path, media_type="image/jpeg")
@@ -473,7 +542,8 @@ async def get_original_image(filename: str):
 @app.get("/images/processed/{filename}")
 async def get_processed_image(filename: str):
     """Serve processed images."""
-    file_path = os.path.join(PROCESSED_DIR, filename)
+    safe = _safe_filename(filename)
+    file_path = os.path.join(PROCESSED_DIR, safe)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Processed image not found")
     return FileResponse(file_path, media_type="image/png")
@@ -482,7 +552,8 @@ async def get_processed_image(filename: str):
 @app.get("/results/{filename}")
 async def get_result_image(filename: str):
     """Serve detection result images."""
-    file_path = os.path.join(RESULTS_DIR, filename)
+    safe = _safe_filename(filename)
+    file_path = os.path.join(RESULTS_DIR, safe)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Result image not found")
     return FileResponse(file_path, media_type="image/jpeg")

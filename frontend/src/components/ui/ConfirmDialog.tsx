@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 
 interface ConfirmDialogProps {
@@ -21,10 +22,68 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      // Focus the confirm button after render
+      setTimeout(() => confirmBtnRef.current?.focus(), 50);
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+      previousFocusRef.current = null;
+    }
+  }, [open]);
+
+  // Focus trap
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onCancel();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onCancel]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-dialog-title"
+      aria-describedby="confirm-dialog-message"
+    >
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -42,8 +101,8 @@ export default function ConfirmDialog({
             <AlertTriangle className={`w-5 h-5 ${danger ? 'text-danger-500' : 'text-amber-500'}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-surface-900">{title}</h3>
-            <p className="text-sm text-surface-500 mt-1">{message}</p>
+            <h3 id="confirm-dialog-title" className="text-lg font-bold text-surface-900">{title}</h3>
+            <p id="confirm-dialog-message" className="text-sm text-surface-500 mt-1">{message}</p>
           </div>
           <button
             onClick={onCancel}
@@ -63,6 +122,7 @@ export default function ConfirmDialog({
             {cancelLabel}
           </button>
           <button
+            ref={confirmBtnRef}
             onClick={onConfirm}
             className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all ${
               danger

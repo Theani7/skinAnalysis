@@ -1,7 +1,5 @@
 import axios from 'axios';
-import { ApiError } from './api';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { ApiError, API_BASE_URL } from './api';
 
 const authApi = axios.create({
   baseURL: API_BASE_URL,
@@ -46,6 +44,8 @@ authApi.interceptors.response.use(
       message = 'Invalid email or password.';
     } else if (status === 404) {
       message = 'Service not found. Please try again later.';
+    } else if (status === 429) {
+      message = 'Too many attempts. Please wait and try again.';
     } else if (status === 500) {
       message = 'Server error. Please try again later.';
     } else if (status === 503) {
@@ -80,7 +80,11 @@ export function getStoredUser(): AuthUser | null {
   const raw = localStorage.getItem(USER_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && parsed.id && parsed.email) {
+      return parsed as AuthUser;
+    }
+    return null;
   } catch {
     return null;
   }

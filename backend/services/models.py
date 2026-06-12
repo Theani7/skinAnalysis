@@ -5,7 +5,7 @@ SQLAlchemy ORM models for SkinAI.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import String, DateTime, Integer, Float, Text, ForeignKey
+from sqlalchemy import String, DateTime, Integer, Float, Text, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from services.database import Base
@@ -27,12 +27,16 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
     scans: Mapped[list["Scan"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Scan(Base):
     __tablename__ = "scans"
+    __table_args__ = (
+        Index("ix_scans_user_created", "user_id", "created_at"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False, index=True)

@@ -36,7 +36,7 @@ jobs:
         run: pip install ruff && ruff check .
 
       - name: Run type checking
-        run: pip install mypy && mypy . --ignore-missing-imports || true
+        run: pip install mypy && mypy . --ignore-missing-imports
 
   # Frontend CI
   frontend-ci:
@@ -111,6 +111,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Scan Backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+
       - name: Extract metadata for Frontend
         id: meta-frontend
         uses: docker/metadata-action@v5
@@ -129,6 +137,14 @@ jobs:
           labels: ${{ steps.meta-frontend.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Scan Frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
 
   # Deploy (placeholder for actual deployment)
   deploy:

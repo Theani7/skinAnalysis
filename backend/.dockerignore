@@ -12,7 +12,7 @@ build/
 .git/
 .gitignore
 .env
-.env.local
+.env.*
 results/*
 uploads/*
 processed/*
@@ -23,3 +23,7 @@ processed/*
 *.swp
 *.swo
 *~
+model/*.keras
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/

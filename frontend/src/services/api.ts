@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { getStoredToken, clearAuth } from './auth';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60000,
+  timeout: 120000,
   headers: {
     'Content-Type': 'multipart/form-data',
   },
@@ -50,6 +50,9 @@ api.interceptors.response.use(
           break;
         case 415:
           message = 'Unsupported file type. Please upload a JPG or PNG image.';
+          break;
+        case 429:
+          message = 'Too many requests. Please wait a moment and try again.';
           break;
         case 500:
           message = 'Server error. Please try again later.';
@@ -156,7 +159,7 @@ export interface AnalysisResponse {
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 const MAX_SIZE = 10 * 1024 * 1024;
 
-function validateFile(file: File): void {
+export function validateFile(file: File): void {
   if (!ALLOWED_TYPES.includes(file.type)) {
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
     if (!['jpg', 'jpeg', 'png'].includes(ext)) {
@@ -239,12 +242,31 @@ export interface ProgressResponse {
   latest_stats: { acne_count: number; severity: string; confidence: number } | null;
 }
 
+export interface ScanDetailResponse {
+  id: string;
+  created_at: string;
+  original_image: string;
+  result_image: string;
+  acne_count: number;
+  severity: string;
+  confidence: number;
+  spot_types: Record<string, number>;
+  pigmentation_data: AnalysisResponse['pigmentation_data'];
+  dryness_data: AnalysisResponse['dryness_data'];
+  recommendations: AnalysisResponse['recommendations'];
+  conflicts: AnalysisResponse['conflicts'];
+  routine: AnalysisResponse['routine'];
+  face_quality: AnalysisResponse['face_quality'];
+  original_path: string;
+  result_path: string;
+}
+
 export const getScanHistory = async (limit = 20, offset = 0): Promise<ScanListResponse> => {
   const response = await api.get('/scans', { params: { limit, offset } });
   return response.data;
 };
 
-export const getScanDetail = async (scanId: string): Promise<any> => {
+export const getScanDetail = async (scanId: string): Promise<ScanDetailResponse> => {
   const response = await api.get(`/scans/${scanId}`);
   return response.data;
 };

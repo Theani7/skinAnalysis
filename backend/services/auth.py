@@ -5,13 +5,14 @@ Uses SQLAlchemy async sessions for user persistence.
 """
 
 import os
+import re
 from datetime import datetime, timedelta, timezone
 
 import jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,7 +21,10 @@ from services.models import User
 
 # ── Config ──
 
-SECRET_KEY = os.getenv("SKINAI_JWT_SECRET", "skinai-dev-secret-change-in-production-2026")
+SECRET_KEY = os.getenv("SKINAI_JWT_SECRET")
+if not SECRET_KEY:
+    raise RuntimeError("SKINAI_JWT_SECRET environment variable is required")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 
@@ -40,6 +44,31 @@ class UserCreate(BaseModel):
     email: str
     password: str
 
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 1 or len(v) > 100:
+            raise ValueError("Name must be 1-100 characters.")
+        return v
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not re.match(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$", v):
+            raise ValueError("Invalid email format.")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters.")
+        if len(v) > 128:
+            raise ValueError("Password must be at most 128 characters.")
+        return v
+
 
 class UserLogin(BaseModel):
     email: str
@@ -48,6 +77,14 @@ class UserLogin(BaseModel):
 
 class UserUpdate(BaseModel):
     name: str
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 1 or len(v) > 100:
+            raise ValueError("Name must be 1-100 characters.")
+        return v
 
 
 class UserResponse(BaseModel):
@@ -85,13 +122,13 @@ def _user_response(user: User) -> UserResponse:
 
 async def register_user(data: UserCreate, db: AsyncSession) -> TokenResponse:
     """Register a new user. Raises HTTPException on duplicate email."""
-    existing = await db.execute(select(User).where(User.email == data.email.lower().strip()))
+    existing = await db.execute(select(User).where(User.email == data.email))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="An account with this email already exists.")
 
     user = User(
-        name=data.name.strip(),
-        email=data.email.lower().strip(),
+        name=data.name,
+        email=data.email,
         password_hash=pwd_context.hash(data.password),
     )
     db.add(user)
@@ -106,7 +143,9 @@ async def login_user(data: UserLogin, db: AsyncSession) -> TokenResponse:
     result = await db.execute(select(User).where(User.email == data.email.lower().strip()))
     user = result.scalar_one_or_none()
 
-    if not user or not pwd_context.verify(data.password, user.password_hash):
+    # Always run verify to prevent timing side-channel
+    password_hash = user.password_hash if user else "$2b$12$dummyhashdummyhashdummyhashdummyhashdum"
+    if not user or not pwd_context.verify(data.password, password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
     token = _create_token(user.id)
@@ -146,6 +185,6 @@ async def update_user_profile(
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
 
-    user.name = data.name.strip()
+    user.name = data.name
     await db.flush()
     return _user_response(user)
