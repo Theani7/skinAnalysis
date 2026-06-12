@@ -5,7 +5,6 @@ Tests for authentication endpoints: register, login, me, profile update.
 import pytest
 from httpx import AsyncClient
 
-
 pytestmark = pytest.mark.asyncio
 
 

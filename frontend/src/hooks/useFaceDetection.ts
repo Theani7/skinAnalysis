@@ -9,6 +9,7 @@ interface FaceDetection {
 
 interface UseFaceDetectionReturn {
   isModelLoaded: boolean;
+  modelError: string | null;
   detection: FaceDetection | null;
   faceMetrics: {
     centeredness: number;
@@ -23,6 +24,7 @@ interface UseFaceDetectionReturn {
 
 export function useFaceDetection(): UseFaceDetectionReturn {
   const [isModelLoaded, setIsModelLoaded] = useState(false);
+  const [modelError, setModelError] = useState<string | null>(null);
   const [detection, setDetection] = useState<FaceDetection | null>(null);
   const [faceMetrics, setFaceMetrics] = useState({
     centeredness: 0,
@@ -168,8 +170,10 @@ export function useFaceDetection(): UseFaceDetectionReturn {
         await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
         await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
         setIsModelLoaded(true);
+        setModelError(null);
       } catch (err) {
         console.error('Failed to load face detection models:', err);
+        setModelError('Face detection models failed to load. You can still upload images for analysis.');
       }
     };
 
@@ -182,6 +186,7 @@ export function useFaceDetection(): UseFaceDetectionReturn {
 
   return {
     isModelLoaded,
+    modelError,
     detection,
     faceMetrics,
     startDetection,

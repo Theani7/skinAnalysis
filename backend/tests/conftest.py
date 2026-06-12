@@ -3,21 +3,20 @@ Shared test fixtures for SkinAI backend tests.
 Uses in-memory SQLite for fast, isolated test runs.
 """
 
-import os
 import asyncio
+import os
 from typing import AsyncGenerator
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Set JWT secret before importing any app modules
 os.environ["SKINAI_JWT_SECRET"] = "test-secret-key-for-ci-only"
 
+from main import _rate_limit_store, app
 from services.database import Base, get_db
-from main import app, _rate_limit_store
-
 
 # ── Database fixtures ──
 

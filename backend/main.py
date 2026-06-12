@@ -7,35 +7,35 @@ JWT-based authentication for all clinical endpoints.
 """
 
 import asyncio
-import re
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
-from contextlib import asynccontextmanager
-import os
-import uuid
 import json
-from datetime import datetime
 import logging
+import os
+import re
 import traceback
+import uuid
+from contextlib import asynccontextmanager
+from datetime import datetime
 
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 
-from services.database import init_db, get_db
-from services.models import Scan
-from services.image_processor import image_processor
-from services.predictor import predictor
 from services.auth import (
-    register_user,
-    login_user,
-    get_current_user,
-    update_user_profile,
     UserCreate,
     UserLogin,
     UserUpdate,
+    get_current_user,
+    login_user,
+    register_user,
+    update_user_profile,
 )
+from services.database import get_db, init_db
+from services.image_processor import image_processor
 from services.logging_config import setup_logging
+from services.models import Scan
+from services.predictor import predictor
 
 setup_logging(os.getenv("SKINAI_ENV", "development"))
 logger = logging.getLogger(__name__)
@@ -86,6 +86,28 @@ app = FastAPI(
     version="3.0.0",
     lifespan=lifespan,
 )
+
+
+# ── Global exception handler ──
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}\n{traceback.format_exc()}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An unexpected error occurred. Please try again."},
+    )
+
+
+# ── Request ID middleware ──
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    request_id = str(uuid.uuid4())[:8]
+    request.state.request_id = request_id
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 # ── CORS ──
 
@@ -328,7 +350,16 @@ async def analyze_image(
         logger.info(f"Analyzing image: {filename} (user: {user['email']})")
 
         # Run synchronous inference in a thread to avoid blocking the event loop
-        result = await asyncio.to_thread(predictor.analyze_image, file_path)
+        try:
+            result = await asyncio.wait_for(
+                asyncio.to_thread(predictor.analyze_image, file_path),
+                timeout=90,
+            )
+        except asyncio.TimeoutError:
+            raise HTTPException(
+                status_code=504,
+                detail="Analysis timed out. The image may be too complex. Please try a simpler image.",
+            )
 
         if result["status"] == "error":
             raise HTTPException(
@@ -397,38 +428,42 @@ async def list_scans(
     offset: int = 0,
 ):
     """List the current user's scan history, newest first."""
-    limit = min(limit, 100)  # Cap at 100
-    result = await db.execute(
-        select(Scan)
-        .where(Scan.user_id == user["id"])
-        .order_by(Scan.created_at.desc())
-        .limit(limit)
-        .offset(offset)
-    )
-    scans = result.scalars().all()
+    try:
+        limit = min(limit, 100)  # Cap at 100
+        result = await db.execute(
+            select(Scan)
+            .where(Scan.user_id == user["id"])
+            .order_by(Scan.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        scans = result.scalars().all()
 
-    count_result = await db.execute(
-        select(func.count()).select_from(Scan).where(Scan.user_id == user["id"])
-    )
-    total = count_result.scalar()
+        count_result = await db.execute(
+            select(func.count()).select_from(Scan).where(Scan.user_id == user["id"])
+        )
+        total = count_result.scalar()
 
-    return {
-        "scans": [
-            {
-                "id": s.id,
-                "created_at": s.created_at.isoformat(),
-                "original_image": s.original_image,
-                "result_image": s.result_image,
-                "acne_count": s.acne_count,
-                "severity": s.severity,
-                "confidence": s.confidence,
-                "original_path": f"/images/original/{s.original_image}",
-                "result_path": f"/results/{s.result_image}",
-            }
-            for s in scans
-        ],
-        "total": total,
-    }
+        return {
+            "scans": [
+                {
+                    "id": s.id,
+                    "created_at": s.created_at.isoformat(),
+                    "original_image": s.original_image,
+                    "result_image": s.result_image,
+                    "acne_count": s.acne_count,
+                    "severity": s.severity,
+                    "confidence": s.confidence,
+                    "original_path": f"/images/original/{s.original_image}",
+                    "result_path": f"/results/{s.result_image}",
+                }
+                for s in scans
+            ],
+            "total": total,
+        }
+    except Exception as e:
+        logger.error(f"Error listing scans: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Failed to load scan history.")
 
 
 @app.get("/scans/history/progress")
@@ -437,52 +472,56 @@ async def get_progress_data(
     db: AsyncSession = Depends(get_db),
 ):
     """Get progress data for charts: scores over time for this user."""
-    result = await db.execute(
-        select(Scan)
-        .where(Scan.user_id == user["id"])
-        .order_by(Scan.created_at.asc())
-    )
-    scans = result.scalars().all()
+    try:
+        result = await db.execute(
+            select(Scan)
+            .where(Scan.user_id == user["id"])
+            .order_by(Scan.created_at.asc())
+        )
+        scans = result.scalars().all()
 
-    if not scans:
-        return {"progress": [], "recent_scans": [], "latest_stats": None}
+        if not scans:
+            return {"progress": [], "recent_scans": [], "latest_stats": None}
 
-    severity_scores = {"Clear": 100, "Mild": 75, "Moderate": 50, "Severe": 25}
-    progress = []
-    for s in scans:
-        progress.append({
-            "date": s.created_at.strftime("%b %d"),
-            "score": severity_scores.get(s.severity, 50),
-            "acne_count": s.acne_count,
-            "severity": s.severity,
-            "id": s.id,
-        })
+        severity_scores = {"Clear": 100, "Mild": 75, "Moderate": 50, "Severe": 25}
+        progress = []
+        for s in scans:
+            progress.append({
+                "date": s.created_at.strftime("%b %d"),
+                "score": severity_scores.get(s.severity, 50),
+                "acne_count": s.acne_count,
+                "severity": s.severity,
+                "id": s.id,
+            })
 
-    latest = scans[-1]
-    latest_stats = {
-        "acne_count": latest.acne_count,
-        "severity": latest.severity,
-        "confidence": latest.confidence,
-    }
-
-    recent = list(reversed(scans[-5:]))
-    recent_scans = [
-        {
-            "id": s.id,
-            "date": s.created_at.strftime("%B %d, %Y"),
-            "time": s.created_at.strftime("%I:%M %p"),
-            "score": severity_scores.get(s.severity, 50),
-            "severity": s.severity,
-            "acne": s.acne_count,
+        latest = scans[-1]
+        latest_stats = {
+            "acne_count": latest.acne_count,
+            "severity": latest.severity,
+            "confidence": latest.confidence,
         }
-        for s in recent
-    ]
 
-    return {
-        "progress": progress,
-        "recent_scans": recent_scans,
-        "latest_stats": latest_stats,
-    }
+        recent = list(reversed(scans[-5:]))
+        recent_scans = [
+            {
+                "id": s.id,
+                "date": s.created_at.strftime("%B %d, %Y"),
+                "time": s.created_at.strftime("%I:%M %p"),
+                "score": severity_scores.get(s.severity, 50),
+                "severity": s.severity,
+                "acne": s.acne_count,
+            }
+            for s in recent
+        ]
+
+        return {
+            "progress": progress,
+            "recent_scans": recent_scans,
+            "latest_stats": latest_stats,
+        }
+    except Exception as e:
+        logger.error(f"Error fetching progress data: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Failed to load progress data.")
 
 
 @app.get("/scans/{scan_id}")
@@ -492,38 +531,44 @@ async def get_scan(
     db: AsyncSession = Depends(get_db),
 ):
     """Get a single scan's full details."""
-    result = await db.execute(
-        select(Scan).where(Scan.id == scan_id, Scan.user_id == user["id"])
-    )
-    scan = result.scalar_one_or_none()
+    try:
+        result = await db.execute(
+            select(Scan).where(Scan.id == scan_id, Scan.user_id == user["id"])
+        )
+        scan = result.scalar_one_or_none()
 
-    if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found.")
+        if not scan:
+            raise HTTPException(status_code=404, detail="Scan not found.")
 
-    def _safe_json(text: str, default):
-        try:
-            return json.loads(text)
-        except (json.JSONDecodeError, TypeError):
-            return default
+        def _safe_json(text: str, default):
+            try:
+                return json.loads(text)
+            except (json.JSONDecodeError, TypeError):
+                return default
 
-    return {
-        "id": scan.id,
-        "created_at": scan.created_at.isoformat(),
-        "original_image": scan.original_image,
-        "result_image": scan.result_image,
-        "acne_count": scan.acne_count,
-        "severity": scan.severity,
-        "confidence": scan.confidence,
-        "spot_types": _safe_json(scan.spot_types, {}),
-        "pigmentation_data": _safe_json(scan.pigmentation_data, None),
-        "dryness_data": _safe_json(scan.dryness_data, None),
-        "recommendations": _safe_json(scan.recommendations, []),
-        "conflicts": _safe_json(scan.conflicts, []),
-        "routine": _safe_json(scan.routine, {"morning": [], "evening": [], "tips": []}),
-        "face_quality": _safe_json(scan.face_quality, None),
-        "original_path": f"/images/original/{scan.original_image}",
-        "result_path": f"/results/{scan.result_image}",
-    }
+        return {
+            "id": scan.id,
+            "created_at": scan.created_at.isoformat(),
+            "original_image": scan.original_image,
+            "result_image": scan.result_image,
+            "acne_count": scan.acne_count,
+            "severity": scan.severity,
+            "confidence": scan.confidence,
+            "spot_types": _safe_json(scan.spot_types, {}),
+            "pigmentation_data": _safe_json(scan.pigmentation_data, None),
+            "dryness_data": _safe_json(scan.dryness_data, None),
+            "recommendations": _safe_json(scan.recommendations, []),
+            "conflicts": _safe_json(scan.conflicts, []),
+            "routine": _safe_json(scan.routine, {"morning": [], "evening": [], "tips": []}),
+            "face_quality": _safe_json(scan.face_quality, None),
+            "original_path": f"/images/original/{scan.original_image}",
+            "result_path": f"/results/{scan.result_image}",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching scan {scan_id}: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Failed to load scan details.")
 
 
 # ═══════════════════════════════════════════

@@ -1,9 +1,10 @@
-import cv2
-import numpy as np
+import logging
 import os
 import uuid
 from datetime import datetime
-import logging
+
+import cv2
+import numpy as np
 
 logger = logging.getLogger(__name__)
 

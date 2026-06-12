@@ -3,8 +3,8 @@ Structured JSON logging for SkinAI backend.
 Provides consistent, machine-readable logs for production observability.
 """
 
-import logging
 import json
+import logging
 import sys
 from datetime import datetime, timezone
 

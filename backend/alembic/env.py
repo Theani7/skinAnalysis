@@ -14,7 +14,7 @@ from alembic import context
 
 # Import Base and all models so Alembic can detect them
 from services.database import Base
-from services.models import User, Scan  # noqa: F401
+from services.models import Scan, User  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

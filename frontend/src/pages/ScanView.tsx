@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Loader2, AlertCircle, RefreshCcw, Upload, Eye, Focus, Sun, Scan } from 'lucide-react';
 import { useCamera } from '../hooks/useCamera';
 import { useFaceDetection } from '../hooks/useFaceDetection';
-import { analyzeImage, AnalysisResponse } from '../services/api';
+import { analyzeImage, validateFile, AnalysisResponse } from '../services/api';
 
 export default function ScanView({ onComplete }: { onComplete: (result: AnalysisResponse) => void }) {
   const { videoRef, canvasRef, isActive, error: cameraError, startCamera, stopCamera, capturePhoto } = useCamera();
-  const { isModelLoaded, detection, faceMetrics, startDetection, stopDetection } = useFaceDetection();
+  const { isModelLoaded, modelError, detection, faceMetrics, startDetection, stopDetection } = useFaceDetection();
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -126,19 +126,7 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
       setError(null);
       setIsAnalyzing(true);
 
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-      const allowedExts = ['jpg', 'jpeg', 'png'];
-      const ext = file.name.split('.').pop()?.toLowerCase() || '';
-
-      if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
-        throw new Error('Invalid file type. Please upload a JPG or PNG image.');
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error(`File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`);
-      }
-      if (file.size === 0) {
-        throw new Error('File is empty. Please select a valid image.');
-      }
+      validateFile(file);
 
       const result = await analyzeImage(file);
 
@@ -232,22 +220,32 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
           role="img"
           aria-label="Camera view for face capture"
         >
-          {cameraError || error ? (
+          {cameraError || error || modelError ? (
             <div className="p-6 md:p-12 text-center space-y-4 md:space-y-6 text-white">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-danger-500/20 rounded-full flex items-center justify-center mx-auto">
-                <AlertCircle className="w-8 h-8 md:w-10 md:h-10 text-danger-500" />
+              <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto ${
+                modelError && !cameraError && !error ? 'bg-amber-500/20' : 'bg-danger-500/20'
+              }`}>
+                <AlertCircle className={`w-8 h-8 md:w-10 md:h-10 ${
+                  modelError && !cameraError && !error ? 'text-amber-500' : 'text-danger-500'
+                }`} />
               </div>
               <div>
-                <h3 className="text-lg md:text-xl font-bold mb-2">Camera Error</h3>
-                <p className="text-surface-400 max-w-xs mx-auto text-sm">{cameraError || error}</p>
+                <h3 className="text-lg md:text-xl font-bold mb-2">
+                  {modelError && !cameraError && !error ? 'Face Detection Unavailable' : 'Camera Error'}
+                </h3>
+                <p className="text-surface-400 max-w-xs mx-auto text-sm">{cameraError || error || modelError}</p>
               </div>
-              <button
-                onClick={() => { setError(null); startCamera(); }}
-                className="inline-flex items-center gap-2 text-white font-bold hover:underline text-sm"
-                aria-label="Retry camera connection"
-              >
-                <RefreshCcw className="w-4 h-4" aria-hidden="true" /> Retry Connection
-              </button>
+              {modelError && !cameraError && !error ? (
+                <p className="text-surface-500 text-xs">You can still upload images for analysis using the button above.</p>
+              ) : (
+                <button
+                  onClick={() => { setError(null); startCamera(); }}
+                  className="inline-flex items-center gap-2 text-white font-bold hover:underline text-sm"
+                  aria-label="Retry camera connection"
+                >
+                  <RefreshCcw className="w-4 h-4" aria-hidden="true" /> Retry Connection
+                </button>
+              )}
             </div>
           ) : (
             <>

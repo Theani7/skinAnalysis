@@ -10,16 +10,16 @@ Multi-signal acne detection combining:
 6. Morphological analysis for spot shape/size
 """
 
-import os
-import cv2
-import numpy as np
 import logging
-import h5py
-import tensorflow as tf
-import keras_cv
+import os
 import uuid
-from typing import List, Dict, Tuple
+from typing import Dict, List, Tuple
 
+import cv2
+import h5py
+import keras_cv
+import numpy as np
+import tensorflow as tf
 from ultralytics import YOLO
 
 logger = logging.getLogger(__name__)
@@ -124,23 +124,23 @@ def _estimate_face_from_skin(skin_mask: np.ndarray) -> List[Tuple[int, int, int,
     Assumes the face is the largest connected skin region in the upper-center area.
     """
     h, w = skin_mask.shape
-    
+
     # Focus on upper 70% of image (faces are rarely at the very bottom)
     upper_mask = np.zeros_like(skin_mask)
     upper_h = int(h * 0.7)
     upper_mask[:upper_h, :] = skin_mask[:upper_h, :]
-    
+
     # Focus on center 80% horizontally (faces are usually centered)
     center_mask = np.zeros_like(upper_mask)
     margin_x = int(w * 0.1)
     center_mask[:, margin_x:w - margin_x] = upper_mask[:, margin_x:w - margin_x]
-    
+
     # Find connected components
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(center_mask, connectivity=8)
-    
+
     if num_labels <= 1:
         return []
-    
+
     # Find the largest component (skip label 0 = background)
     best_label = -1
     best_area = 0
@@ -151,23 +151,23 @@ def _estimate_face_from_skin(skin_mask: np.ndarray) -> List[Tuple[int, int, int,
         vertical_score = 1.0 - (cy / h)  # higher = more upper
         horizontal_center = abs(cx - w / 2) / (w / 2)  # 0 = center, 1 = edge
         center_score = 1.0 - horizontal_center
-        
+
         # Combined score: size + position bias
         score = area * (0.7 + 0.3 * vertical_score * center_score)
-        
+
         if score > best_area and area > 500:  # minimum 500 pixels
             best_area = score
             best_label = i
-    
+
     if best_label < 0:
         return []
-    
+
     # Get bounding box of the largest skin component
     x = stats[best_label, cv2.CC_STAT_LEFT]
     y = stats[best_label, cv2.CC_STAT_TOP]
     bw = stats[best_label, cv2.CC_STAT_WIDTH]
     bh = stats[best_label, cv2.CC_STAT_HEIGHT]
-    
+
     # Expand slightly for face context
     pad_x = int(bw * 0.15)
     pad_y = int(bh * 0.15)
@@ -175,7 +175,7 @@ def _estimate_face_from_skin(skin_mask: np.ndarray) -> List[Tuple[int, int, int,
     y1 = max(0, y - pad_y)
     x2 = min(w, x + bw + pad_x)
     y2 = min(h, y + bh + pad_y)
-    
+
     return [(x1, y1, x2, y2)]
 
 
@@ -293,13 +293,13 @@ def _create_skin_mask(image: np.ndarray) -> np.ndarray:
 def _create_face_mask(image: np.ndarray, face_regions: List[Tuple[int, int, int, int]]) -> np.ndarray:
     """
     Create a precise face-only mask using elliptical face approximation.
-    
+
     Faces are roughly elliptical, not rectangular. An ellipse naturally excludes:
     - Hair at top corners
-    - Ears at the sides  
+    - Ears at the sides
     - Background at corners
     - Neck at the bottom
-    
+
     The ellipse is further refined by skin-color detection within it,
     so only actual skin pixels are included.
     """
@@ -354,47 +354,47 @@ def _detect_dryness(image: np.ndarray, skin_mask: np.ndarray) -> Dict:
     Identifies high-frequency micro-cracks and surface flakiness.
     """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
+
     # 1. Crack Detection using Gabor Filters
     # We look for fine, multi-directional high-frequency lines
     gabor_kernels = []
     for theta in [0, np.pi/4, np.pi/2, 3*np.pi/4]:
         kernel = cv2.getGaborKernel((9, 9), 1.5, theta, 5.0, 0.5, 0, ktype=cv2.CV_32F)
         gabor_kernels.append(kernel)
-        
+
     gabor_result = np.zeros_like(gray, dtype=np.float32)
     for k in gabor_kernels:
         filtered = cv2.filter2D(gray, cv2.CV_32F, k)
         gabor_result = np.maximum(gabor_result, filtered)
-        
+
     gabor_norm = cv2.normalize(gabor_result, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-    
+
     # 2. Flakiness Detection (White Top-Hat)
     # Isolates small bright anomalies (flakes)
     kernel_flake = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     tophat = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, kernel_flake)
-    
+
     # 3. Combine and Threshold
     # Weight cracks more than flakes for overall texture analysis
     texture_signal = cv2.addWeighted(gabor_norm, 0.7, tophat, 0.3, 0)
     texture_signal = cv2.bitwise_and(texture_signal, skin_mask)
-    
+
     # Adaptive threshold to find dry patches relative to skin tone
     _, thresh = cv2.threshold(texture_signal, np.mean(texture_signal[skin_mask > 0]) + 2*np.std(texture_signal[skin_mask > 0]), 255, cv2.THRESH_BINARY)
-    
+
     # 4. Metrics
     skin_area = np.count_nonzero(skin_mask)
     dry_area = np.count_nonzero(thresh)
     roughness_ratio = (dry_area / skin_area) * 100 if skin_area > 0 else 0
-    
+
     # Hydration Score: 100 is perfect, 15% roughness is 0
     hydration_score = max(0, min(100, 100 - (roughness_ratio * 6.6)))
-    
+
     # Flakes count (bright clusters)
     _, flake_thresh = cv2.threshold(tophat, 200, 255, cv2.THRESH_BINARY)
     flake_thresh = cv2.bitwise_and(flake_thresh, skin_mask)
     contours, _ = cv2.findContours(flake_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
+
     return {
         "hydration_score": round(hydration_score, 1),
         "roughness_score": round(roughness_ratio, 1),
@@ -409,7 +409,7 @@ def _detect_pigmentation(image: np.ndarray, skin_mask: np.ndarray, acne_mask: np
     1. Log-Spectral Melanin Index (M-Index) — melanin concentration
     2. LAB a* channel — redness/hemoglobin (post-inflammatory pigmentation)
     3. HSV V channel — dark spot detection
-    
+
     Each channel runs multi-scale detection with adaptive Otsu thresholding,
     and results are fused via majority voting to reduce false positives.
     """
@@ -1208,13 +1208,13 @@ class AcnePredictor:
 
             # Detect face regions using YOLO
             face_regions = _detect_faces_yolo(image, self.yolo_face) if self.yolo_face else []
-            
+
             # Create precise face-only mask (elliptical + skin color refined)
             face_mask = _create_face_mask(image, face_regions)
-            
+
             # Also create a general skin mask for fallback
             skin_mask = _create_skin_mask(image)
-            
+
             # Use face_mask as primary — it's precise and face-only
             if np.count_nonzero(face_mask) > 100:
                 skin_mask = face_mask
@@ -1265,12 +1265,12 @@ class AcnePredictor:
                 cv2.rectangle(acne_mask, (bx1, by1), (bx2, by2), 255, -1)
 
             pigment_result = _detect_pigmentation(image, skin_mask, acne_mask)
-            
+
             # Generate heatmap using jet colormap with intensity gradient
             heatmap = image.copy().astype(np.uint8)
             intensity_map = pigment_result.get("intensity_map")
             mask = pigment_result.get("mask")
-            
+
             if mask is not None and intensity_map is not None and mask.shape == image.shape[:2]:
                 # Create jet colormap overlay
                 jet_colormap = cv2.applyColorMap(
@@ -1285,7 +1285,7 @@ class AcnePredictor:
                 ).astype(np.uint8)
             else:
                 logger.warning("Pigmentation mask/intensity_map shape mismatch or missing")
-            
+
             pigment_filename = f"pigment_{uuid.uuid4().hex[:8]}.jpg"
             pigment_path = os.path.join(RESULTS_DIR, pigment_filename)
             # Draw YOLO face box on pigmentation heatmap
@@ -1304,7 +1304,7 @@ class AcnePredictor:
                     cv2.rectangle(heatmap, (fx1, fy1 - th - 10), (fx1 + tw + 8, fy1), color, -1)
                     cv2.putText(heatmap, label, (fx1 + 4, fy1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
             cv2.imwrite(pigment_path, heatmap)
-            
+
             # Analyze spatial distribution of pigmentation spots
             localized_pct = 50
             diffuse_pct = 50
@@ -1332,7 +1332,7 @@ class AcnePredictor:
 
             # --- Dryness Detection ---
             dryness_result = _detect_dryness(image, skin_mask)
-            
+
             # Generate texture heatmap (Teal/Cyan)
             texture_map = image.copy()
             t_mask = dryness_result.get("mask")
@@ -1340,7 +1340,7 @@ class AcnePredictor:
                 # Teal color in BGR: (255, 255, 0) - wait, Cyan is (255, 255, 0) in BGR
                 texture_map[t_mask > 0] = (235, 206, 135) # Sky blue / Teal-ish
                 cv2.addWeighted(texture_map, 0.5, image, 0.5, 0, texture_map)
-                
+
             texture_filename = f"texture_{uuid.uuid4().hex[:8]}.jpg"
             texture_path = os.path.join(RESULTS_DIR, texture_filename)
             # Draw YOLO face box on moisture heatmap
@@ -1359,7 +1359,7 @@ class AcnePredictor:
                     cv2.rectangle(texture_map, (fx1, fy1 - th - 10), (fx1 + tw + 8, fy1), color, -1)
                     cv2.putText(texture_map, label, (fx1 + 4, fy1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
             cv2.imwrite(texture_path, texture_map)
-            
+
             dryness_data = {
                 "hydration_score": dryness_result["hydration_score"],
                 "roughness_score": dryness_result["roughness_score"],

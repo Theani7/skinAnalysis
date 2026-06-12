@@ -6,9 +6,6 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:80
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 120000,
-  headers: {
-    'Content-Type': 'multipart/form-data',
-  },
 });
 
 api.interceptors.request.use((config) => {
@@ -21,7 +18,7 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (!error.response) {
       return Promise.reject(new ApiError('Cannot connect to server. Please ensure the backend is running.', 0));
     }
@@ -32,6 +29,13 @@ api.interceptors.response.use(
       clearAuth();
       window.location.href = '/';
       return Promise.reject(new ApiError('Session expired. Please log in again.', 401));
+    }
+
+    // Retry once on 503 (model loading)
+    if (status === 503 && !error.config._retried) {
+      error.config._retried = true;
+      await new Promise(r => setTimeout(r, 3000));
+      return api.request(error.config);
     }
 
     let message = 'An unexpected error occurred.';

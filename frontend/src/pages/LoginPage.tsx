@@ -56,8 +56,8 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
         setIsLoading(false);
         return;
       }
-      if (!isLogin && password.length < 6) {
-        setError('Password must be at least 6 characters.');
+      if (!isLogin && password.length < 8) {
+        setError('Password must be at least 8 characters.');
         setIsLoading(false);
         return;
       }
@@ -219,11 +219,6 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
                 <label htmlFor="password" className="block text-xs font-bold text-surface-900 uppercase tracking-widest">
                   Password
                 </label>
-                {isLogin && (
-                  <button type="button" className="text-xs font-bold text-primary-600 hover:text-primary-800 transition-colors">
-                    Forgot password?
-                  </button>
-                )}
               </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" aria-hidden="true" />
@@ -231,11 +226,11 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   required
-                  minLength={isLogin ? undefined : 6}
+                  minLength={isLogin ? undefined : 8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-11 pr-12 py-3.5 rounded-2xl bg-surface-50 border-2 border-transparent focus:border-primary-600 focus:bg-white outline-none transition-all text-surface-900 text-sm placeholder:text-surface-400"
-                  placeholder={isLogin ? 'Enter your password' : 'Min. 6 characters'}
+                  placeholder={isLogin ? 'Enter your password' : 'Min. 8 characters'}
                 />
                 <button
                   type="button"

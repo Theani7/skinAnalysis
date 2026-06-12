@@ -5,7 +5,7 @@ SQLAlchemy ORM models for SkinAI.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import String, DateTime, Integer, Float, Text, ForeignKey, Index
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from services.database import Base

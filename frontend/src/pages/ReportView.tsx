@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, ArrowLeft, ShieldAlert, Droplets, Activity, Maximize, CheckCircle2, AlertTriangle, Sun, Moon, Lightbulb, Clock, Zap } from 'lucide-react';
+import { Download, ArrowLeft, ShieldAlert, Droplets, Activity, Maximize, CheckCircle2, AlertTriangle, Sun, Moon, Lightbulb, Clock, Zap, ImageOff } from 'lucide-react';
 import { AnalysisResponse, getResultImageUrl } from '../services/api';
 import { generateClinicalReportPDF } from '../utils/generatePDF';
 
@@ -36,6 +36,8 @@ function ScoreRing({ score, size = 120, stroke = 8 }: { score: number; size?: nu
 export default function ReportView({ result, onBack }: ReportViewProps) {
   const [activeTab, setActiveTab] = useState<'acne' | 'pigment' | 'moisture'>('acne');
   const [activeRoutineTab, setActiveRoutineTab] = useState<'morning' | 'evening'>('morning');
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   if (!result) return null;
 
@@ -101,6 +103,17 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      setPdfError(null);
+      await generateClinicalReportPDF(result);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      setPdfError('Failed to generate PDF. Please try again.');
+      setTimeout(() => setPdfError(null), 5000);
+    }
+  };
+
   const tabs = [
     { id: 'acne' as const, label: 'Acne Detection', img: getResultImageUrl(result.result_image) },
     { id: 'pigment' as const, label: 'Pigmentation', img: result.pigmentation_data?.heatmap_image ? getResultImageUrl(result.pigmentation_data.heatmap_image) : null },
@@ -120,7 +133,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
             Session #{result.result_image.split('_')[1].substring(0, 8).toUpperCase()}
           </span>
           <button
-            onClick={() => generateClinicalReportPDF(result)}
+            onClick={handleDownloadPDF}
             className="flex items-center gap-1.5 sm:gap-2 bg-primary-600 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20 flex-shrink-0"
           >
             <Download className="w-4 h-4" />
@@ -139,6 +152,14 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
               <p className="text-sm font-medium text-amber-700">{conflict.message}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* PDF Error Toast */}
+      {pdfError && (
+        <div className="bg-danger-50 border border-danger-200 rounded-xl p-3 flex items-center gap-3">
+          <AlertTriangle className="w-4 h-4 text-danger-500 flex-shrink-0" />
+          <p className="text-sm font-medium text-danger-600">{pdfError}</p>
         </div>
       )}
 
@@ -164,14 +185,16 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
             </div>
           </div>
           <div className="aspect-square bg-surface-50 relative">
-            {tabs.find(t => t.id === activeTab)?.img ? (
+            {tabs.find(t => t.id === activeTab)?.img && !imageErrors[activeTab] ? (
               <img
                 src={tabs.find(t => t.id === activeTab)!.img!}
                 alt={tabs.find(t => t.id === activeTab)!.label}
                 className="w-full h-full object-cover"
+                onError={() => setImageErrors(prev => ({ ...prev, [activeTab]: true }))}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-surface-300">
+              <div className="w-full h-full flex flex-col items-center justify-center text-surface-300 gap-2">
+                <ImageOff className="w-8 h-8" />
                 <span className="text-sm font-medium">No image available</span>
               </div>
             )}
@@ -383,7 +406,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
             ))}
 
             <button
-              onClick={() => generateClinicalReportPDF(result)}
+              onClick={handleDownloadPDF}
               className="w-full bg-surface-900 text-white py-3 rounded-xl font-bold text-sm hover:bg-surface-800 transition-all flex items-center justify-center gap-2 mt-4"
             >
               <Download className="w-4 h-4" /> Save Full Report

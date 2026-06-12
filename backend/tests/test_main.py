@@ -5,7 +5,6 @@ Tests for health, model status, image serving, and scan history endpoints.
 import pytest
 from httpx import AsyncClient
 
-
 pytestmark = pytest.mark.asyncio
 
 

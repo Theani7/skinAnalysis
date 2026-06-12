@@ -4,8 +4,8 @@ Tests for Pydantic validation schemas in auth service.
 
 import pytest
 from pydantic import ValidationError
-from services.auth import UserCreate, UserLogin, UserUpdate
 
+from services.auth import UserCreate, UserUpdate
 
 # ── UserCreate validation ──
 
