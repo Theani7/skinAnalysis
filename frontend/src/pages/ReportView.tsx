@@ -146,7 +146,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
         {/* Left: Image Viewer */}
         <div className="bg-white rounded-2xl border border-surface-100 shadow-sm overflow-hidden">
           <div className="p-4 border-b border-surface-100">
-            <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -180,7 +180,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
         {/* Right: Score + Metrics */}
         <div className="space-y-6">
           {/* Overall Score */}
-          <div className="bg-white rounded-2xl border border-surface-100 shadow-sm p-8 flex items-center gap-8">
+          <div className="bg-white rounded-2xl border border-surface-100 shadow-sm p-5 sm:p-8 flex items-center gap-4 sm:gap-8">
             <ScoreRing score={overallScore} size={130} stroke={10} />
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">

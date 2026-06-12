@@ -21,7 +21,7 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
+      <div className="flex flex-col items-center justify-center py-12 md:py-20">
         <Loader2 className="w-8 h-8 text-primary-600 animate-spin mb-4" />
         <p className="text-sm text-surface-500">Loading scan history...</p>
       </div>
@@ -30,7 +30,7 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="flex flex-col items-center justify-center py-12 md:py-20 text-center">
         <div className="w-16 h-16 bg-danger-50 rounded-2xl flex items-center justify-center mb-6">
           <AlertCircle className="w-8 h-8 text-danger-500" />
         </div>
@@ -47,7 +47,7 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
 
   if (scans.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="flex flex-col items-center justify-center py-12 md:py-20 text-center">
         <div className="w-16 h-16 bg-surface-100 rounded-2xl flex items-center justify-center mb-6">
           <Inbox className="w-8 h-8 text-surface-400" />
         </div>

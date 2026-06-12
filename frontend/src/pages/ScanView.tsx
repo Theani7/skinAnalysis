@@ -314,7 +314,7 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
           )}
 
           {/* Clinical Info Bar */}
-          <div className="absolute top-4 md:top-6 left-1/2 -translate-x-1/2 flex gap-3 md:gap-6 z-20">
+          <div className="absolute top-3 sm:top-4 md:top-6 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-1.5 sm:gap-3 md:gap-6 z-20 max-w-[95vw]">
              <div className="flex items-center gap-1.5 md:gap-2 bg-black/30 backdrop-blur-sm px-2 md:px-3 py-1 md:py-1.5 rounded-full">
                 <Eye className="w-3 h-3 text-white/60" aria-hidden="true" />
                 <span className="text-2xs md:text-[10px] font-bold text-white/60 uppercase tracking-widest hidden sm:inline">Center:</span>

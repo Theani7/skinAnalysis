@@ -318,7 +318,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
 
       {/* Floating Pill Sidebar — Mobile */}
       {sidebarOpen && (
-        <aside className="lg:hidden fixed inset-y-0 left-0 z-40 flex flex-col w-72">
+        <aside className="lg:hidden fixed inset-y-0 left-0 z-40 flex flex-col w-[85vw] max-w-[320px]">
           <div className="flex flex-col h-full m-3 mt-16 mb-16 mobile-panel
             bg-white/80 backdrop-blur-xl
             border border-white/80
@@ -410,7 +410,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 content-shift lg:ml-[88px] xl:ml-[96px]">
         {/* Mobile header */}
-        <header className="lg:hidden flex items-center gap-4 p-4 border-b border-surface-100/60 bg-white/60 backdrop-blur-xl">
+        <header className="lg:hidden flex items-center gap-3 p-3 sm:p-4 border-b border-surface-100/60 bg-white/60 backdrop-blur-xl sticky top-0 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
             className="nav-btn p-2 text-surface-500 hover:text-surface-900 rounded-xl hover:bg-surface-100"
@@ -427,7 +427,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
         </header>
 
         <main className="flex-1 bg-surface-50 overflow-y-auto relative">
-          <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto min-h-full">
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto min-h-full">
             {children}
           </div>
         </main>

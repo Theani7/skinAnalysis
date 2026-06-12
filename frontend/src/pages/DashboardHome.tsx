@@ -87,7 +87,7 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
               <span className="text-sm font-bold uppercase tracking-wider text-primary-200">Skin Health Index</span>
             </div>
             
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 sm:gap-6">
               <ProgressRing value={healthScore} size={120} strokeWidth={8} color="#ffffff" bgColor="rgba(255,255,255,0.2)" />
               <div className="space-y-2">
                 <div className="flex items-center gap-2">

@@ -40,8 +40,8 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-surface-50 flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-white rounded-3xl border border-surface-200 p-8 text-center space-y-6">
+        <div className="min-h-screen bg-surface-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="max-w-md w-full bg-white rounded-3xl border border-surface-200 p-5 sm:p-8 text-center space-y-5 sm:space-y-6">
             <div className="w-16 h-16 bg-danger-50 rounded-2xl flex items-center justify-center mx-auto">
               <AlertTriangle className="w-8 h-8 text-danger-500" />
             </div>
