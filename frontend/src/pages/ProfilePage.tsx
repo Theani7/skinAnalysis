@@ -77,9 +77,9 @@ export default function ProfilePage({ user, onBack, onUserUpdate }: ProfilePageP
       {/* Profile Card */}
       <div className="bg-white rounded-2xl border border-surface-100 shadow-sm overflow-hidden">
         {/* Avatar Section */}
-        <div className="p-6 pb-4 border-b border-surface-100">
-          <div className="flex items-center gap-5">
-            <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center text-primary-700 font-black text-2xl">
+        <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-surface-100">
+          <div className="flex items-center gap-3 sm:gap-5">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-primary-700 font-black text-xl sm:text-2xl flex-shrink-0">
               {userInitials}
             </div>
             <div>
@@ -94,7 +94,7 @@ export default function ProfilePage({ user, onBack, onUserUpdate }: ProfilePageP
         </div>
 
         {/* Edit Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           {/* Messages */}
           {error && (
             <div className="p-3 bg-danger-50 border border-danger-500/20 rounded-xl flex items-center gap-3">

@@ -108,23 +108,24 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
   ];
 
   return (
-    <div className="min-h-full space-y-6 pb-20">
+    <div className="min-h-full space-y-4 sm:space-y-6 pb-16 md:pb-20">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <button onClick={onBack} className="flex items-center gap-2 text-surface-400 hover:text-surface-700 transition-colors">
+      <div className="flex items-center justify-between gap-3">
+        <button onClick={onBack} className="flex items-center gap-2 text-surface-400 hover:text-surface-700 transition-colors flex-shrink-0">
           <ArrowLeft className="w-4 h-4" />
-          <span className="text-xs font-bold uppercase tracking-widest">Back</span>
+          <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">Back</span>
         </button>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-surface-400 font-medium hidden sm:inline">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <span className="text-xs text-surface-400 font-medium hidden sm:inline truncate">
             Session #{result.result_image.split('_')[1].substring(0, 8).toUpperCase()}
           </span>
           <button
             onClick={() => generateClinicalReportPDF(result)}
-            className="flex items-center gap-2 bg-primary-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20"
+            className="flex items-center gap-1.5 sm:gap-2 bg-primary-600 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20 flex-shrink-0"
           >
             <Download className="w-4 h-4" />
-            Export PDF
+            <span className="hidden sm:inline">Export PDF</span>
+            <span className="sm:hidden">PDF</span>
           </button>
         </div>
       </div>
@@ -180,8 +181,10 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
         {/* Right: Score + Metrics */}
         <div className="space-y-6">
           {/* Overall Score */}
-          <div className="bg-white rounded-2xl border border-surface-100 shadow-sm p-5 sm:p-8 flex items-center gap-4 sm:gap-8">
-            <ScoreRing score={overallScore} size={130} stroke={10} />
+          <div className="bg-white rounded-2xl border border-surface-100 shadow-sm p-4 sm:p-6 md:p-8 flex items-center gap-3 sm:gap-6 md:gap-8">
+            <div className="flex-shrink-0">
+              <ScoreRing score={overallScore} size={100} stroke={8} />
+            </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -231,18 +234,18 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
       {/* Daily Routine */}
       {result.routine && (
         <div className="bg-white rounded-2xl border border-surface-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-surface-100">
-            <div className="flex items-center justify-between">
+          <div className="p-4 sm:p-6 border-b border-surface-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary-50 rounded-xl flex items-center justify-center">
                   <Clock className="w-4 h-4 text-primary-600" />
                 </div>
-                <h3 className="text-lg font-black text-surface-900">Daily Routine</h3>
+                <h3 className="text-base sm:text-lg font-black text-surface-900">Daily Routine</h3>
               </div>
-              <div className="flex gap-1 bg-surface-50 rounded-lg p-1">
+              <div className="flex gap-1 bg-surface-50 rounded-lg p-1 self-start">
                 <button
                   onClick={() => setActiveRoutineTab('morning')}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs font-bold transition-all ${
                     activeRoutineTab === 'morning'
                       ? 'bg-white text-amber-600 shadow-sm'
                       : 'text-surface-400 hover:text-surface-600'
@@ -252,7 +255,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
                 </button>
                 <button
                   onClick={() => setActiveRoutineTab('evening')}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs font-bold transition-all ${
                     activeRoutineTab === 'evening'
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-surface-400 hover:text-surface-600'
@@ -264,7 +267,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Timeline steps */}
             <div className="space-y-0">
               {(activeRoutineTab === 'morning' ? result.routine.morning : result.routine.evening).map((step, idx, arr) => (
@@ -310,7 +313,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
       {/* Bottom: Interpretation + Recommendations */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Clinical Interpretation */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-surface-100 shadow-sm p-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-surface-100 shadow-sm p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-surface-100 rounded-xl flex items-center justify-center">
               <Zap className="w-4 h-4 text-surface-600" />
@@ -326,7 +329,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
             }. Multi-spectral analysis identifies {result.pigmentation_data?.spots_count || 0} localized pigment clusters."
           </p>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2.5">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-surface-900">Key Findings</h4>
               <ul className="space-y-2">

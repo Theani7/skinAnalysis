@@ -55,7 +55,7 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
   const severity = latestStats?.severity ?? 'No scans yet';
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className="space-y-5 sm:space-y-6 md:space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
@@ -75,7 +75,7 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
       {/* Health Score + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Health Score */}
-        <div className="lg:col-span-1 bg-gradient-to-br from-primary-600 to-primary-800 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden">
+        <div className="lg:col-span-1 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-10 -mt-10" aria-hidden="true"></div>
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-10 -mb-10" aria-hidden="true"></div>
           
@@ -87,8 +87,10 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
               <span className="text-sm font-bold uppercase tracking-wider text-primary-200">Skin Health Index</span>
             </div>
             
-            <div className="flex items-center gap-4 sm:gap-6">
-              <ProgressRing value={healthScore} size={120} strokeWidth={8} color="#ffffff" bgColor="rgba(255,255,255,0.2)" />
+            <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
+              <div className="flex-shrink-0">
+                <ProgressRing value={healthScore} size={90} strokeWidth={6} color="#ffffff" bgColor="rgba(255,255,255,0.2)" />
+              </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   {scoreTrend >= 0 ? (
@@ -118,14 +120,14 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
             { label: 'Scans', value: String(progress.length), subtext: 'total analyses', icon: ScanLine, color: 'bg-blue-50 text-blue-600' },
             { label: 'Score', value: progress.length > 0 ? `${healthScore}` : '--', subtext: 'health index', icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600' },
           ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl p-4 md:p-5 border border-surface-200 hover:border-primary-200 transition-all group cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-9 h-9 ${stat.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+            <div key={stat.label} className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-surface-200 hover:border-primary-200 transition-all group cursor-pointer">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 ${stat.color} rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
                   <stat.icon className="w-4 h-4" aria-hidden="true" />
                 </div>
               </div>
-              <div className="text-2xl font-black text-surface-900">{stat.value}</div>
-              <div className="text-2xs text-surface-500 font-medium mt-0.5">{stat.subtext}</div>
+              <div className="text-xl sm:text-2xl font-black text-surface-900 truncate">{stat.value}</div>
+              <div className="text-[10px] sm:text-2xs text-surface-500 font-medium mt-0.5 truncate">{stat.subtext}</div>
             </div>
           ))}
         </div>
@@ -134,7 +136,7 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
       {/* Progress Chart + Recent Scans */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Progress Chart */}
-        <div className="lg:col-span-2 bg-white rounded-3xl p-5 md:p-6 border border-surface-200">
+        <div className="lg:col-span-2 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 border border-surface-200">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-surface-900">Progress Over Time</h3>
@@ -183,7 +185,7 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
         </div>
 
         {/* Recent Scans */}
-        <div className="bg-white rounded-3xl p-5 md:p-6 border border-surface-200">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 border border-surface-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-surface-900">Recent Scans</h3>
             {onViewHistory && (
@@ -224,16 +226,16 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
       </div>
 
       {/* Quick Actions + Tips */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
         {/* Quick Actions */}
-        <div className="bg-white rounded-3xl p-5 md:p-6 border border-surface-200">
-          <h3 className="font-bold text-surface-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 border border-surface-200">
+          <h3 className="font-bold text-surface-900 mb-3 sm:mb-4">Quick Actions</h3>
+          <div className="space-y-2.5 sm:space-y-3">
             <button 
               onClick={onStartScan}
-              className="w-full flex items-center gap-4 p-4 bg-primary-50 rounded-2xl hover:bg-primary-100 transition-colors text-left group"
+              className="w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-primary-50 rounded-xl sm:rounded-2xl hover:bg-primary-100 transition-colors text-left group"
             >
-              <div className="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center text-white group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 rounded-xl flex items-center justify-center text-white group-hover:scale-105 transition-transform flex-shrink-0">
                 <ScanLine className="w-5 h-5" aria-hidden="true" />
               </div>
               <div className="flex-1">
@@ -246,9 +248,9 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
             {onViewHistory && (
               <button 
                 onClick={onViewHistory}
-                className="w-full flex items-center gap-4 p-4 bg-surface-50 rounded-2xl hover:bg-surface-100 transition-colors text-left group"
+                className="w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-surface-50 rounded-xl sm:rounded-2xl hover:bg-surface-100 transition-colors text-left group"
               >
-                <div className="w-12 h-12 bg-surface-200 rounded-xl flex items-center justify-center text-surface-600 group-hover:scale-105 transition-transform">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-200 rounded-xl flex items-center justify-center text-surface-600 group-hover:scale-105 transition-transform flex-shrink-0">
                   <TrendingUp className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <div className="flex-1">
@@ -262,15 +264,15 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
         </div>
 
         {/* Daily Tips */}
-        <div className="bg-gradient-to-br from-surface-50 to-white rounded-3xl p-5 md:p-6 border border-surface-200">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="bg-gradient-to-br from-surface-50 to-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 border border-surface-200">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <Sparkles className="w-4 h-4 text-primary-600" aria-hidden="true" />
             <h3 className="font-bold text-surface-900">Daily Skincare Tips</h3>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2.5 sm:space-y-3">
             {quickTips.map((tip) => (
-              <div key={tip.id} className="flex items-start gap-3 p-3 bg-white rounded-xl border border-surface-100">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${tip.color.replace('text-', 'bg-').replace('-50', '-50')}`}>
+              <div key={tip.id} className="flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-white rounded-xl border border-surface-100">
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${tip.color.replace('text-', 'bg-').replace('-50', '-50')}`}>
                   <tip.icon className={`w-4 h-4 ${tip.color}`} aria-hidden="true" />
                 </div>
                 <p className="text-sm text-surface-600 leading-relaxed">{tip.text}</p>
@@ -281,8 +283,8 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
       </div>
 
       {/* System Status Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-2xl border border-surface-200">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-xl sm:rounded-2xl border border-surface-200">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${modelOnline ? 'bg-emerald-500 animate-pulse' : 'bg-surface-300'}`} aria-hidden="true"></div>
             <span className="text-2xs font-bold text-surface-500 uppercase tracking-widest">AI Engine {modelOnline ? 'Online' : 'Offline'}</span>

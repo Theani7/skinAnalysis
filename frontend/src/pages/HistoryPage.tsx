@@ -107,25 +107,25 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: 'Total Scans', value: historyList.length, icon: Calendar },
           { label: 'Latest Score', value: latestScan.score, icon: TrendingUp },
           { label: 'Best Score', value: Math.max(...historyList.map(s => s.score)), icon: TrendingUp },
           { label: 'Avg. Score', value: Math.round(historyList.reduce((a, s) => a + s.score, 0) / historyList.length), icon: TrendingUp },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white p-4 rounded-2xl border border-surface-200">
-            <div className="flex items-center gap-2 mb-2">
-              <stat.icon className="w-4 h-4 text-surface-400" aria-hidden="true" />
-              <span className="text-2xs font-bold text-surface-500 uppercase tracking-widest">{stat.label}</span>
+          <div key={stat.label} className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-surface-200">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <stat.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-surface-400" aria-hidden="true" />
+              <span className="text-[10px] sm:text-2xs font-bold text-surface-500 uppercase tracking-widest">{stat.label}</span>
             </div>
-            <div className="text-2xl font-black text-surface-900">{stat.value}</div>
+            <div className="text-xl sm:text-2xl font-black text-surface-900">{stat.value}</div>
           </div>
         ))}
       </div>
 
       {/* Progress Chart */}
-      <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-surface-200">
+      <div className="bg-white p-4 sm:p-5 md:p-6 rounded-2xl shadow-sm border border-surface-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-surface-900">Progress Over Time</h3>
           <span className="text-2xs font-bold text-surface-400 uppercase tracking-widest">{progressData.length} Scans</span>
@@ -160,18 +160,18 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
           {historyList.map((item, idx) => {
             const change = idx < historyList.length - 1 ? item.score - historyList[idx + 1].score : 0;
             return (
-              <div key={item.id} className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-surface-200 flex items-center gap-4 cursor-pointer hover:border-primary-200 transition-all group">
-                <div className="w-12 h-12 bg-surface-50 rounded-xl flex items-center justify-center text-surface-400 border border-surface-200 group-hover:border-primary-200 transition-colors flex-shrink-0">
+              <div key={item.id} className="bg-white p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl shadow-sm border border-surface-200 flex items-center gap-3 sm:gap-4 cursor-pointer hover:border-primary-200 transition-all group">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-50 rounded-xl flex items-center justify-center text-surface-400 border border-surface-200 group-hover:border-primary-200 transition-colors flex-shrink-0">
                   <Calendar className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-surface-900 text-base">{item.date}</h4>
+                    <h4 className="font-bold text-surface-900 text-sm sm:text-base truncate">{item.date}</h4>
                     {idx === 0 && (
                       <span className="px-2 py-0.5 bg-primary-50 text-primary-600 rounded-full text-2xs font-bold">Latest</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 mt-1">
+                  <div className="flex items-center gap-2 sm:gap-3 mt-1 flex-wrap">
                     <span className="text-xs text-surface-500 flex items-center gap-1">
                       <Clock className="w-3 h-3" aria-hidden="true" />
                       {item.time}
@@ -179,11 +179,11 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
                     <span className={`text-xs font-bold ${item.severity === 'Clear' ? 'text-emerald-600' : item.severity === 'Mild' ? 'text-amber-600' : 'text-rose-600'}`}>
                       {item.severity}
                     </span>
-                    <span className="text-2xs text-surface-400">{item.acne} spots</span>
+                    <span className="text-[10px] sm:text-2xs text-surface-400">{item.acne} spots</span>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="text-2xl font-extrabold text-primary-600">{item.score}</div>
+                  <div className="text-xl sm:text-2xl font-extrabold text-primary-600">{item.score}</div>
                   <div className="flex items-center justify-end gap-1 mt-0.5">
                     {change !== 0 && (
                       <span className={`text-2xs font-bold ${change > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>

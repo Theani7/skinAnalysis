@@ -133,20 +133,20 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
       </div>
 
       {/* Form Side */}
-      <div className="w-full lg:w-1/2 flex flex-col p-6 md:p-12 xl:p-20 justify-center">
+      <div className="w-full lg:w-1/2 flex flex-col p-5 sm:p-6 md:p-12 xl:p-20 justify-center min-h-screen">
         <div className="max-w-md w-full mx-auto">
           {/* Back button */}
           <button
             onClick={onBack}
-            className="mb-8 md:mb-10 flex items-center text-surface-500 hover:text-surface-900 font-bold transition-colors text-sm group"
+            className="mb-6 sm:mb-8 md:mb-10 flex items-center text-surface-500 hover:text-surface-900 font-bold transition-colors text-sm group"
           >
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
             Back to Home
           </button>
 
           {/* Header */}
-          <div className="mb-8 md:mb-10">
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-surface-900 mb-2">
+          <div className="mb-6 sm:mb-8 md:mb-10">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-surface-900 mb-2">
               {isLogin ? 'Welcome back' : 'Create account'}
             </h2>
             <p className="text-surface-500 font-medium text-sm md:text-base">
@@ -252,7 +252,7 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary-600/20 hover:bg-primary-700 active:scale-[0.98] transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+              className="w-full bg-primary-600 text-white py-3.5 sm:py-4 rounded-2xl font-bold shadow-lg shadow-primary-600/20 hover:bg-primary-700 active:scale-[0.98] transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
             >
               {isLoading ? (
                 <>
@@ -266,7 +266,7 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
           </form>
 
           {/* Divider */}
-          <div className="my-8 flex items-center gap-4">
+          <div className="my-6 sm:my-8 flex items-center gap-4">
             <div className="flex-1 h-px bg-surface-200"></div>
             <span className="text-xs font-bold text-surface-400 uppercase tracking-widest">or</span>
             <div className="flex-1 h-px bg-surface-200"></div>

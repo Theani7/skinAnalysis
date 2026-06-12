@@ -76,9 +76,9 @@ export default function ConfirmDialog({
   if (!open) return null;
 
   return (
-    <div
-      ref={dialogRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      <div
+        ref={dialogRef}
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
@@ -92,9 +92,9 @@ export default function ConfirmDialog({
       />
 
       {/* Dialog */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden sm:rounded-2xl">
         {/* Header */}
-        <div className="flex items-start gap-4 p-6 pb-4">
+        <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-6 pb-3 sm:pb-4">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
             danger ? 'bg-danger-50' : 'bg-amber-50'
           }`}>
@@ -114,7 +114,7 @@ export default function ConfirmDialog({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 px-6 pb-6">
+        <div className="flex gap-3 px-4 sm:px-6 pb-4 sm:pb-6">
           <button
             onClick={onCancel}
             className="flex-1 px-4 py-2.5 rounded-xl border border-surface-200 text-sm font-bold text-surface-700 hover:bg-surface-50 transition-all"
