@@ -70,9 +70,12 @@ frontend/public/models/
 *.pem
 *.key
 *.cert
+# Test coverage
 .coverage
 htmlcov/
 .pytest_cache/
+coverage/
+*.lcov
 .mypy_cache/
 .ruff_cache/
 

@@ -1,0 +1,32 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.2.0
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        files: ^backend/
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.0.0
+    hooks:
+      - id: eslint
+        files: ^frontend/src/.*\.(ts|tsx)$
+        types: [file]
+        additional_dependencies:
+          - eslint@8.56.0
+          - '@typescript-eslint/eslint-plugin@6.19.0'
+          - '@typescript-eslint/parser@6.19.0'
+          - eslint-plugin-react-hooks@4.6.0
+          - eslint-plugin-react-refresh@0.4.5
