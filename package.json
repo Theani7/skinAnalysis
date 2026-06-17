@@ -4,12 +4,13 @@
   "description": "A mobile-friendly web application for skin disease detection and management",
   "main": "backend/main.py",
   "scripts": {
-    "dev:backend": "cd backend && python -m uvicorn main:app --reload",
+    "dev:backend": "cd backend && ./venv/bin/python -m uvicorn main:app --reload",
     "dev:frontend": "cd frontend && npm run dev",
     "dev": "concurrently \"dev:backend\" \"dev:frontend\"",
     "build": "cd frontend && npm run build",
     "install:frontend": "cd frontend && npm install",
-    "install:backend": "cd backend && pip install -r requirements.txt",
+    "install:backend": "cd backend && ./venv/bin/pip install -r requirements.txt",
+    "setup": "cd backend && python3 -m venv venv && ./venv/bin/pip install -r requirements.txt",
     "install:all": "npm run install:frontend && npm run install:backend"
   },
   "author": "",

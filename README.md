@@ -19,7 +19,7 @@ A clinical-grade skin analysis platform that leverages multi-spectral computer v
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS, Recharts |
-| Backend | FastAPI, Python 3.11, OpenCV, TensorFlow, KerasCV |
+| Backend | FastAPI, Python 3.9+, OpenCV, TensorFlow, KerasCV |
 | AI Models | YOLOv8 (acne), YOLO-face (face detection), face-api.js (frontend guidance) |
 | Database | SQLite with SQLAlchemy ORM |
 | Auth | JWT tokens, bcrypt password hashing |
@@ -29,31 +29,63 @@ A clinical-grade skin analysis platform that leverages multi-spectral computer v
 
 ### Prerequisites
 
-- Python 3.11+
-- Node.js 20+
-- npm or yarn
+- Python 3.9+
+- Node.js 18+
+- npm
+- Git LFS (for model files)
 
-### Development Setup
+### Quick Setup (Recommended)
 
 ```bash
-# Install all dependencies
-npm run install:all
+# Clone the repo (Git LFS auto-pulls models)
+git clone https://github.com/Theani7/skinAnalysis.git
+cd skinAnalysis
+
+# Install Git LFS if not already installed
+brew install git-lfs
+git lfs pull
+
+# Install all dependencies and create Python venv
+npm run setup
 
 # Run both frontend and backend
 npm run dev
 ```
 
-Or run individually:
+Open http://localhost:3000
+
+### Manual Setup
+
+```bash
+# Install root dependencies (concurrently)
+npm install
+
+# Install frontend dependencies
+cd frontend && npm install && cd ..
+
+# Create Python venv and install backend dependencies
+cd backend
+python3 -m venv venv
+./venv/bin/pip install -r requirements.txt
+cd ..
+
+# Set up environment variables
+cp backend/.env.example backend/.env
+# Edit backend/.env and set SKINAI_JWT_SECRET to a random string
+
+# Run both
+npm run dev
+```
+
+### Run Individually
 
 ```bash
 # Backend (port 8000)
 cd backend
-pip install -r requirements.txt
-python -m uvicorn main:app --reload
+./venv/bin/python -m uvicorn main:app --reload
 
 # Frontend (port 3000)
 cd frontend
-npm install
 npm run dev
 ```
 
@@ -70,13 +102,13 @@ docker compose -f docker-compose.prod.yml up -d
 ## Project Structure
 
 ```
-skin-diseases/
+skinAnalysis/
 ├── backend/
 │   ├── main.py                 # FastAPI application & routes
 │   ├── model/
-│   │   └── model.h5            # YOLOv8 acne detection weights
+│   │   └── model.h5            # YOLOv8 acne detection weights (LFS)
 │   ├── models/
-│   │   └── YOLO-face.pt        # YOLO face detection model
+│   │   └── YOLO-face.pt        # YOLO face detection model (LFS)
 │   ├── services/
 │   │   ├── predictor.py        # Acne detection & classification
 │   │   ├── image_processor.py  # OpenCV preprocessing & pigmentation
@@ -85,6 +117,7 @@ skin-diseases/
 │   │   └── models.py           # User & Scan ORM models
 │   ├── uploads/                # User-uploaded images
 │   ├── results/                # Detection result images
+│   ├── venv/                   # Python virtual environment
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
@@ -114,11 +147,12 @@ skin-diseases/
 │   │       └── helpers.ts               # Utility functions
 │   ├── public/
 │   │   ├── favicon.svg
-│   │   └── models/                      # face-api.js model files
+│   │   └── models/                      # face-api.js model files (LFS)
 │   └── package.json
 ├── docker-compose.yml          # Development Docker setup
 ├── docker-compose.prod.yml     # Production Docker setup
 ├── .github/workflows/ci.yml    # GitHub Actions CI/CD
+├── .gitattributes              # Git LFS tracking rules
 └── package.json                # Root scripts (concurrently)
 ```
 
@@ -132,8 +166,9 @@ skin-diseases/
 | PUT | `/auth/profile` | Update user profile |
 | POST | `/upload` | Upload skin image |
 | POST | `/analyze` | Analyze uploaded image |
-| GET | `/results/{id}` | Get analysis results |
-| GET | `/history` | Get scan history |
+| GET | `/scans` | Get scan history |
+| GET | `/scans/{id}` | Get single scan details |
+| GET | `/scans/history/progress` | Get progress chart data |
 | GET | `/model/status` | Check model status |
 | GET | `/health` | Health check |
 
@@ -154,7 +189,7 @@ skin-diseases/
 ```env
 BACKEND_HOST=0.0.0.0
 BACKEND_PORT=8000
-CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+SKINAI_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 MODEL_PATH=model/model.h5
 SKINAI_JWT_SECRET=your-secret-key
 SKINAI_DB_PATH=skinai.db
@@ -163,8 +198,19 @@ SKINAI_DB_PATH=skinai.db
 ### Frontend (`frontend/.env`)
 
 ```env
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_URL=http://localhost:8000
 ```
+
+## NPM Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run setup` | Create Python venv and install backend deps |
+| `npm run dev` | Run both frontend and backend |
+| `npm run dev:backend` | Run backend only |
+| `npm run dev:frontend` | Run frontend only |
+| `npm run install:all` | Install all dependencies |
+| `npm run build` | Build frontend for production |
 
 ## License
 
