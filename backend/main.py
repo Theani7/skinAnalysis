@@ -406,25 +406,6 @@ async def analyze_image(
             except Exception as e:
                 logger.warning(f"Daraz product fetch failed (non-fatal): {e}")
 
-        # Build recommendation lookup: rec_id -> cheapest product price
-        rec_price_map: dict = {}
-        for rec in recommendations:
-            products = rec.get("products", [])
-            if products:
-                rec_price_map[rec["id"]] = min(p["price"] for p in products if p.get("price", 0) > 0)
-
-        # Calculate routine costs
-        routine = result.get("routine", {"morning": [], "evening": [], "tips": []})
-        morning_cost = sum(rec_price_map.get(step["id"], 0) for step in routine.get("morning", []))
-        evening_cost = sum(rec_price_map.get(step["id"], 0) for step in routine.get("evening", []))
-        routine["cost_summary"] = {
-            "morning_cost": morning_cost,
-            "evening_cost": evening_cost,
-            "total_cost": morning_cost + evening_cost,
-            "currency": "Rs.",
-            "products_found": len(rec_price_map),
-        }
-
         return JSONResponse(
             status_code=200,
             content={
@@ -441,7 +422,7 @@ async def analyze_image(
                 "dryness_data": result.get("dryness_data"),
                 "recommendations": recommendations,
                 "conflicts": result.get("conflicts", []),
-                "routine": routine,
+                "routine": result.get("routine", {"morning": [], "evening": [], "tips": []}),
                 "face_quality": result.get("face_quality"),
             },
         )

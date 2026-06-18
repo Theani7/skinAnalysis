@@ -164,13 +164,6 @@ export interface AnalysisResponse {
     morning: Array<{ step: number; product: string; action: string; id: string }>;
     evening: Array<{ step: number; product: string; action: string; id: string }>;
     tips: string[];
-    cost_summary?: {
-      morning_cost: number;
-      evening_cost: number;
-      total_cost: number;
-      currency: string;
-      products_found: number;
-    };
   };
   face_quality?: {
     blur_score: number;
