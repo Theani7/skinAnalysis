@@ -10,7 +10,7 @@ import ProfilePage from './pages/ProfilePage';
 import { AnalysisResponse } from './services/api';
 import { AuthUser, getStoredUser, isAuthenticated, clearAuth } from './services/auth';
 
-export type PageRoute = 'landing' | 'login' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile';
+export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile';
 
 const RESULT_STORAGE_KEY = 'skinai_last_result';
 
@@ -32,7 +32,6 @@ function storeResult(result: AnalysisResponse | null): void {
 
 function getInitialRoute(): PageRoute {
   const path = window.location.pathname;
-  if (path === '/login') return 'login';
   if (path === '/scan') return 'scan';
   if (path === '/report') return 'report';
   if (path === '/history') return 'history';
@@ -45,14 +44,13 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<PageRoute>(getInitialRoute);
   const [authUser, setAuthUser] = useState<AuthUser | null>(getStoredUser());
   const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(getStoredResult);
+  const [showLogin, setShowLogin] = useState(false);
 
-  // Sync URL with state
   const navigate = useCallback((page: PageRoute) => {
     window.scrollTo(0, 0);
     setCurrentPage(page);
     const paths: Record<PageRoute, string> = {
       landing: '/',
-      login: '/login',
       dashboard: '/dashboard',
       scan: '/scan',
       report: '/report',
@@ -62,7 +60,6 @@ export default function App() {
     window.history.pushState({}, '', paths[page] || '/');
   }, []);
 
-  // Handle browser back/forward
   useEffect(() => {
     const handlePopState = () => {
       const route = getInitialRoute();
@@ -72,7 +69,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Keep authUser in sync with localStorage
   useEffect(() => {
     if (isAuthenticated() && !authUser) {
       setAuthUser(getStoredUser());
@@ -81,6 +77,7 @@ export default function App() {
 
   const handleLogin = (user: AuthUser) => {
     setAuthUser(user);
+    setShowLogin(false);
     navigate('dashboard');
   };
 
@@ -102,12 +99,14 @@ export default function App() {
     setAuthUser(user);
   };
 
-  // Unauthenticated Routes
+  // Unauthenticated: landing page + login modal
   if (!isAuthenticated()) {
-    if (currentPage === 'login') {
-      return <LoginPage onLogin={handleLogin} onBack={() => navigate('landing')} />;
-    }
-    return <LandingPage onStart={() => navigate('login')} />;
+    return (
+      <>
+        <LandingPage onStart={() => setShowLogin(true)} />
+        <LoginPage open={showLogin} onLogin={handleLogin} onClose={() => setShowLogin(false)} />
+      </>
+    );
   }
 
   // Authenticated Dashboard Layout

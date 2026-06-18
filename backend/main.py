@@ -614,7 +614,7 @@ async def get_model_status():
     """Check AI model status."""
     return {
         "model_loaded": predictor.model_loaded,
-        "model_path": "/model/model.h5",
+        "model_type": predictor.acne_detector.model_type if predictor.acne_detector else "none",
         "input_size": "640x640",
         "confidence_threshold": 0.25,
     }

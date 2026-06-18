@@ -1,23 +1,39 @@
-import { useState } from 'react';
-import { ArrowLeft, Activity, Loader2, Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Loader2, Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle2, Camera } from 'lucide-react';
 import { loginUser, registerUser, storeAuth, AuthUser } from '../services/auth';
 
 interface LoginPageProps {
+  open: boolean;
   onLogin: (user: AuthUser) => void;
-  onBack: () => void;
+  onClose: () => void;
 }
 
-export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
+export default function LoginPage({ open, onLogin, onClose }: LoginPageProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      setIsLogin(true);
+      resetForm();
+    }
+  }, [open]);
 
   const resetForm = () => {
     setName('');
@@ -40,7 +56,6 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
     setIsLoading(true);
 
     try {
-      // Client-side validation
       if (!email.trim()) {
         setError('Please enter your email address.');
         setIsLoading(false);
@@ -72,170 +87,124 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
       storeAuth(response.access_token, response.user);
       onLogin(response.user);
     } catch (err: any) {
-      // Error is already formatted by the interceptor
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (!open) return null;
+
   return (
-    <div className="min-h-screen bg-white text-surface-900 flex">
-      {/* Visual Side (Desktop) */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 p-16 xl:p-20 flex-col justify-between text-white relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-300/10 rounded-full blur-3xl"></div>
-        </div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" aria-hidden="true"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
+      {/* Modal */}
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 p-2 text-surface-400 hover:text-surface-900 rounded-full hover:bg-surface-100 transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-5 h-5" />
+        </button>
 
-        <div className="z-10 flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-            <Activity className="w-6 h-6 text-white" aria-hidden="true" />
+        {/* Header */}
+        <div className="px-8 pt-10 pb-6 text-center">
+          <div className="w-12 h-12 bg-surface-900 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <Camera className="w-6 h-6 text-white" />
           </div>
-          <div>
-            <span className="text-2xl font-bold tracking-tighter">SkinAI.</span>
-            <span className="block text-xs font-medium text-primary-200 -mt-1">Clinical Platform</span>
-          </div>
-        </div>
-
-        <div className="z-10">
-          <h2 className="text-4xl xl:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
-            AI-Powered<br />Skin Analysis.
+          <h2 className="text-2xl font-display font-bold tracking-tight text-surface-900">
+            {isLogin ? 'Welcome back' : 'Create account'}
           </h2>
-          <p className="text-primary-200 text-lg xl:text-xl max-w-md leading-relaxed">
-            YOLOv8-based acne detection with personalized skincare recommendations.
+          <p className="text-sm text-surface-500 mt-2">
+            {isLogin
+              ? 'Sign in to access your dashboard'
+              : 'Create an account to get started'}
           </p>
         </div>
 
-        <div className="z-10 space-y-6">
-          {/* Features */}
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { value: 'Real-time', label: 'Detection' },
-              { value: 'Personalized', label: 'Routine' },
-              { value: 'Clinical', label: 'Reports' },
-            ].map((stat) => (
-              <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-                <div className="text-lg font-bold">{stat.value}</div>
-                <div className="text-xs text-primary-200 font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Form Side */}
-      <div className="w-full lg:w-1/2 flex flex-col p-5 sm:p-6 md:p-12 xl:p-20 justify-center min-h-screen">
-        <div className="max-w-md w-full mx-auto">
-          {/* Back button */}
-          <button
-            onClick={onBack}
-            className="mb-6 sm:mb-8 md:mb-10 flex items-center text-surface-500 hover:text-surface-900 font-bold transition-colors text-sm group"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
-            Back to Home
-          </button>
-
-          {/* Header */}
-          <div className="mb-6 sm:mb-8 md:mb-10">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-surface-900 mb-2">
-              {isLogin ? 'Welcome back' : 'Create account'}
-            </h2>
-            <p className="text-surface-500 font-medium text-sm md:text-base">
-              {isLogin
-                ? 'Sign in to access your clinical dashboard'
-                : 'Join the AI-powered skin analysis platform'}
-            </p>
-          </div>
-
-          {/* Error/Success messages */}
+        {/* Form */}
+        <div className="px-8 pb-8">
           {error && (
-            <div className="mb-6 p-4 bg-danger-50 border border-danger-500/20 rounded-2xl flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-danger-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
-              <p className="text-sm font-medium text-danger-600">{error}</p>
+            <div className="mb-4 p-3 bg-danger-50 border border-danger-200 rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-danger-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-danger-600">{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="mb-6 p-4 bg-success-50 border border-success-500/20 rounded-2xl flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-success-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
-              <p className="text-sm font-medium text-success-600">{success}</p>
+            <div className="mb-4 p-3 bg-success-50 border border-success-200 rounded-xl flex items-start gap-3">
+              <CheckCircle2 className="w-4 h-4 text-success-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-success-600">{success}</p>
             </div>
           )}
 
-          {/* Form */}
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            {/* Name field (signup only) */}
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
-                <label htmlFor="name" className="block text-xs font-bold text-surface-900 uppercase tracking-widest mb-2">
+                <label htmlFor="modal-name" className="block text-sm font-medium text-surface-700 mb-1.5">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" aria-hidden="true" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
                   <input
                     type="text"
-                    id="name"
+                    id="modal-name"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-11 pr-5 py-3.5 rounded-2xl bg-surface-50 border-2 border-transparent focus:border-primary-600 focus:bg-white outline-none transition-all text-surface-900 text-sm placeholder:text-surface-400"
-                    placeholder="Dr. Sarah Johnson"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-surface-200 rounded-xl text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-surface-900/10 focus:border-surface-300 transition-colors"
+                    placeholder="Your full name"
                   />
                 </div>
               </div>
             )}
 
-            {/* Email field */}
             <div>
-              <label htmlFor="email" className="block text-xs font-bold text-surface-900 uppercase tracking-widest mb-2">
-                Email Address
+              <label htmlFor="modal-email" className="block text-sm font-medium text-surface-700 mb-1.5">
+                Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" aria-hidden="true" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
                 <input
                   type="email"
-                  id="email"
+                  id="modal-email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-5 py-3.5 rounded-2xl bg-surface-50 border-2 border-transparent focus:border-primary-600 focus:bg-white outline-none transition-all text-surface-900 text-sm placeholder:text-surface-400"
-                  placeholder="sarah@hospital.org"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-surface-200 rounded-xl text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-surface-900/10 focus:border-surface-300 transition-colors"
+                  placeholder="you@example.com"
                 />
               </div>
             </div>
 
-            {/* Password field */}
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label htmlFor="password" className="block text-xs font-bold text-surface-900 uppercase tracking-widest">
-                  Password
-                </label>
-              </div>
+              <label htmlFor="modal-password" className="block text-sm font-medium text-surface-700 mb-1.5">
+                Password
+              </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" aria-hidden="true" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  id="password"
+                  id="modal-password"
                   required
                   minLength={isLogin ? undefined : 8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-12 py-3.5 rounded-2xl bg-surface-50 border-2 border-transparent focus:border-primary-600 focus:bg-white outline-none transition-all text-surface-900 text-sm placeholder:text-surface-400"
-                  placeholder={isLogin ? 'Enter your password' : 'Min. 8 characters'}
+                  className="w-full pl-10 pr-11 py-3 bg-white border border-surface-200 rounded-xl text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-surface-900/10 focus:border-surface-300 transition-colors"
+                  placeholder={isLogin ? 'Enter your password' : 'Minimum 8 characters'}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -243,15 +212,14 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
               </div>
             </div>
 
-            {/* Submit button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary-600 text-white py-3.5 sm:py-4 rounded-2xl font-bold shadow-lg shadow-primary-600/20 hover:bg-primary-700 active:scale-[0.98] transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+              className="w-full bg-surface-900 text-white py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:bg-surface-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   {isLogin ? 'Signing in...' : 'Creating account...'}
                 </>
               ) : (
@@ -260,19 +228,17 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="my-6 sm:my-8 flex items-center gap-4">
+          <div className="my-6 flex items-center gap-4">
             <div className="flex-1 h-px bg-surface-200"></div>
-            <span className="text-xs font-bold text-surface-400 uppercase tracking-widest">or</span>
+            <span className="text-xs text-surface-400">or</span>
             <div className="flex-1 h-px bg-surface-200"></div>
           </div>
 
-          {/* Toggle login/signup */}
-          <p className="text-surface-500 font-medium text-sm text-center">
+          <p className="text-surface-500 text-sm text-center">
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={handleToggle}
-              className="font-bold text-primary-600 hover:text-primary-800 transition-colors underline-offset-4 hover:underline"
+              className="font-medium text-surface-900 hover:underline underline-offset-4"
             >
               {isLogin ? 'Sign Up' : 'Sign In'}
             </button>

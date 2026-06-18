@@ -77,3 +77,5 @@ docs/superpowers/
 # AI assistant context
 GEMINI.md
 AGENTS.md
+backend/skinai.db*
+backend/yolo26n.pt

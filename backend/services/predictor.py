@@ -16,76 +16,19 @@ import uuid
 from typing import Dict, List, Tuple
 
 import cv2
-import h5py
-import keras_cv
 import numpy as np
-import tensorflow as tf
 from ultralytics import YOLO
 
 logger = logging.getLogger(__name__)
 
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_H5_PATH = os.path.join(BACKEND_DIR, "model", "model.h5")
 RESULTS_DIR = os.path.join(BACKEND_DIR, "results")
 MODELS_DIR = os.path.join(BACKEND_DIR, "models")
-INPUT_SIZE = 640
 
 YOLO_FACE_MODEL_PATH = os.path.join(MODELS_DIR, "YOLO-face.pt")
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 os.makedirs(MODELS_DIR, exist_ok=True)
-
-
-def _load_yolov8_weights(detector, h5_path):
-    dummy = tf.zeros((1, INPUT_SIZE, INPUT_SIZE, 3))
-    _ = detector(dummy, training=False)
-    layer_map = {layer.name: layer for layer in detector.layers}
-
-    with h5py.File(h5_path, 'r') as f:
-        loaded = 0
-        if 'model' in f:
-            for layer_name in f['model'].keys():
-                functional = layer_map.get('functional')
-                if functional is None:
-                    continue
-                for sub in functional.layers:
-                    if sub.name == layer_name and len(sub.weights) > 0:
-                        datasets = [k for k in f['model'][layer_name]
-                                    if isinstance(f['model'][layer_name][k], h5py.Dataset)]
-                        if len(sub.weights) == len(datasets):
-                            for w, ds in zip(sub.weights, datasets):
-                                data = f['model'][layer_name][ds][()]
-                                if w.shape == data.shape:
-                                    w.assign(data)
-                                    loaded += 1
-                        break
-
-        skip = {'model', 'box', 'box_outputs', 'class', 'input_2',
-                'non_max_suppression', 'top_level_model_weights', 'yolov8_label_encoder'}
-        for group_name in f.keys():
-            if group_name in skip or group_name.startswith('tf.'):
-                continue
-            layer = layer_map.get(group_name)
-            if layer is None or len(layer.weights) == 0:
-                continue
-            grp = f[group_name]
-            if group_name in grp:
-                grp = grp[group_name]
-            datasets = [k for k in grp if isinstance(grp[k], h5py.Dataset)]
-            weight_order = ['kernel', 'gamma', 'beta', 'moving_mean', 'moving_variance', 'bias']
-            matched = []
-            for wn in weight_order:
-                for dn in datasets:
-                    if dn.startswith(wn):
-                        matched.append(grp[dn])
-                        break
-            if len(matched) == len(layer.weights):
-                for w, ds in zip(layer.weights, matched):
-                    data = ds[()]
-                    if w.shape == data.shape:
-                        w.assign(data)
-                        loaded += 1
-        return loaded
 
 
 def _detect_faces_yolo(image: np.ndarray, model: YOLO) -> List[Tuple[int, int, int, int]]:
@@ -405,13 +348,9 @@ def _detect_dryness(image: np.ndarray, skin_mask: np.ndarray) -> Dict:
 
 def _detect_pigmentation(image: np.ndarray, skin_mask: np.ndarray, acne_mask: np.ndarray) -> Dict:
     """
-    Multi-spectral pigmentation detection using three independent color channels:
-    1. Log-Spectral Melanin Index (M-Index) — melanin concentration
-    2. LAB a* channel — redness/hemoglobin (post-inflammatory pigmentation)
-    3. HSV V channel — dark spot detection
-
-    Each channel runs multi-scale detection with adaptive Otsu thresholding,
-    and results are fused via majority voting to reduce false positives.
+    Multi-spectral pigmentation detection.
+    Detects both small spots and large diffuse patches (melasma, sun damage).
+    Excludes eyebrows, eyes, lips, nostrils.
     """
     skin_area = np.count_nonzero(skin_mask)
     if skin_area < 100:
@@ -423,140 +362,130 @@ def _detect_pigmentation(image: np.ndarray, skin_mask: np.ndarray, acne_mask: np
             "intensity_map": np.zeros_like(skin_mask, dtype=np.float32),
         }
 
-    # ── Channel 1: Log-Spectral Melanin Index (M-Index) ──
-    img_f = image.astype(np.float32) / 255.0 + 1e-6
-    b, g, r = cv2.split(img_f)
-    m_index = np.log(r) - np.log(g)
-    m_norm = cv2.normalize(m_index, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-
-    # ── Channel 2: LAB a* (redness — captures melasma & post-inflammatory marks) ──
-    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-    a_channel = lab[:, :, 1]  # a* range ~0-255 in OpenCV (128 = neutral)
-
-    # ── Channel 3: HSV Value (dark spot detection) ──
+    h, w = image.shape[:2]
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # ── Exclude non-skin features ──
+    # Eyebrows: very dark
+    eyebrow_mask = cv2.inRange(gray, 0, 50)
+    # Lips: red hue, high saturation
+    lip_mask = cv2.inRange(hsv, np.array([0, 50, 100]), np.array([18, 200, 255]))
+    lip_mask2 = cv2.inRange(hsv, np.array([165, 50, 100]), np.array([180, 200, 255]))
+    lip_mask = cv2.bitwise_or(lip_mask, lip_mask2)
+    # Eyes: very dark or very bright white
+    eye_dark = cv2.inRange(gray, 0, 35)
+    eye_white = cv2.inRange(hsv, np.array([0, 0, 220]), np.array([180, 30, 255]))
+    eye_mask = cv2.bitwise_or(eye_dark, eye_white)
+    # Nostrils: very dark holes
+    nostril_mask = cv2.inRange(gray, 0, 30)
+
+    exclude_mask = cv2.bitwise_or(eyebrow_mask, lip_mask)
+    exclude_mask = cv2.bitwise_or(exclude_mask, eye_mask)
+    exclude_mask = cv2.bitwise_or(exclude_mask, nostril_mask)
+
+    # Dilate to cover edges
+    kernel_ex = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+    exclude_mask = cv2.dilate(exclude_mask, kernel_ex, iterations=3)
+
+    # Clean skin = skin mask minus excluded features
+    clean_skin = cv2.bitwise_and(skin_mask, cv2.bitwise_not(exclude_mask))
+
+    # ── Detect pigmentation using LAB a* (redness/brownness) ──
+    a_channel = lab[:, :, 1]  # a* > 128 = red/brown tones
+
+    # Extract detail layer (removes slow-varying illumination)
+    a_blur = cv2.bilateralFilter(a_channel, d=9, sigmaColor=75, sigmaSpace=75)
+    a_detail = cv2.absdiff(a_channel, a_blur)
+    a_detail_eq = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8)).apply(a_detail)
+
+    # ── Detect spots: high a* on clean skin ──
+    # Use adaptive threshold based on skin statistics
+    skin_a_vals = a_channel[clean_skin > 0]
+    if len(skin_a_vals) < 50:
+        return {
+            "clarity_score": 100, "spots_count": 0, "intensity": "Low",
+            "mask": np.zeros_like(skin_mask),
+            "intensity_map": np.zeros_like(skin_mask, dtype=np.float32),
+        }
+
+    skin_a_mean = np.mean(skin_a_vals)
+    skin_a_std = np.std(skin_a_vals)
+
+    # Threshold: spots are significantly redder than surrounding skin
+    spot_thresh = max(135, int(skin_a_mean + 1.5 * skin_a_std))
+    spot_mask = cv2.inRange(a_channel, spot_thresh, 255)
+    spot_mask = cv2.bitwise_and(spot_mask, clean_skin)
+
+    # ── Also detect dark patches (brown spots, melasma) using V channel ──
     v_channel = hsv[:, :, 2]
-    # Invert: dark spots become bright for detection
-    v_inv = cv2.bitwise_not(v_channel)
+    skin_v_vals = v_channel[clean_skin > 0]
+    if len(skin_v_vals) > 50:
+        skin_v_mean = np.mean(skin_v_vals)
+        skin_v_std = np.std(skin_v_vals)
+        dark_thresh = max(30, int(skin_v_mean - 2.0 * skin_v_std))
+        dark_mask = cv2.inRange(v_channel, 0, dark_thresh)
+        dark_mask = cv2.bitwise_and(dark_mask, clean_skin)
+    else:
+        dark_mask = np.zeros_like(skin_mask)
 
-    def _extract_detail(channel: np.ndarray) -> np.ndarray:
-        """Bilateral filter → detail layer → CLAHE enhancement."""
-        base = cv2.bilateralFilter(channel, d=9, sigmaColor=75, sigmaSpace=75)
-        detail = cv2.subtract(channel, base)
-        return cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8, 8)).apply(detail)
+    # ── Combine red + dark spots ──
+    pig_mask = cv2.bitwise_or(spot_mask, dark_mask)
 
-    def _multi_scale_detect(detail: np.ndarray, skin_roi: np.ndarray) -> np.ndarray:
-        """Run Otsu threshold at 3 scales and merge via union."""
-        merged = np.zeros_like(detail)
-        for ksize in [3, 5, 9]:
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
-            smoothed = cv2.morphologyEx(detail, cv2.MORPH_CLOSE, kernel)
+    # Morphological cleanup
+    kernel_clean = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    pig_mask = cv2.morphologyEx(pig_mask, cv2.MORPH_CLOSE, kernel_clean, iterations=2)
+    pig_mask = cv2.morphologyEx(pig_mask, cv2.MORPH_OPEN, kernel_clean, iterations=1)
 
-            # Adaptive Otsu — works across skin tones
-            skin_vals = smoothed[skin_roi > 0]
-            if len(skin_vals) < 50:
-                continue
-            otsu_thresh, _ = cv2.threshold(skin_vals, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-            # Use the Otsu threshold as a floor, also keep sigma-based for comparison
-            mean_d = np.mean(skin_vals)
-            std_d = np.std(skin_vals)
-            sigma_thresh_val = mean_d + 2.0 * std_d  # slightly relaxed from 2.5
+    # Remove small noise
+    kernel_open = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    pig_mask = cv2.morphologyEx(pig_mask, cv2.MORPH_OPEN, kernel_open, iterations=1)
 
-            # Take the lower of Otsu and sigma (more sensitive), but at least mean + 1σ
-            effective_thresh = max(sigma_thresh_val, otsu_thresh * 0.7)
-            _, binary = cv2.threshold(smoothed, effective_thresh, 255, cv2.THRESH_BINARY)
-            merged = cv2.bitwise_or(merged, binary)
-        return merged
-
-    # Process each channel
-    m_detail = _extract_detail(m_norm)
-    m_spots = _multi_scale_detect(m_detail, skin_mask)
-
-    a_detail = _extract_detail(a_channel)
-    a_spots = _multi_scale_detect(a_detail, skin_mask)
-
-    v_detail = _extract_detail(v_inv)
-    v_spots = _multi_scale_detect(v_detail, skin_mask)
-
-    # ── Multi-channel voting: pixel must appear in >= 2 of 3 channels ──
-    vote_sum = cv2.add(
-        cv2.add(m_spots // 128, a_spots // 128),
-        v_spots // 128,
-    )
-    fused_mask = np.where(vote_sum >= 2, 255, 0).astype(np.uint8)
-
-    # ── Masking & cleanup ──
-    fused_mask = cv2.bitwise_and(fused_mask, skin_mask)
-
-    # Remove acne regions and halos
+    # ── Remove acne regions ──
     if acne_mask is not None:
         acne_halo = cv2.dilate(acne_mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))
-        fused_mask[acne_halo > 0] = 0
+        pig_mask[acne_halo > 0] = 0
 
-    kernel_clean = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    fused_mask = cv2.morphologyEx(fused_mask, cv2.MORPH_OPEN, kernel_clean)
-
-    # ── Build intensity map for heatmap (0.0–1.0 float) ──
-    # Combine raw channel strengths for a continuous intensity signal
-    m_float = cv2.normalize(m_detail, None, 0, 1, cv2.NORM_MINMAX).astype(np.float32)
-    a_float = cv2.normalize(a_detail, None, 0, 1, cv2.NORM_MINMAX).astype(np.float32)
-    v_float = cv2.normalize(v_detail, None, 0, 1, cv2.NORM_MINMAX).astype(np.float32)
-    intensity_map = (m_float * 0.4 + a_float * 0.35 + v_float * 0.25)
-    # Zero out non-skin and non-spot regions
-    intensity_map = np.where(fused_mask > 0, intensity_map, 0.0)
-
-    # ── Spot validation with improved hair filter ──
-    contours, _ = cv2.findContours(fused_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # ── Count and validate spots ──
+    contours, _ = cv2.findContours(pig_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     validated_spots = []
-    validated_mask = np.zeros_like(fused_mask)
+    validated_mask = np.zeros_like(skin_mask)
 
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        if area < 3:
+        if area < 15:  # reject tiny noise
             continue
 
-        x, y, w, h = cv2.boundingRect(cnt)
-        aspect_ratio = float(w) / h if h > 0 else 0
-
-        perimeter = cv2.arcLength(cnt, True)
-        circularity = (4 * np.pi * area) / (perimeter * perimeter) if perimeter > 0 else 0
-
-        # Perimeter-to-area irregularity: hair/wrinkles have high perimeter relative to area
-        irregularity = perimeter / (2.0 * np.sqrt(np.pi * area)) if area > 0 else 0
-
-        # ── Hair/line rejection ──
-        # Extreme aspect ratio + small area = likely hair
-        if (aspect_ratio > 4.0 or aspect_ratio < 0.25) and area < 100:
-            continue
-        # Very elongated with high irregularity
-        if irregularity > 4.0 and area < 80:
-            continue
-        # Low circularity + small = thin line
-        if circularity < 0.15 and area < 50:
+        x, y, bw, bh = cv2.boundingRect(cnt)
+        # Reject if touching image border (likely hair/background)
+        if x <= 2 or y <= 2 or x + bw >= w - 2 or y + bh >= h - 2:
             continue
 
-        # ── Solidity filter ──
-        hull = cv2.convexHull(cnt)
-        hull_area = cv2.contourArea(hull)
-        solidity = float(area) / hull_area if hull_area > 0 else 0
-        if solidity < 0.35 and area < 100:
+        # Reject extreme aspect ratios (lines = hair)
+        aspect = float(bw) / bh if bh > 0 else 0
+        if aspect > 5.0 or aspect < 0.2:
+            continue
+
+        # Reject if center is on excluded region
+        cx, cy = x + bw // 2, y + bh // 2
+        if exclude_mask[cy, cx] > 0:
             continue
 
         validated_spots.append(cnt)
         cv2.drawContours(validated_mask, [cnt], -1, 255, -1)
 
-    # Update intensity map to validated spots only
-    intensity_map = np.where(validated_mask > 0, intensity_map, 0.0)
+    # ── Intensity map ──
+    a_float = cv2.normalize(a_detail_eq, None, 0, 1, cv2.NORM_MINMAX).astype(np.float32)
+    intensity_map = np.where(validated_mask > 0, a_float, 0.0)
 
     # ── Scoring ──
     pigment_area = np.count_nonzero(validated_mask)
     coverage = (pigment_area / skin_area) * 100 if skin_area > 0 else 0
 
-    # Exponential decay clarity score
     clarity_score = max(0, min(100, 100 * np.exp(-coverage * 0.5)))
 
-    # Intensity classification with stricter thresholds (multi-channel = more confident)
     if coverage > 3.0:
         intensity = "High"
     elif coverage > 1.0:
@@ -756,20 +685,63 @@ def _classify_spot(h, s, v, a, dark_ratio, red_ratio) -> str:
 
 
 def _nms(detections: List[Dict]) -> List[Dict]:
-    """Non-maximum suppression."""
+    """NMS followed by distance-based clustering to merge nearby detections."""
     if len(detections) <= 1:
         return detections
 
     boxes = np.array([d["bbox"] for d in detections])
     scores = np.array([d["confidence"] for d in detections])
-    cv_boxes = [[int(b[0]), int(b[1]), int(b[2]-b[0]), int(b[3]-b[1])] for b in boxes]
-    indices = cv2.dnn.NMSBoxes(cv_boxes, scores.tolist(), 0.3, 0.4)
 
+    # First pass: standard NMS
+    cv_boxes = [[int(b[0]), int(b[1]), int(b[2]-b[0]), int(b[3]-b[1])] for b in boxes]
+    indices = cv2.dnn.NMSBoxes(cv_boxes, scores.tolist(), 0.3, 0.6)
     if len(indices) > 0:
         if isinstance(indices, np.ndarray):
             indices = indices.flatten()
-        return [detections[i] for i in indices]
-    return []
+        detections = [detections[i] for i in indices]
+    else:
+        return []
+
+    # Second pass: cluster by center distance (merge boxes within 25px)
+    boxes = np.array([d["bbox"] for d in detections])
+    scores_arr = np.array([d["confidence"] for d in detections])
+    centers = np.column_stack([(boxes[:, 0] + boxes[:, 2]) / 2,
+                                (boxes[:, 1] + boxes[:, 3]) / 2])
+
+    merge_dist = 25.0
+    merged = set()
+    clusters = []
+
+    for i in range(len(boxes)):
+        if i in merged:
+            continue
+        cluster = [i]
+        merged.add(i)
+        for j in range(i + 1, len(boxes)):
+            if j in merged:
+                continue
+            if np.linalg.norm(centers[i] - centers[j]) < merge_dist:
+                cluster.append(j)
+                merged.add(j)
+        clusters.append(cluster)
+
+    result = []
+    for cluster in clusters:
+        cluster_boxes = boxes[cluster]
+        cluster_scores = scores_arr[cluster]
+        best_idx = cluster[np.argmax(cluster_scores)]
+        merged_box = [
+            float(cluster_boxes[:, 0].min()),
+            float(cluster_boxes[:, 1].min()),
+            float(cluster_boxes[:, 2].max()),
+            float(cluster_boxes[:, 3].max()),
+        ]
+        result.append({
+            "bbox": merged_box,
+            "confidence": float(cluster_scores.max()),
+            "class_name": "acne",
+        })
+    return result
 
 
 def _draw_boxes(image: np.ndarray, detections: List[Dict]) -> np.ndarray:
@@ -786,7 +758,7 @@ def _draw_boxes(image: np.ndarray, detections: List[Dict]) -> np.ndarray:
     }
 
     for i, det in enumerate(detections):
-        x1, y1, x2, y2 = det["bbox"]
+        x1, y1, x2, y2 = [int(v) for v in det["bbox"]]
         conf = det["confidence"]
         spot_type = det.get("type", "acne")
         color = type_colors.get(spot_type, (0, 255, 0))
@@ -1150,7 +1122,7 @@ def _build_routine(recs: List[Dict], has_acne: bool, has_pigmentation: bool, has
 
 class AcnePredictor:
     def __init__(self):
-        self.model = None
+        self.acne_detector = None
         self.model_loaded = False
         self.yolo_face = None
         self._load_yolo_face_detector()
@@ -1170,26 +1142,15 @@ class AcnePredictor:
 
     def _load_model(self):
         try:
-            logger.info("Building YOLOv8 Nano backbone...")
-            backbone = keras_cv.models.YOLOV8Backbone(
-                stackwise_channels=[32, 64, 128, 256],
-                stackwise_depth=[1, 2, 2, 1],
-                include_rescaling=False,
-                input_shape=(INPUT_SIZE, INPUT_SIZE, 3),
-            )
-            logger.info("Building YOLOV8Detector (1 class)...")
-            self.model = keras_cv.models.YOLOV8Detector(
-                num_classes=1, bounding_box_format="xyxy", backbone=backbone,
-            )
-            logger.info(f"Loading weights from {MODEL_H5_PATH}...")
-            if not os.path.exists(MODEL_H5_PATH):
-                return
-            _load_yolov8_weights(self.model, MODEL_H5_PATH)
-            self.model_loaded = True
-            logger.info("Model loaded (using advanced detection pipeline)")
-
+            from services.acne_model import AcneDetector
+            self.acne_detector = AcneDetector(conf_threshold=0.25, iou_threshold=0.45)
+            self.model_loaded = self.acne_detector.model is not None
+            if self.model_loaded:
+                logger.info(f"Acne model loaded (type: {self.acne_detector.model_type})")
+            else:
+                logger.warning("No acne model available")
         except Exception as e:
-            logger.error(f"Failed to load model: {e}")
+            logger.error(f"Failed to load model: {e}", exc_info=True)
             self.model_loaded = False
 
     def analyze_image(self, image_path: str) -> Dict:
@@ -1238,31 +1199,52 @@ class AcnePredictor:
                 face_quality = _assess_face_quality(image, face_regions[0])
 
             all_detections = []
-            for region in face_regions:
-                rx1, ry1, rx2, ry2 = region
-                roi = image[ry1:ry2, rx1:rx2]
-                roi_skin = skin_mask[ry1:ry2, rx1:rx2]
+            if self.acne_detector is not None and self.acne_detector.model is not None:
+                img_h, img_w = image.shape[:2]
 
-                if roi.shape[0] < 10 or roi.shape[1] < 10:
-                    continue
+                if face_regions:
+                    # Run detector on each face crop
+                    for (fx1, fy1, fx2, fy2) in face_regions:
+                        face_crop = image[fy1:fy2, fx1:fx2]
+                        if face_crop.shape[0] < 16 or face_crop.shape[1] < 16:
+                            continue
 
-                spots = _detect_acne_spots(roi, roi_skin)
+                        result = self.acne_detector.detect(face_crop)
+                        crop_h, crop_w = face_crop.shape[:2]
 
-                # Offset coordinates back to full image
-                for det in spots:
-                    bx1, by1, bx2, by2 = det["bbox"]
-                    det["bbox"] = [int(bx1 + rx1), int(by1 + ry1),
-                                   int(bx2 + rx1), int(by2 + ry1)]
-                    all_detections.append(det)
+                        for det in result["detections"]:
+                            bx1, by1, bx2, by2 = [int(v) for v in det["bbox"]]
+                            bx1 = max(0, min(bx1, crop_w - 1))
+                            by1 = max(0, min(by1, crop_h - 1))
+                            bx2 = max(bx1 + 3, min(bx2, crop_w))
+                            by2 = max(by1 + 3, min(by2, crop_h))
+
+                            # Map back to original image coordinates
+                            det["bbox"] = [bx1 + fx1, by1 + fy1, bx2 + fx1, by2 + fy1]
+                            all_detections.append(det)
+
+                        logger.info(f"Detector found {len(result['detections'])} acne spots in face region")
+                else:
+                    # No face detected — run detector on full image
+                    logger.info("No face detected — running detector on full image")
+                    result = self.acne_detector.detect(image)
+                    all_detections = result["detections"]
+                    logger.info(f"Detector found {len(result['detections'])} acne spots in full image")
 
             all_detections = _nms(all_detections)
+            # Ensure all bbox values are int (clustering NMS returns floats)
+            for det in all_detections:
+                det["bbox"] = [int(v) for v in det["bbox"]]
 
             # --- Pigmentation Detection ---
             # Create acne mask for red inhibition (using detections in current image scale)
             acne_mask = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint8)
             for det in all_detections:
                 bx1, by1, bx2, by2 = det["bbox"]
-                cv2.rectangle(acne_mask, (bx1, by1), (bx2, by2), 255, -1)
+                bx1, by1 = max(0, bx1), max(0, by1)
+                bx2, by2 = min(image.shape[1], bx2), min(image.shape[0], by2)
+                if bx2 > bx1 and by2 > by1:
+                    cv2.rectangle(acne_mask, (bx1, by1), (bx2, by2), 255, -1)
 
             pigment_result = _detect_pigmentation(image, skin_mask, acne_mask)
 
@@ -1272,37 +1254,25 @@ class AcnePredictor:
             mask = pigment_result.get("mask")
 
             if mask is not None and intensity_map is not None and mask.shape == image.shape[:2]:
-                # Create jet colormap overlay
-                jet_colormap = cv2.applyColorMap(
-                    (intensity_map * 255).astype(np.uint8), cv2.COLORMAP_JET
-                )
-                # Only overlay where spots are detected
                 spot_pixels = mask > 0
-                alpha = 0.55
-                heatmap[spot_pixels] = cv2.addWeighted(
-                    image[spot_pixels].astype(np.uint8), 1 - alpha,
-                    jet_colormap[spot_pixels], alpha, 0,
-                ).astype(np.uint8)
+                if np.any(spot_pixels):
+                    jet_colormap = cv2.applyColorMap(
+                        (intensity_map * 255).astype(np.uint8), cv2.COLORMAP_JET
+                    )
+                    alpha = 0.55
+                    heatmap[spot_pixels] = cv2.addWeighted(
+                        image[spot_pixels].astype(np.uint8), 1 - alpha,
+                        jet_colormap[spot_pixels], alpha, 0,
+                    ).astype(np.uint8)
             else:
                 logger.warning("Pigmentation mask/intensity_map shape mismatch or missing")
 
             pigment_filename = f"pigment_{uuid.uuid4().hex[:8]}.jpg"
             pigment_path = os.path.join(RESULTS_DIR, pigment_filename)
-            # Draw YOLO face box on pigmentation heatmap
+            # Draw face box on pigmentation heatmap
             if face_regions:
                 for (fx1, fy1, fx2, fy2) in face_regions:
-                    color = (255, 180, 0)
-                    dash, gap = 12, 8
-                    for x in range(fx1, fx2, dash + gap):
-                        cv2.line(heatmap, (x, fy1), (min(x + dash, fx2), fy1), color, 2)
-                        cv2.line(heatmap, (x, fy2), (min(x + dash, fx2), fy2), color, 2)
-                    for y in range(fy1, fy2, dash + gap):
-                        cv2.line(heatmap, (fx1, y), (fx1, min(y + dash, fy2)), color, 2)
-                        cv2.line(heatmap, (fx2, y), (fx2, min(y + dash, fy2)), color, 2)
-                    label = "YOLO Face"
-                    (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-                    cv2.rectangle(heatmap, (fx1, fy1 - th - 10), (fx1 + tw + 8, fy1), color, -1)
-                    cv2.putText(heatmap, label, (fx1 + 4, fy1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                    cv2.rectangle(heatmap, (fx1, fy1), (fx2, fy2), (255, 180, 0), 2)
             cv2.imwrite(pigment_path, heatmap)
 
             # Analyze spatial distribution of pigmentation spots
@@ -1343,21 +1313,10 @@ class AcnePredictor:
 
             texture_filename = f"texture_{uuid.uuid4().hex[:8]}.jpg"
             texture_path = os.path.join(RESULTS_DIR, texture_filename)
-            # Draw YOLO face box on moisture heatmap
+            # Draw face box on moisture heatmap
             if face_regions:
                 for (fx1, fy1, fx2, fy2) in face_regions:
-                    color = (255, 180, 0)
-                    dash, gap = 12, 8
-                    for x in range(fx1, fx2, dash + gap):
-                        cv2.line(texture_map, (x, fy1), (min(x + dash, fx2), fy1), color, 2)
-                        cv2.line(texture_map, (x, fy2), (min(x + dash, fx2), fy2), color, 2)
-                    for y in range(fy1, fy2, dash + gap):
-                        cv2.line(texture_map, (fx1, y), (fx1, min(y + dash, fy2)), color, 2)
-                        cv2.line(texture_map, (fx2, y), (fx2, min(y + dash, fy2)), color, 2)
-                    label = "YOLO Face"
-                    (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-                    cv2.rectangle(texture_map, (fx1, fy1 - th - 10), (fx1 + tw + 8, fy1), color, -1)
-                    cv2.putText(texture_map, label, (fx1 + 4, fy1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                    cv2.rectangle(texture_map, (fx1, fy1), (fx2, fy2), (255, 180, 0), 2)
             cv2.imwrite(texture_path, texture_map)
 
             dryness_data = {
@@ -1366,11 +1325,6 @@ class AcnePredictor:
                 "flakes_count": dryness_result["flakes_count"],
                 "texture_map_image": texture_filename
             }
-
-            # Scale coordinates back to original image size
-            if scale < 1.0:
-                for det in all_detections:
-                    det["bbox"] = [int(b / scale) for b in det["bbox"]]
 
             acne_count = len(all_detections)
             if acne_count == 0:
@@ -1384,7 +1338,18 @@ class AcnePredictor:
 
             avg_conf = float(np.mean([d["confidence"] for d in all_detections])) if all_detections else 0.0
 
-            result_image = _draw_boxes(cv2.imread(image_path), all_detections)
+            # Scale detections back to original image dimensions for result image
+            orig_image = cv2.imread(image_path)
+            orig_img_h, orig_img_w = orig_image.shape[:2]
+            if scale < 1.0:
+                inv_scale = 1.0 / scale
+                for det in all_detections:
+                    bx1, by1, bx2, by2 = det["bbox"]
+                    det["bbox"] = [max(0, int(bx1 * inv_scale)), max(0, int(by1 * inv_scale)),
+                                   min(orig_img_w, int(bx2 * inv_scale)),
+                                   min(orig_img_h, int(by2 * inv_scale))]
+
+            result_image = _draw_boxes(orig_image, all_detections)
 
             result_filename = f"detection_{uuid.uuid4().hex[:8]}.jpg"
             result_path = os.path.join(RESULTS_DIR, result_filename)

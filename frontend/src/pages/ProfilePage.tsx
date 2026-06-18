@@ -59,33 +59,31 @@ export default function ProfilePage({ user, onBack, onUserUpdate }: ProfilePageP
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <button
           onClick={onBack}
-          className="p-2 text-surface-400 hover:text-surface-700 rounded-lg hover:bg-surface-100 transition-colors"
+          className="p-2 text-surface-400 hover:text-surface-900 rounded-lg hover:bg-surface-100 transition-colors"
           aria-label="Go back"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-extrabold text-surface-900 tracking-tight">Profile</h1>
+          <h1 className="text-2xl font-display font-bold text-surface-950 tracking-tight">Profile</h1>
           <p className="text-sm text-surface-500">Manage your account settings</p>
         </div>
       </div>
 
-      {/* Profile Card */}
-      <div className="bg-white rounded-2xl border border-surface-100 shadow-sm overflow-hidden">
+      <div className="bg-white border border-surface-200 rounded-2xl overflow-hidden">
         {/* Avatar Section */}
-        <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-surface-100">
-          <div className="flex items-center gap-3 sm:gap-5">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-primary-700 font-black text-xl sm:text-2xl flex-shrink-0">
+        <div className="p-6 border-b border-surface-100">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-surface-100 rounded-2xl flex items-center justify-center text-surface-600 font-bold text-xl flex-shrink-0">
               {userInitials}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-surface-900">{user.name}</h2>
+              <h2 className="text-xl font-display font-bold text-surface-900">{user.name}</h2>
               <p className="text-sm text-surface-500">{user.email}</p>
-              <div className="flex items-center gap-1.5 mt-1.5 text-xs text-surface-400">
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-surface-400">
                 <Calendar className="w-3 h-3" />
                 Member since {memberSince}
               </div>
@@ -94,63 +92,59 @@ export default function ProfilePage({ user, onBack, onUserUpdate }: ProfilePageP
         </div>
 
         {/* Edit Form */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
-          {/* Messages */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="p-3 bg-danger-50 border border-danger-500/20 rounded-xl flex items-center gap-3">
+            <div className="p-3 bg-danger-50 border border-danger-200 rounded-xl flex items-center gap-3">
               <AlertCircle className="w-4 h-4 text-danger-500 flex-shrink-0" />
-              <p className="text-sm font-medium text-danger-600">{error}</p>
+              <p className="text-sm text-danger-600">{error}</p>
             </div>
           )}
           {success && (
-            <div className="p-3 bg-success-50 border border-success-500/20 rounded-xl flex items-center gap-3">
+            <div className="p-3 bg-success-50 border border-success-200 rounded-xl flex items-center gap-3">
               <CheckCircle2 className="w-4 h-4 text-success-500 flex-shrink-0" />
-              <p className="text-sm font-medium text-success-600">{success}</p>
+              <p className="text-sm text-success-600">{success}</p>
             </div>
           )}
 
-          {/* Name Field */}
           <div>
-            <label htmlFor="profile-name" className="block text-xs font-bold text-surface-900 uppercase tracking-widest mb-2">
+            <label htmlFor="profile-name" className="block text-sm font-medium text-surface-700 mb-1.5">
               Full Name
             </label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
               <input
                 type="text"
                 id="profile-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-11 pr-5 py-3 rounded-xl bg-surface-50 border-2 border-transparent focus:border-primary-600 focus:bg-white outline-none transition-all text-surface-900 text-sm"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-surface-200 rounded-xl text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-surface-900/10 focus:border-surface-300 transition-colors"
                 placeholder="Your full name"
               />
             </div>
           </div>
 
-          {/* Email Field (Read-only) */}
           <div>
-            <label htmlFor="profile-email" className="block text-xs font-bold text-surface-900 uppercase tracking-widest mb-2">
-              Email Address
+            <label htmlFor="profile-email" className="block text-sm font-medium text-surface-700 mb-1.5">
+              Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
               <input
                 type="email"
                 id="profile-email"
                 value={user.email}
                 readOnly
-                className="w-full pl-11 pr-5 py-3 rounded-xl bg-surface-100 border-2 border-transparent text-surface-500 text-sm cursor-not-allowed"
+                className="w-full pl-10 pr-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm text-surface-500 cursor-not-allowed"
               />
             </div>
             <p className="text-xs text-surface-400 mt-1.5 ml-1">Email cannot be changed</p>
           </div>
 
-          {/* Submit */}
           <div className="pt-2">
             <button
               type="submit"
               disabled={isLoading || name.trim() === user.name}
-              className="bg-primary-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-surface-900 text-white px-6 py-3 rounded-xl font-medium text-sm flex items-center gap-2 hover:bg-surface-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

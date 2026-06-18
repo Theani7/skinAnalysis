@@ -3,8 +3,154 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-surface-50 text-surface-900;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  ::selection {
+    background: rgba(6, 182, 212, 0.15);
+    color: #0e7490;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 4px 24px -4px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .glass-dark {
+    background: rgba(11, 17, 32, 0.75);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 
+      0 8px 32px -8px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-accent {
+    background: rgba(6, 182, 212, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+  }
+
+  .premium-card {
+    @apply bg-white rounded-3xl border border-surface-200/60;
+    box-shadow: 
+      0 1px 3px 0 rgb(0 0 0 / 0.02),
+      0 4px 16px -4px rgb(0 0 0 / 0.04);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .premium-card:hover {
+    box-shadow: 
+      0 4px 16px -4px rgb(0 0 0 / 0.08),
+      0 12px 32px -8px rgb(0 0 0 / 0.06);
+    border-color: rgba(6, 182, 212, 0.2);
+  }
+
+  .iot-glow {
+    position: relative;
+  }
+
+  .iot-glow::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.3), rgba(51, 129, 255, 0.3), rgba(212, 168, 83, 0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .iot-glow:hover::before {
+    opacity: 1;
+  }
+
+  .sensor-dot {
+    @apply relative;
+  }
+
+  .sensor-dot::after {
+    content: '';
+    @apply absolute -top-0.5 -right-0.5 w-2 h-2 bg-accent-500 rounded-full;
+    animation: sensor-pulse 2s ease-in-out infinite;
+  }
+
+  .btn-premium {
+    @apply relative overflow-hidden font-semibold transition-all duration-300;
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    box-shadow: 0 4px 16px -4px rgba(6, 182, 212, 0.4);
+  }
+
+  .btn-premium:hover {
+    box-shadow: 0 8px 24px -4px rgba(6, 182, 212, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .btn-premium:active {
+    transform: translateY(0);
+  }
+
+  .btn-dark {
+    @apply relative overflow-hidden font-semibold transition-all duration-300;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.4);
+  }
+
+  .btn-dark:hover {
+    box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #06b6d4 0%, #3381ff 50%, #d4a853 100%);
+  }
+
+  .text-gradient-dark {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+  }
+
+  .input-premium {
+    @apply w-full px-4 py-3.5 rounded-2xl bg-surface-50/80 border border-surface-200/80 
+           text-surface-900 text-sm placeholder:text-surface-400
+           outline-none transition-all duration-300;
+  }
+
+  .input-premium:focus {
+    @apply bg-white border-accent-500/40;
+    box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.08);
+  }
+
+  .divider-iot {
+    @apply relative;
+    background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.2), transparent);
+    height: 1px;
   }
 }
 
@@ -16,4 +162,45 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  
+  .bg-grid {
+    background-image: 
+      linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .bg-dots {
+    background-image: radial-gradient(circle, rgba(6, 182, 212, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+@keyframes sensor-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.3);
 }
