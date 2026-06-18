@@ -121,11 +121,12 @@ export interface AnalysisResponse {
   pigmentation_data?: {
     clarity_score: number;
     spots_count: number;
+    intensity: string;
+    normalized_coverage: number;
+    face_area: number;
+    spatial_pattern: string;
     heatmap_image: string;
-    type_distribution: {
-      localized: number;
-      diffuse: number;
-    };
+    type_distribution: Record<string, number>;
   };
   dryness_data?: {
     hydration_score: number;
@@ -141,6 +142,19 @@ export interface AnalysisResponse {
     category: 'skincare' | 'lifestyle' | 'medical';
     why?: string;
     conflictsWith?: string[];
+    products?: Array<{
+      name: string;
+      price: number;
+      price_show: string;
+      original_price: number;
+      discount: string;
+      image: string;
+      url: string;
+      rating: number;
+      reviews: number;
+      sold: string;
+      in_stock: boolean;
+    }>;
   }>;
   conflicts?: Array<{
     message: string;
@@ -278,6 +292,25 @@ export const getScanDetail = async (scanId: string): Promise<ScanDetailResponse>
 export const getProgressData = async (): Promise<ProgressResponse> => {
   const response = await api.get('/scans/history/progress');
   return response.data;
+};
+
+export interface DarazProduct {
+  name: string;
+  price: number;
+  price_show: string;
+  original_price: number;
+  discount: string;
+  image: string;
+  url: string;
+  rating: number;
+  reviews: number;
+  sold: string;
+  in_stock: boolean;
+}
+
+export const searchDarazProducts = async (query: string, limit = 3): Promise<DarazProduct[]> => {
+  const response = await api.get('/products/search', { params: { q: query, limit } });
+  return response.data.products;
 };
 
 export default api;

@@ -35,6 +35,7 @@ from services.auth import (
     register_user,
     update_user_profile,
 )
+from services.daraz import search_products, search_products_for_recommendations
 from services.database import get_db, init_db
 from services.image_processor import image_processor
 from services.logging_config import setup_logging
@@ -391,6 +392,20 @@ async def analyze_image(
         await db.flush()
         logger.info(f"Scan saved: {scan.id} (user: {user['email']})")
 
+        # Enrich recommendations with Daraz products
+        recommendations = result.get("recommendations", [])
+        skincare_ids = [r["id"] for r in recommendations if r.get("category") == "skincare"]
+        if skincare_ids:
+            try:
+                product_map = await search_products_for_recommendations(
+                    skincare_ids, limit_per_query=2
+                )
+                for rec in recommendations:
+                    if rec["id"] in product_map:
+                        rec["products"] = product_map[rec["id"]]
+            except Exception as e:
+                logger.warning(f"Daraz product fetch failed (non-fatal): {e}")
+
         return JSONResponse(
             status_code=200,
             content={
@@ -405,7 +420,7 @@ async def analyze_image(
                 "spot_types": result.get("spot_types", {}),
                 "pigmentation_data": result.get("pigmentation_data"),
                 "dryness_data": result.get("dryness_data"),
-                "recommendations": result.get("recommendations", []),
+                "recommendations": recommendations,
                 "conflicts": result.get("conflicts", []),
                 "routine": result.get("routine", {"morning": [], "evening": [], "tips": []}),
                 "face_quality": result.get("face_quality"),
@@ -576,6 +591,153 @@ async def get_scan(
 
 
 # ═══════════════════════════════════════════
+# PIGMENTATION PROGRESS & COMPARISON
+# ═══════════════════════════════════════════
+
+
+@app.get("/scans/history/pigmentation-progress")
+async def get_pigmentation_progress(
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get pigmentation clarity and coverage over time for progress charts."""
+    try:
+        result = await db.execute(
+            select(Scan)
+            .where(Scan.user_id == user["id"])
+            .order_by(Scan.created_at.asc())
+        )
+        scans = result.scalars().all()
+
+        if not scans:
+            return {"progress": [], "latest": None}
+
+        def _safe_json(text: str, default):
+            try:
+                return json.loads(text)
+            except (json.JSONDecodeError, TypeError):
+                return default
+
+        progress = []
+        for s in scans:
+            pig = _safe_json(s.pigmentation_data, None) or {}
+            progress.append({
+                "id": s.id,
+                "date": s.created_at.strftime("%b %d"),
+                "clarity_score": pig.get("clarity_score", 100),
+                "spots_count": pig.get("spots_count", 0),
+                "intensity": pig.get("intensity", "Low"),
+                "normalized_coverage": pig.get("normalized_coverage", 0),
+                "spatial_pattern": pig.get("spatial_pattern", "none"),
+                "type_distribution": pig.get("type_distribution", {}),
+            })
+
+        latest = scans[-1]
+        latest_pig = _safe_json(latest.pigmentation_data, None) or {}
+        latest_data = {
+            "id": latest.id,
+            "date": latest.created_at.strftime("%B %d, %Y"),
+            "clarity_score": latest_pig.get("clarity_score", 100),
+            "spots_count": latest_pig.get("spots_count", 0),
+            "intensity": latest_pig.get("intensity", "Low"),
+            "normalized_coverage": latest_pig.get("normalized_coverage", 0),
+            "spatial_pattern": latest_pig.get("spatial_pattern", "none"),
+            "type_distribution": latest_pig.get("type_distribution", {}),
+        }
+
+        return {"progress": progress, "latest": latest_data}
+    except Exception as e:
+        logger.error(f"Error fetching pigmentation progress: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Failed to load pigmentation progress.")
+
+
+@app.get("/scans/{scan_id}/compare")
+async def compare_scans(
+    scan_id: str,
+    compare_to: str = None,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Compare pigmentation between two scans. If compare_to is omitted, uses the previous scan."""
+    def _safe_json(text: str, default):
+        try:
+            return json.loads(text)
+        except (json.JSONDecodeError, TypeError):
+            return default
+
+    try:
+        result = await db.execute(
+            select(Scan).where(Scan.id == scan_id, Scan.user_id == user["id"])
+        )
+        current_scan = result.scalar_one_or_none()
+        if not current_scan:
+            raise HTTPException(status_code=404, detail="Scan not found.")
+
+        current_pig = _safe_json(current_scan.pigmentation_data, None) or {}
+
+        if compare_to:
+            prev_result = await db.execute(
+                select(Scan).where(Scan.id == compare_to, Scan.user_id == user["id"])
+            )
+            prev_scan = prev_result.scalar_one_or_none()
+        else:
+            prev_result = await db.execute(
+                select(Scan)
+                .where(Scan.user_id == user["id"], Scan.created_at < current_scan.created_at)
+                .order_by(Scan.created_at.desc())
+                .limit(1)
+            )
+            prev_scan = prev_result.scalar_one_or_none()
+
+        if not prev_scan:
+            return {
+                "current": {
+                    "id": current_scan.id,
+                    "date": current_scan.created_at.strftime("%B %d, %Y"),
+                    "pigmentation": current_pig,
+                },
+                "previous": None,
+                "deltas": None,
+                "message": "No previous scan found for comparison.",
+            }
+
+        prev_pig = _safe_json(prev_scan.pigmentation_data, None) or {}
+
+        c_clarity = current_pig.get("clarity_score", 100)
+        p_clarity = prev_pig.get("clarity_score", 100)
+        c_coverage = current_pig.get("normalized_coverage", 0)
+        p_coverage = prev_pig.get("normalized_coverage", 0)
+        c_spots = current_pig.get("spots_count", 0)
+        p_spots = prev_pig.get("spots_count", 0)
+
+        deltas = {
+            "clarity_delta": round(c_clarity - p_clarity, 1),
+            "coverage_delta": round(c_coverage - p_coverage, 2),
+            "spots_delta": c_spots - p_spots,
+            "improved": c_clarity > p_clarity,
+        }
+
+        return {
+            "current": {
+                "id": current_scan.id,
+                "date": current_scan.created_at.strftime("%B %d, %Y"),
+                "pigmentation": current_pig,
+            },
+            "previous": {
+                "id": prev_scan.id,
+                "date": prev_scan.created_at.strftime("%B %d, %Y"),
+                "pigmentation": prev_pig,
+            },
+            "deltas": deltas,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error comparing scans: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Failed to compare scans.")
+
+
+# ═══════════════════════════════════════════
 # IMAGE SERVING ROUTES (with path traversal protection)
 # ═══════════════════════════════════════════
 
@@ -618,6 +780,17 @@ async def get_model_status():
         "input_size": "640x640",
         "confidence_threshold": 0.25,
     }
+
+
+@app.get("/products/search")
+async def search_daraz_products(q: str, limit: int = 3):
+    """Search Daraz Nepal for skincare products."""
+    if not q or len(q.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Query must be at least 2 characters")
+    if limit < 1 or limit > 10:
+        limit = 3
+    products = await search_products(q.strip(), limit=limit)
+    return {"query": q.strip(), "count": len(products), "products": products}
 
 
 if __name__ == "__main__":

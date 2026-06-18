@@ -19,6 +19,8 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
+from services.pigmentation import detect_pigmentation
+
 logger = logging.getLogger(__name__)
 
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -217,14 +219,16 @@ def _get_face_landmarks_region(image: np.ndarray, face_box: Tuple[int, int, int,
 
 
 def _create_skin_mask(image: np.ndarray) -> np.ndarray:
-    """Create a mask of skin-colored regions."""
+    """Create a mask of skin-colored regions using multi-range detection."""
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     ycrcb = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
 
-    mask_hsv = cv2.inRange(hsv, np.array([0, 15, 0]), np.array([25, 170, 255]))
+    # Wide-range skin detection covering light to dark skin tones
+    mask_hsv1 = cv2.inRange(hsv, np.array([0, 10, 0]), np.array([25, 170, 255]))
+    mask_hsv2 = cv2.inRange(hsv, np.array([0, 10, 0]), np.array([35, 200, 255]))
     mask_ycrcb = cv2.inRange(ycrcb, np.array([0, 133, 77]), np.array([255, 173, 127]))
 
-    skin_mask = cv2.bitwise_and(mask_hsv, mask_ycrcb)
+    skin_mask = cv2.bitwise_and(cv2.bitwise_or(mask_hsv1, mask_hsv2), mask_ycrcb)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
     skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE, kernel, iterations=3)
@@ -273,10 +277,11 @@ def _create_face_mask(image: np.ndarray, face_regions: List[Tuple[int, int, int,
         ellipse_mask = np.zeros((h, w), dtype=np.uint8)
         cv2.ellipse(ellipse_mask, (cx, cy), (rx, ry), 0, 0, 360, 255, -1)
 
-        # Refine with skin color inside the ellipse
-        skin_hsv = cv2.inRange(hsv, np.array([0, 15, 0]), np.array([25, 170, 255]))
+        # Refine with skin color inside the ellipse (wide range for all skin tones)
+        skin_hsv1 = cv2.inRange(hsv, np.array([0, 10, 0]), np.array([25, 170, 255]))
+        skin_hsv2 = cv2.inRange(hsv, np.array([0, 10, 0]), np.array([35, 200, 255]))
         skin_ycrcb = cv2.inRange(ycrcb, np.array([0, 133, 77]), np.array([255, 173, 127]))
-        skin_color = cv2.bitwise_and(skin_hsv, skin_ycrcb)
+        skin_color = cv2.bitwise_and(cv2.bitwise_or(skin_hsv1, skin_hsv2), skin_ycrcb)
 
         # Combine: must be inside ellipse AND have skin color
         refined = cv2.bitwise_and(ellipse_mask, skin_color)
@@ -343,162 +348,6 @@ def _detect_dryness(image: np.ndarray, skin_mask: np.ndarray) -> Dict:
         "roughness_score": round(roughness_ratio, 1),
         "flakes_count": len([c for c in contours if cv2.contourArea(c) > 2]),
         "mask": thresh
-    }
-
-
-def _detect_pigmentation(image: np.ndarray, skin_mask: np.ndarray, acne_mask: np.ndarray) -> Dict:
-    """
-    Multi-spectral pigmentation detection.
-    Detects both small spots and large diffuse patches (melasma, sun damage).
-    Excludes eyebrows, eyes, lips, nostrils.
-    """
-    skin_area = np.count_nonzero(skin_mask)
-    if skin_area < 100:
-        return {
-            "clarity_score": 100,
-            "spots_count": 0,
-            "intensity": "Low",
-            "mask": np.zeros_like(skin_mask),
-            "intensity_map": np.zeros_like(skin_mask, dtype=np.float32),
-        }
-
-    h, w = image.shape[:2]
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # ── Exclude non-skin features ──
-    # Eyebrows: very dark
-    eyebrow_mask = cv2.inRange(gray, 0, 50)
-    # Lips: red hue, high saturation
-    lip_mask = cv2.inRange(hsv, np.array([0, 50, 100]), np.array([18, 200, 255]))
-    lip_mask2 = cv2.inRange(hsv, np.array([165, 50, 100]), np.array([180, 200, 255]))
-    lip_mask = cv2.bitwise_or(lip_mask, lip_mask2)
-    # Eyes: very dark or very bright white
-    eye_dark = cv2.inRange(gray, 0, 35)
-    eye_white = cv2.inRange(hsv, np.array([0, 0, 220]), np.array([180, 30, 255]))
-    eye_mask = cv2.bitwise_or(eye_dark, eye_white)
-    # Nostrils: very dark holes
-    nostril_mask = cv2.inRange(gray, 0, 30)
-
-    exclude_mask = cv2.bitwise_or(eyebrow_mask, lip_mask)
-    exclude_mask = cv2.bitwise_or(exclude_mask, eye_mask)
-    exclude_mask = cv2.bitwise_or(exclude_mask, nostril_mask)
-
-    # Dilate to cover edges
-    kernel_ex = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
-    exclude_mask = cv2.dilate(exclude_mask, kernel_ex, iterations=3)
-
-    # Clean skin = skin mask minus excluded features
-    clean_skin = cv2.bitwise_and(skin_mask, cv2.bitwise_not(exclude_mask))
-
-    # ── Detect pigmentation using LAB a* (redness/brownness) ──
-    a_channel = lab[:, :, 1]  # a* > 128 = red/brown tones
-
-    # Extract detail layer (removes slow-varying illumination)
-    a_blur = cv2.bilateralFilter(a_channel, d=9, sigmaColor=75, sigmaSpace=75)
-    a_detail = cv2.absdiff(a_channel, a_blur)
-    a_detail_eq = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8)).apply(a_detail)
-
-    # ── Detect spots: high a* on clean skin ──
-    # Use adaptive threshold based on skin statistics
-    skin_a_vals = a_channel[clean_skin > 0]
-    if len(skin_a_vals) < 50:
-        return {
-            "clarity_score": 100, "spots_count": 0, "intensity": "Low",
-            "mask": np.zeros_like(skin_mask),
-            "intensity_map": np.zeros_like(skin_mask, dtype=np.float32),
-        }
-
-    skin_a_mean = np.mean(skin_a_vals)
-    skin_a_std = np.std(skin_a_vals)
-
-    # Threshold: spots are significantly redder than surrounding skin
-    spot_thresh = max(135, int(skin_a_mean + 1.5 * skin_a_std))
-    spot_mask = cv2.inRange(a_channel, spot_thresh, 255)
-    spot_mask = cv2.bitwise_and(spot_mask, clean_skin)
-
-    # ── Also detect dark patches (brown spots, melasma) using V channel ──
-    v_channel = hsv[:, :, 2]
-    skin_v_vals = v_channel[clean_skin > 0]
-    if len(skin_v_vals) > 50:
-        skin_v_mean = np.mean(skin_v_vals)
-        skin_v_std = np.std(skin_v_vals)
-        dark_thresh = max(30, int(skin_v_mean - 2.0 * skin_v_std))
-        dark_mask = cv2.inRange(v_channel, 0, dark_thresh)
-        dark_mask = cv2.bitwise_and(dark_mask, clean_skin)
-    else:
-        dark_mask = np.zeros_like(skin_mask)
-
-    # ── Combine red + dark spots ──
-    pig_mask = cv2.bitwise_or(spot_mask, dark_mask)
-
-    # Morphological cleanup
-    kernel_clean = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    pig_mask = cv2.morphologyEx(pig_mask, cv2.MORPH_CLOSE, kernel_clean, iterations=2)
-    pig_mask = cv2.morphologyEx(pig_mask, cv2.MORPH_OPEN, kernel_clean, iterations=1)
-
-    # Remove small noise
-    kernel_open = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    pig_mask = cv2.morphologyEx(pig_mask, cv2.MORPH_OPEN, kernel_open, iterations=1)
-
-    # ── Remove acne regions ──
-    if acne_mask is not None:
-        acne_halo = cv2.dilate(acne_mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))
-        pig_mask[acne_halo > 0] = 0
-
-    # ── Count and validate spots ──
-    contours, _ = cv2.findContours(pig_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    validated_spots = []
-    validated_mask = np.zeros_like(skin_mask)
-
-    for cnt in contours:
-        area = cv2.contourArea(cnt)
-        if area < 15:  # reject tiny noise
-            continue
-
-        x, y, bw, bh = cv2.boundingRect(cnt)
-        # Reject if touching image border (likely hair/background)
-        if x <= 2 or y <= 2 or x + bw >= w - 2 or y + bh >= h - 2:
-            continue
-
-        # Reject extreme aspect ratios (lines = hair)
-        aspect = float(bw) / bh if bh > 0 else 0
-        if aspect > 5.0 or aspect < 0.2:
-            continue
-
-        # Reject if center is on excluded region
-        cx, cy = x + bw // 2, y + bh // 2
-        if exclude_mask[cy, cx] > 0:
-            continue
-
-        validated_spots.append(cnt)
-        cv2.drawContours(validated_mask, [cnt], -1, 255, -1)
-
-    # ── Intensity map ──
-    a_float = cv2.normalize(a_detail_eq, None, 0, 1, cv2.NORM_MINMAX).astype(np.float32)
-    intensity_map = np.where(validated_mask > 0, a_float, 0.0)
-
-    # ── Scoring ──
-    pigment_area = np.count_nonzero(validated_mask)
-    coverage = (pigment_area / skin_area) * 100 if skin_area > 0 else 0
-
-    clarity_score = max(0, min(100, 100 * np.exp(-coverage * 0.5)))
-
-    if coverage > 3.0:
-        intensity = "High"
-    elif coverage > 1.0:
-        intensity = "Moderate"
-    else:
-        intensity = "Low"
-
-    return {
-        "clarity_score": round(clarity_score, 1),
-        "spots_count": len(validated_spots),
-        "intensity": intensity,
-        "mask": validated_mask,
-        "intensity_map": intensity_map,
     }
 
 
@@ -729,7 +578,6 @@ def _nms(detections: List[Dict]) -> List[Dict]:
     for cluster in clusters:
         cluster_boxes = boxes[cluster]
         cluster_scores = scores_arr[cluster]
-        best_idx = cluster[np.argmax(cluster_scores)]
         merged_box = [
             float(cluster_boxes[:, 0].min()),
             float(cluster_boxes[:, 1].min()),
@@ -1189,9 +1037,23 @@ class AcnePredictor:
                         skin_mask = face_mask
                         logger.info(f"Face estimated from skin cluster: mask pixels: {np.count_nonzero(face_mask)}")
                     else:
-                        logger.warning("Skin cluster fallback failed — no reliable face region")
+                        # Close-up fallback: use wide-range skin mask or full image
+                        wide_skin = _create_skin_mask(image)
+                        if np.count_nonzero(wide_skin) > 500:
+                            logger.info(f"Close-up detected — using wide skin mask: {np.count_nonzero(wide_skin)} pixels")
+                            skin_mask = wide_skin
+                        else:
+                            logger.info("Close-up detected — using full image as skin region")
+                            skin_mask = np.ones((image.shape[0], image.shape[1]), dtype=np.uint8) * 255
                 else:
-                    logger.warning("No face detected by YOLO/skin-cluster")
+                    # No face and no skin cluster — close-up fallback
+                    wide_skin = _create_skin_mask(image)
+                    if np.count_nonzero(wide_skin) > 500:
+                        logger.info(f"No face — using wide skin mask: {np.count_nonzero(wide_skin)} pixels")
+                        skin_mask = wide_skin
+                    else:
+                        logger.info("No face — using full image as skin region")
+                        skin_mask = np.ones((image.shape[0], image.shape[1]), dtype=np.uint8) * 255
 
             # Assess face quality for the primary face
             face_quality = None
@@ -1246,7 +1108,7 @@ class AcnePredictor:
                 if bx2 > bx1 and by2 > by1:
                     cv2.rectangle(acne_mask, (bx1, by1), (bx2, by2), 255, -1)
 
-            pigment_result = _detect_pigmentation(image, skin_mask, acne_mask)
+            pigment_result = detect_pigmentation(image, skin_mask, acne_mask, face_regions)
 
             # Generate heatmap using jet colormap with intensity gradient
             heatmap = image.copy().astype(np.uint8)
@@ -1269,35 +1131,20 @@ class AcnePredictor:
 
             pigment_filename = f"pigment_{uuid.uuid4().hex[:8]}.jpg"
             pigment_path = os.path.join(RESULTS_DIR, pigment_filename)
-            # Draw face box on pigmentation heatmap
             if face_regions:
                 for (fx1, fy1, fx2, fy2) in face_regions:
                     cv2.rectangle(heatmap, (fx1, fy1), (fx2, fy2), (255, 180, 0), 2)
             cv2.imwrite(pigment_path, heatmap)
 
-            # Analyze spatial distribution of pigmentation spots
-            localized_pct = 50
-            diffuse_pct = 50
-            p_mask = pigment_result.get("mask")
-            if p_mask is not None and pigment_result["spots_count"] > 0:
-                contours, _ = cv2.findContours(p_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                if contours:
-                    areas = [cv2.contourArea(c) for c in contours]
-                    total_area = sum(areas) if areas else 1
-                    max_spot_area = max(areas) if areas else 0
-                    concentration = max_spot_area / total_area
-                    localized_pct = min(90, max(10, int(concentration * 100)))
-                    diffuse_pct = 100 - localized_pct
-
             pigmentation_data = {
                 "clarity_score": pigment_result["clarity_score"],
                 "spots_count": pigment_result["spots_count"],
                 "intensity": pigment_result["intensity"],
+                "normalized_coverage": pigment_result["normalized_coverage"],
+                "face_area": pigment_result["face_area"],
+                "spatial_pattern": pigment_result["spatial_pattern"],
                 "heatmap_image": pigment_filename,
-                "type_distribution": {
-                    "localized": localized_pct,
-                    "diffuse": diffuse_pct
-                }
+                "type_distribution": pigment_result["type_distribution"],
             }
 
             # --- Dryness Detection ---
