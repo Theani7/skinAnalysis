@@ -1,0 +1,13 @@
+train: Skin Issues.v6i.yolov8/train/images
+val: Skin Issues.v6i.yolov8/valid/images
+test: Skin Issues.v6i.yolov8/test/images
+
+nc: 5
+names: ['Acne', 'Black-heads', 'Large Pores', 'Pigmentation', 'Rosacea']
+
+roboflow:
+  workspace: skin-blg6d
+  project: skin-issues-ncide
+  version: 6
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/skin-blg6d/skin-issues-ncide/dataset/6
