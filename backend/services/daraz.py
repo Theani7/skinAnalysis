@@ -29,6 +29,7 @@ HEADERS = {
 # In-memory cache: {query_lower: (timestamp, results)}
 _cache: Dict[str, tuple] = {}
 CACHE_TTL = 1800  # 30 minutes
+_CACHE_MAX_SIZE = 500
 
 # Search queries mapped to recommendation IDs
 # These are the search terms sent to Daraz for each product type
@@ -141,7 +142,10 @@ async def search_products(query: str, limit: int = 3) -> List[Dict]:
                 "in_stock": True,
             })
 
-        # Cache results
+        # Cache results with LRU eviction
+        if len(_cache) >= _CACHE_MAX_SIZE:
+            oldest_key = min(_cache, key=lambda k: _cache[k][0])
+            del _cache[oldest_key]
         _cache[cache_key] = (time.time(), products)
         logger.info(f"Daraz search '{query}': found {len(products)} products")
         return products

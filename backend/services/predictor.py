@@ -12,6 +12,7 @@ Multi-signal acne detection combining:
 
 import logging
 import os
+import threading
 import uuid
 from typing import Dict, List, Tuple
 
@@ -974,14 +975,18 @@ class AcnePredictor:
         self.model_loaded = False
         self.yolo_face = None
         self._models_loaded = False
+        self._model_lock = threading.Lock()
 
     def _ensure_models_loaded(self):
         """Lazy-load models on first use instead of at import time."""
         if self._models_loaded:
             return
-        self._models_loaded = True
-        self._load_yolo_face_detector()
-        self._load_model()
+        with self._model_lock:
+            if self._models_loaded:
+                return
+            self._models_loaded = True
+            self._load_yolo_face_detector()
+            self._load_model()
 
     def _load_yolo_face_detector(self):
         """Load YOLOv8 face detection model from local file."""

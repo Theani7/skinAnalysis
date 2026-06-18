@@ -13,7 +13,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Set JWT secret and environment before importing any app modules
-os.environ["SKINAI_JWT_SECRET"] = "test-secret-key-for-ci-only"
+os.environ["SKINAI_JWT_SECRET"] = "test-secret-key-for-ci-only-32chars!!"
 os.environ["SKINAI_ENV"] = "test"
 
 from main import _rate_limit_store, app

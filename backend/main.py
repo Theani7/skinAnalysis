@@ -52,6 +52,8 @@ RATE_LIMIT_WINDOW = 60  # seconds
 RATE_LIMIT_MAX_REQUESTS = 30
 _RATE_LIMIT_LAST_CLEANUP = time.time()
 _RATE_LIMIT_CLEANUP_INTERVAL = 300  # 5 minutes
+_RATE_LIMIT_MAX_KEYS = 100_000
+_rate_limit_lock = asyncio.Lock()
 
 
 def _cleanup_rate_limit():
@@ -71,6 +73,8 @@ def _check_rate_limit(key: str, max_requests: int = RATE_LIMIT_MAX_REQUESTS) -> 
     _cleanup_rate_limit()
     now = time.time()
     if key not in _rate_limit_store:
+        if len(_rate_limit_store) >= _RATE_LIMIT_MAX_KEYS:
+            _rate_limit_store.clear()
         _rate_limit_store[key] = []
     _rate_limit_store[key] = [t for t in _rate_limit_store[key] if now - t < RATE_LIMIT_WINDOW]
     if len(_rate_limit_store[key]) >= max_requests:
@@ -127,8 +131,13 @@ MAX_REQUEST_SIZE = 12 * 1024 * 1024  # 12MB (10MB file + overhead)
 @app.middleware("http")
 async def request_size_middleware(request: Request, call_next):
     content_length = request.headers.get("content-length")
-    if content_length and int(content_length) > MAX_REQUEST_SIZE:
-        return JSONResponse(status_code=413, content={"detail": "Request body too large"})
+    if content_length:
+        try:
+            cl = int(content_length)
+        except (ValueError, TypeError):
+            return JSONResponse(status_code=400, content={"detail": "Invalid Content-Length header"})
+        if cl > MAX_REQUEST_SIZE:
+            return JSONResponse(status_code=413, content={"detail": "Request body too large"})
     return await call_next(request)
 
 
@@ -422,6 +431,10 @@ async def analyze_image(
         await db.flush()
         logger.info(f"Scan saved: {scan.id} (user: {user['email']})")
 
+        # Clean up uploaded file (stored in DB, no longer needed on disk)
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+
         # Enrich recommendations with Daraz products
         recommendations = result.get("recommendations", [])
         skincare_ids = [r["id"] for r in recommendations if r.get("category") == "skincare"]
@@ -527,9 +540,10 @@ async def get_progress_data(
         result = await db.execute(
             select(Scan)
             .where(Scan.user_id == user["id"])
-            .order_by(Scan.created_at.asc())
+            .order_by(Scan.created_at.desc())
+            .limit(365)
         )
-        scans = result.scalars().all()
+        scans = list(reversed(result.scalars().all()))
 
         if not scans:
             return {"progress": [], "recent_scans": [], "latest_stats": None}
@@ -583,6 +597,12 @@ async def get_scan(
 ):
     """Get a single scan's full details."""
     try:
+        import uuid as _uuid
+        try:
+            _uuid.UUID(scan_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid scan ID format.")
+
         result = await db.execute(
             select(Scan).where(Scan.id == scan_id, Scan.user_id == user["id"])
         )
@@ -698,6 +718,14 @@ async def compare_scans(
             return default
 
     try:
+        import uuid as _uuid
+        try:
+            _uuid.UUID(scan_id)
+            if compare_to:
+                _uuid.UUID(compare_to)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid scan ID format.")
+
         result = await db.execute(
             select(Scan).where(Scan.id == scan_id, Scan.user_id == user["id"])
         )
