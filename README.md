@@ -5,11 +5,11 @@ A clinical-grade skin analysis platform that leverages multi-spectral computer v
 ## Features
 
 - **Real-Time Face Detection** — YOLO face detection with live guidance overlay (centering, size, angle metrics)
-- **Acne Detection** — YOLOv8 + multi-signal CV (HSV/LAB) for inflamed spots, blackheads, and whiteheads
-- **Pigmentation Analysis** — Multi-channel detection (M-Index + LAB a* + HSV V) with adaptive Otsu thresholding
-- **Moisture/Texture Analysis** — Gabor filter texture analysis for hydration and micro-crack detection
+- **Acne Detection** — YOLOv8n detector with bounding boxes around individual spots
+- **Pigmentation Analysis** — LAB a* (redness) + HSV V (dark patches) with adaptive thresholds
+- **Moisture/Texture Analysis** — Gabor filter + White Top-Hat transform for hydration and flake detection
 - **Dynamic Heatmaps** — Visualizes pigmentation and moisture levels with jet colormap gradients
-- **Personalized Recommendations** — Rule-based engine providing skincare, lifestyle, and medical advice
+- **Personalized Recommendations** — Rule-based engine providing skincare, lifestyle, and medical advice with AM/PM routines
 - **Clinical Report PDF** — Export detailed analysis reports with face images, metrics, and recommendations
 - **JWT Authentication** — Secure login/register with profile management
 - **SQLite Database** — Persistent scan history and user data
@@ -19,9 +19,9 @@ A clinical-grade skin analysis platform that leverages multi-spectral computer v
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS, Recharts |
-| Backend | FastAPI, Python 3.9+, OpenCV, TensorFlow, KerasCV |
-| AI Models | YOLOv8 (acne), YOLO-face (face detection), face-api.js (frontend guidance) |
-| Database | SQLite with SQLAlchemy ORM |
+| Backend | FastAPI, Python 3.9+, OpenCV, Ultralytics YOLOv8 |
+| AI Models | YOLOv8n detector (`best.pt`), YOLO-face (`YOLO-face.pt`), face-api.js (frontend guidance) |
+| Database | SQLite with SQLAlchemy async (aiosqlite) |
 | Auth | JWT tokens, bcrypt password hashing |
 | Infrastructure | Docker, GitHub Actions CI/CD |
 
@@ -106,18 +106,21 @@ skinAnalysis/
 ├── backend/
 │   ├── main.py                 # FastAPI application & routes
 │   ├── model/
-│   │   └── model.h5            # YOLOv8 acne detection weights (LFS)
+│   │   └── yolo_acne_detection.h5  # Legacy H5 fallback model (LFS)
 │   ├── models/
+│   │   ├── best.pt             # YOLOv8n acne detector (LFS)
 │   │   └── YOLO-face.pt        # YOLO face detection model (LFS)
 │   ├── services/
-│   │   ├── predictor.py        # Acne detection & classification
-│   │   ├── image_processor.py  # OpenCV preprocessing & pigmentation
+│   │   ├── predictor.py        # Multi-signal detection pipeline
+│   │   ├── acne_model.py       # YOLOv8 detector wrapper
+│   │   ├── image_processor.py  # OpenCV preprocessing
 │   │   ├── auth.py             # JWT authentication
-│   │   ├── database.py         # SQLAlchemy database setup
+│   │   ├── database.py         # SQLAlchemy async database
 │   │   └── models.py           # User & Scan ORM models
+│   ├── alembic/                # Database migrations
+│   ├── tests/                  # Pytest test suite
 │   ├── uploads/                # User-uploaded images
 │   ├── results/                # Detection result images
-│   ├── venv/                   # Python virtual environment
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
@@ -149,6 +152,8 @@ skinAnalysis/
 │   │   ├── favicon.svg
 │   │   └── models/                      # face-api.js model files (LFS)
 │   └── package.json
+├── data-2/                     # Training dataset (YOLOv8 format, LFS)
+├── train_acne_detector.py      # Colab training script for YOLOv8n detector
 ├── docker-compose.yml          # Development Docker setup
 ├── docker-compose.prod.yml     # Production Docker setup
 ├── .github/workflows/ci.yml    # GitHub Actions CI/CD
@@ -174,13 +179,13 @@ skinAnalysis/
 
 ## AI Detection Pipeline
 
-1. **Face Detection** — YOLO-face detects face region with elliptical masking
-2. **Skin Segmentation** — HSV-based skin color detection within face region
-3. **Acne Detection** — YOLOv8 inference + multi-signal CV (color, texture, contrast)
-4. **Pigmentation Analysis** — M-Index + LAB a* + HSV V with majority voting
-5. **Moisture Analysis** — Gabor filter texture analysis + local binary patterns
-6. **Spot Classification** — Comedone, blackhead, whitehead, pustule, papule, inflammatory
-7. **Recommendation Engine** — Rule-based skincare, lifestyle, and medical advice
+1. **Face Detection** — YOLO-face detects face regions with elliptical masking + skin-color refinement
+2. **Acne Detection** — YOLOv8n detector (`best.pt`) runs on each face crop (falls back to full image if no face)
+3. **Pigmentation** — LAB a* (redness) + HSV V (dark patches) with exclusion masks for eyebrows, eyes, lips, nostrils
+4. **Dryness/Texture** — Gabor filters + White Top-Hat transform on skin mask
+5. **NMS** — Two-pass: OpenCV NMS + distance-based clustering (25px merge)
+6. **Spot Classification** — HSV/LAB color features classify papule, pustule, blackhead, whitehead, comedone
+7. **Recommendations** — Rule-based skincare, lifestyle, and medical advice with AM/PM routine
 
 ## Environment Variables
 
@@ -190,7 +195,6 @@ skinAnalysis/
 BACKEND_HOST=0.0.0.0
 BACKEND_PORT=8000
 SKINAI_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
-MODEL_PATH=model/model.h5
 SKINAI_JWT_SECRET=your-secret-key
 SKINAI_DB_PATH=skinai.db
 ```
