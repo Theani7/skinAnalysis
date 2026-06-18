@@ -467,6 +467,7 @@ async def analyze_image(
                 "conflicts": result.get("conflicts", []),
                 "routine": result.get("routine", {"morning": [], "evening": [], "tips": []}),
                 "face_quality": result.get("face_quality"),
+                "classification": result.get("classification"),
             },
         )
     except HTTPException as he:

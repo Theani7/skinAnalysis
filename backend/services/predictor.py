@@ -21,6 +21,7 @@ import numpy as np
 from ultralytics import YOLO
 
 from services.pigmentation import detect_pigmentation
+from services.roboflow_classifier import classifier
 
 logger = logging.getLogger(__name__)
 
@@ -1199,6 +1200,13 @@ class AcnePredictor:
 
             avg_conf = float(np.mean([d["confidence"] for d in all_detections])) if all_detections else 0.0
 
+            # Roboflow classification (non-blocking, adds confidence score)
+            try:
+                classification = classifier.classify_acne(image)
+            except Exception as e:
+                logger.warning(f"Classification skipped: {e}")
+                classification = {"has_acne": acne_count > 0, "confidence": avg_conf, "class_name": "unknown", "model_id": "fallback"}
+
             # Scale detections back to original image dimensions for result image
             orig_img_h, orig_img_w = orig_image.shape[:2]
             if scale < 1.0:
@@ -1237,6 +1245,7 @@ class AcnePredictor:
                 "conflicts": recommendation_data["conflicts"],
                 "routine": recommendation_data["routine"],
                 "face_quality": face_quality,
+                "classification": classification,
             }
 
         except Exception as e:

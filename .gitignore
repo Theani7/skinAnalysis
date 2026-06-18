@@ -79,3 +79,6 @@ GEMINI.md
 AGENTS.md
 backend/skinai.db*
 backend/yolo26n.pt
+Skin Issues.v6i.yolov8/
+SkinIssues.v6i.yolov8/
+best_v2.pt
