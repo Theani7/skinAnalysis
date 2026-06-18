@@ -1,60 +1,4 @@
-import axios from 'axios';
-import { ApiError, API_BASE_URL } from './api';
-
-const authApi = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-authApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('skinai_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-authApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (!error.response) {
-      return Promise.reject(new ApiError('Cannot connect to server. Please check your connection and ensure the backend is running.', 0));
-    }
-
-    const { status, data } = error.response;
-
-    if (status === 401) {
-      const hasToken = !!localStorage.getItem('skinai_token');
-      localStorage.removeItem('skinai_token');
-      localStorage.removeItem('skinai_user');
-      if (hasToken) {
-        window.location.href = '/';
-      }
-    }
-
-    let message = 'An unexpected error occurred.';
-    if (data?.detail) {
-      message = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
-    } else if (status === 400) {
-      message = 'Invalid request. Please check your input.';
-    } else if (status === 401) {
-      message = 'Invalid email or password.';
-    } else if (status === 404) {
-      message = 'Service not found. Please try again later.';
-    } else if (status === 429) {
-      message = 'Too many attempts. Please wait and try again.';
-    } else if (status === 500) {
-      message = 'Server error. Please try again later.';
-    } else if (status === 503) {
-      message = 'Service temporarily unavailable. Please try again later.';
-    }
-
-    return Promise.reject(new ApiError(message, status, error));
-  }
-);
+import api, { ApiError, API_BASE_URL } from './api';
 
 export interface AuthUser {
   id: string;
@@ -109,7 +53,7 @@ export async function registerUser(
   email: string,
   password: string
 ): Promise<AuthResponse> {
-  const response = await authApi.post<AuthResponse>('/auth/register', {
+  const response = await api.post<AuthResponse>('/auth/register', {
     name,
     email,
     password,
@@ -121,7 +65,7 @@ export async function loginUser(
   email: string,
   password: string
 ): Promise<AuthResponse> {
-  const response = await authApi.post<AuthResponse>('/auth/login', {
+  const response = await api.post<AuthResponse>('/auth/login', {
     email,
     password,
   });
@@ -131,8 +75,8 @@ export async function loginUser(
 export async function updateProfile(
   name: string
 ): Promise<AuthUser> {
-  const response = await authApi.put<AuthUser>('/auth/profile', { name });
+  const response = await api.put<AuthUser>('/auth/profile', { name });
   return response.data;
 }
 
-export default authApi;
+export { api as authApi, ApiError, API_BASE_URL };

@@ -12,7 +12,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+      - SKINAI_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
     restart: unless-stopped
 
   frontend:

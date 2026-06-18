@@ -29,7 +29,7 @@ A clinical-grade skin analysis platform that leverages multi-spectral computer v
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.11+
 - Node.js 18+
 - npm
 - Git LFS (for model files)

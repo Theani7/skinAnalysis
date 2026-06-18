@@ -22,6 +22,7 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
   const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
   const [latestStats, setLatestStats] = useState<{ acne_count: number; severity: string; confidence: number } | null>(null);
   const [modelOnline, setModelOnline] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -32,7 +33,9 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
         setRecentScans(data.recent_scans);
         setLatestStats(data.latest_stats);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setLoadError('Failed to load dashboard data.');
+      });
 
     fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/model/status`)
       .then((r) => r.json())
@@ -56,6 +59,11 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
 
   return (
     <div className="space-y-8">
+      {loadError && (
+        <div className="bg-danger-50 border border-danger-200 rounded-xl p-4 text-sm text-danger-600">
+          {loadError}
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
@@ -207,7 +215,7 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
               </div>
             ) : (
               recentScans.map((scan) => (
-                <div key={scan.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-50 transition-colors cursor-pointer">
+                <div key={scan.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-50 transition-colors">
                   <div className="w-10 h-10 bg-surface-50 border border-surface-200 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Calendar className="w-4 h-4 text-surface-400" />
                   </div>

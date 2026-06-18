@@ -7,7 +7,7 @@ Detects individual acne spots with bounding boxes.
 
 import logging
 import os
-from typing import Dict, List
+from typing import Dict
 
 import cv2
 import numpy as np
@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DETECTOR_PATH = os.path.join(BACKEND_DIR, "models", "best.pt")
-CLASSIFIER_PATH = os.path.join(BACKEND_DIR, "models", "best.pt")
 FALLBACK_H5_PATH = os.path.join(BACKEND_DIR, "model", "yolo_acne_detection.h5")
 
 
@@ -41,16 +40,6 @@ class AcneDetector:
                 return
             except Exception as e:
                 logger.warning(f"Failed to load detector: {e}")
-
-        # Fallback: classifier (whole image classification)
-        if os.path.exists(CLASSIFIER_PATH):
-            try:
-                self.model = YOLO(CLASSIFIER_PATH)
-                self.model_type = "classifier"
-                logger.info(f"YOLOv8 classifier loaded (fallback): {CLASSIFIER_PATH}")
-                return
-            except Exception as e:
-                logger.warning(f"Failed to load classifier: {e}")
 
         # Legacy H5 fallback
         if os.path.exists(FALLBACK_H5_PATH):
@@ -102,7 +91,6 @@ class AcneDetector:
             for box in result.boxes:
                 conf = float(box.conf[0])
                 x1, y1, x2, y2 = box.xyxy[0].tolist()
-                cls_id = int(box.cls[0])
 
                 detections.append({
                     "bbox": [int(x1), int(y1), int(x2), int(y2)],

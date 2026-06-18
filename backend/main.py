@@ -11,7 +11,7 @@ import json
 import logging
 import os
 import re
-import traceback
+import time
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -50,10 +50,26 @@ logger = logging.getLogger(__name__)
 _rate_limit_store: dict[str, list[float]] = {}
 RATE_LIMIT_WINDOW = 60  # seconds
 RATE_LIMIT_MAX_REQUESTS = 30
+_RATE_LIMIT_LAST_CLEANUP = time.time()
+_RATE_LIMIT_CLEANUP_INTERVAL = 300  # 5 minutes
+
+
+def _cleanup_rate_limit():
+    """Remove stale keys to prevent memory leaks."""
+    global _RATE_LIMIT_LAST_CLEANUP
+    now = time.time()
+    if now - _RATE_LIMIT_LAST_CLEANUP < _RATE_LIMIT_CLEANUP_INTERVAL:
+        return
+    _RATE_LIMIT_LAST_CLEANUP = now
+    cutoff = now - RATE_LIMIT_WINDOW
+    stale_keys = [k for k, v in _rate_limit_store.items() if not v or v[-1] < cutoff]
+    for k in stale_keys:
+        del _rate_limit_store[k]
 
 
 def _check_rate_limit(key: str, max_requests: int = RATE_LIMIT_MAX_REQUESTS) -> bool:
-    now = datetime.now().timestamp()
+    _cleanup_rate_limit()
+    now = time.time()
     if key not in _rate_limit_store:
         _rate_limit_store[key] = []
     _rate_limit_store[key] = [t for t in _rate_limit_store[key] if now - t < RATE_LIMIT_WINDOW]
@@ -97,11 +113,23 @@ app = FastAPI(
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {exc}\n{traceback.format_exc()}")
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={"detail": "An unexpected error occurred. Please try again."},
     )
+
+
+# ── Request size limit middleware ──
+
+MAX_REQUEST_SIZE = 12 * 1024 * 1024  # 12MB (10MB file + overhead)
+
+@app.middleware("http")
+async def request_size_middleware(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > MAX_REQUEST_SIZE:
+        return JSONResponse(status_code=413, content={"detail": "Request body too large"})
+    return await call_next(request)
 
 
 # ── Request ID middleware ──
@@ -199,7 +227,7 @@ async def register(data: UserCreate, request: Request, db: AsyncSession = Depend
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Registration error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Registration error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Registration failed. Please try again.")
 
 
@@ -214,7 +242,7 @@ async def login(data: UserLogin, request: Request, db: AsyncSession = Depends(ge
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Login error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Login error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Login failed. Please try again.")
 
 
@@ -236,7 +264,7 @@ async def update_profile(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Profile update error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Profile update error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to update profile.")
 
 
@@ -276,7 +304,7 @@ async def upload_image(
     except HTTPException as he:
         raise he
     except Exception as e:
-        logger.error(f"Upload error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Upload error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error during upload")
 
 
@@ -301,7 +329,7 @@ async def process_image(
         filename = save_uploaded_file(file, contents, UPLOAD_DIR)
         file_path = os.path.join(UPLOAD_DIR, filename)
 
-        result = image_processor.process_image(file_path)
+        result = await asyncio.to_thread(image_processor.process_image, file_path)
 
         return JSONResponse(
             status_code=200,
@@ -318,10 +346,12 @@ async def process_image(
     except HTTPException as he:
         raise he
     except Exception as e:
-        logger.error(f"Processing error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Processing error: {e}", exc_info=True)
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
         raise HTTPException(status_code=500, detail="Image processing failed.")
     finally:
-        pass  # Keep uploaded file for serving
+        pass
 
 
 @app.post("/analyze")
@@ -429,10 +459,12 @@ async def analyze_image(
     except HTTPException as he:
         raise he
     except Exception as e:
-        logger.error(f"Analysis error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Analysis error: {e}", exc_info=True)
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
         raise HTTPException(status_code=500, detail="Analysis failed. Please try again.")
     finally:
-        pass  # Keep uploaded file for serving
+        pass
 
 
 # ═══════════════════════════════════════════
@@ -481,7 +513,7 @@ async def list_scans(
             "total": total,
         }
     except Exception as e:
-        logger.error(f"Error listing scans: {e}\n{traceback.format_exc()}")
+        logger.error(f"Error listing scans: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to load scan history.")
 
 
@@ -539,7 +571,7 @@ async def get_progress_data(
             "latest_stats": latest_stats,
         }
     except Exception as e:
-        logger.error(f"Error fetching progress data: {e}\n{traceback.format_exc()}")
+        logger.error(f"Error fetching progress data: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to load progress data.")
 
 
@@ -586,7 +618,7 @@ async def get_scan(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching scan {scan_id}: {e}\n{traceback.format_exc()}")
+        logger.error(f"Error fetching scan {scan_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to load scan details.")
 
 
@@ -647,7 +679,7 @@ async def get_pigmentation_progress(
 
         return {"progress": progress, "latest": latest_data}
     except Exception as e:
-        logger.error(f"Error fetching pigmentation progress: {e}\n{traceback.format_exc()}")
+        logger.error(f"Error fetching pigmentation progress: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to load pigmentation progress.")
 
 
@@ -733,7 +765,7 @@ async def compare_scans(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error comparing scans: {e}\n{traceback.format_exc()}")
+        logger.error(f"Error comparing scans: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to compare scans.")
 
 

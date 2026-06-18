@@ -1,9 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import * as faceapi from 'face-api.js';
 
 interface FaceDetection {
   box: { x: number; y: number; width: number; height: number };
-  landmarks?: faceapi.FaceLandmarks68;
+  landmarks?: any;
   detection: any;
 }
 
@@ -37,26 +36,25 @@ export function useFaceDetection(): UseFaceDetectionReturn {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const isDetectingRef = useRef(false);
+  const faceapiRef = useRef<any>(null);
 
-  const calculateMetrics = (
+  const calculateMetrics = useCallback((
     box: { x: number; y: number; width: number; height: number },
     videoWidth: number,
     videoHeight: number,
-    landmarks?: faceapi.FaceLandmarks68
+    landmarks?: any
   ) => {
     const centerX = box.x + box.width / 2;
     const centerY = box.y + box.height / 2;
     const videoCenterX = videoWidth / 2;
     const videoCenterY = videoHeight / 2;
 
-    // Centeredness: how close face center is to video center (0-100)
     const distFromCenter = Math.sqrt(
       Math.pow((centerX - videoCenterX) / videoWidth, 2) +
       Math.pow((centerY - videoCenterY) / videoHeight, 2)
     );
     const centeredness = Math.max(0, Math.min(100, Math.round((1 - distFromCenter * 2) * 100)));
 
-    // Size: how much of the frame the face takes (ideal 30-60%)
     const faceArea = box.width * box.height;
     const videoArea = videoWidth * videoHeight;
     const sizeRatio = faceArea / videoArea;
@@ -69,7 +67,6 @@ export function useFaceDetection(): UseFaceDetectionReturn {
       size = Math.round(Math.max(0, 100 - (sizeRatio - 0.35) * 200));
     }
 
-    // Angle: use landmarks to detect head tilt (0-100)
     let angle = 70;
     if (landmarks) {
       const jaw = landmarks.getJawOutline();
@@ -97,19 +94,17 @@ export function useFaceDetection(): UseFaceDetectionReturn {
       }
     }
 
-    // Lighting: estimate from face region brightness
     const lighting = 70;
-
-    // Overall score
     const overall = Math.round(centeredness * 0.35 + size * 0.3 + angle * 0.2 + lighting * 0.15);
 
     return { centeredness, size, angle, lighting, overall };
-  };
+  }, []);
 
   const detect = useCallback(async () => {
-    if (!videoRef.current || !isDetectingRef.current) return;
+    if (!videoRef.current || !isDetectingRef.current || !faceapiRef.current) return;
 
     const video = videoRef.current;
+    const faceapi = faceapiRef.current;
 
     if (video.readyState !== 4) {
       animFrameRef.current = requestAnimationFrame(detect);
@@ -140,14 +135,14 @@ export function useFaceDetection(): UseFaceDetectionReturn {
         setDetection(null);
         setFaceMetrics({ centeredness: 0, size: 0, angle: 0, lighting: 0, overall: 0 });
       }
-    } catch (err) {
+    } catch {
       // Detection error, continue
     }
 
     if (isDetectingRef.current) {
       animFrameRef.current = requestAnimationFrame(detect);
     }
-  }, []);
+  }, [calculateMetrics]);
 
   const startDetection = useCallback((videoElement: HTMLVideoElement) => {
     videoRef.current = videoElement;
@@ -167,6 +162,8 @@ export function useFaceDetection(): UseFaceDetectionReturn {
   useEffect(() => {
     const loadModels = async () => {
       try {
+        const faceapi = await import('face-api.js');
+        faceapiRef.current = faceapi;
         await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
         await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
         setIsModelLoaded(true);

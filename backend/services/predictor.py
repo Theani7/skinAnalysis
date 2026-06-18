@@ -973,6 +973,13 @@ class AcnePredictor:
         self.acne_detector = None
         self.model_loaded = False
         self.yolo_face = None
+        self._models_loaded = False
+
+    def _ensure_models_loaded(self):
+        """Lazy-load models on first use instead of at import time."""
+        if self._models_loaded:
+            return
+        self._models_loaded = True
         self._load_yolo_face_detector()
         self._load_model()
 
@@ -1002,12 +1009,14 @@ class AcnePredictor:
             self.model_loaded = False
 
     def analyze_image(self, image_path: str) -> Dict:
+        self._ensure_models_loaded()
         try:
-            image = cv2.imread(image_path)
-            if image is None:
+            orig_image = cv2.imread(image_path)
+            if orig_image is None:
                 raise ValueError(f"Cannot read image: {image_path}")
 
-            orig_h, orig_w = image.shape[:2]
+            orig_h, orig_w = orig_image.shape[:2]
+            image = orig_image.copy()
 
             # Resize for consistent processing
             max_dim = 800
@@ -1186,7 +1195,6 @@ class AcnePredictor:
             avg_conf = float(np.mean([d["confidence"] for d in all_detections])) if all_detections else 0.0
 
             # Scale detections back to original image dimensions for result image
-            orig_image = cv2.imread(image_path)
             orig_img_h, orig_img_w = orig_image.shape[:2]
             if scale < 1.0:
                 inv_scale = 1.0 / scale

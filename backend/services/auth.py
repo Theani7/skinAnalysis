@@ -25,6 +25,14 @@ SECRET_KEY = os.getenv("SKINAI_JWT_SECRET")
 if not SECRET_KEY:
     raise RuntimeError("SKINAI_JWT_SECRET environment variable is required")
 
+_WEAK_SECRETS = {"secret", "change-me", "change-in-production", "skinai-dev-secret-change-in-production-2024", "your-secret-key", "generate-a-strong-random-secret-here"}
+_env = os.getenv("SKINAI_ENV", "development")
+if _env != "test" and (SECRET_KEY.lower().strip() in _WEAK_SECRETS or len(SECRET_KEY) < 32):
+    raise RuntimeError(
+        f"SKINAI_JWT_SECRET is weak or predictable (length={len(SECRET_KEY)}). "
+        "Generate a strong secret: python3 -c \"import secrets; print(secrets.token_urlsafe(48))\""
+    )
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 

@@ -152,7 +152,7 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
           {historyList.map((item, idx) => {
             const change = idx < historyList.length - 1 ? item.score - historyList[idx + 1].score : 0;
             return (
-              <div key={item.id} className="bg-white border border-surface-200 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:border-surface-300 transition-colors">
+              <div key={item.id} className="bg-white border border-surface-200 rounded-2xl p-4 flex items-center gap-4 hover:border-surface-300 transition-colors">
                 <div className="w-11 h-11 bg-surface-50 border border-surface-200 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Calendar className="w-5 h-5 text-surface-400" />
                 </div>

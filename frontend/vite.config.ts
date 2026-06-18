@@ -7,6 +7,17 @@ export default defineConfig({
     port: 3000,
     host: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'face-api': ['face-api.js'],
+          'recharts': ['recharts'],
+          'jspdf': ['jspdf'],
+        },
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',
