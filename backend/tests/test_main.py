@@ -65,12 +65,12 @@ async def test_path_traversal_dot_dot(client: AsyncClient):
 
 async def test_scans_requires_auth(client: AsyncClient):
     response = await client.get("/scans")
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 async def test_scan_detail_requires_auth(client: AsyncClient):
     response = await client.get("/scans/some-id")
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 # ── Scan history (authenticated, empty) ──
@@ -97,9 +97,9 @@ async def test_progress_empty(client: AsyncClient, auth_headers: dict):
 
 async def test_upload_requires_auth(client: AsyncClient):
     response = await client.post("/upload")
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 async def test_analyze_requires_auth(client: AsyncClient):
     response = await client.post("/analyze")
-    assert response.status_code == 403
+    assert response.status_code == 401

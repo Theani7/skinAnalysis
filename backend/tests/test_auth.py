@@ -118,7 +118,7 @@ async def test_get_me_success(client: AsyncClient, auth_headers: dict):
 
 async def test_get_me_no_token(client: AsyncClient):
     response = await client.get("/auth/me")
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 async def test_get_me_invalid_token(client: AsyncClient):
@@ -156,4 +156,4 @@ async def test_update_profile_no_auth(client: AsyncClient):
         "/auth/profile",
         json={"name": "Hacker"},
     )
-    assert response.status_code == 403
+    assert response.status_code == 401

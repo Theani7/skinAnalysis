@@ -1,11 +1,9 @@
 """Tests for the pigmentation detection module."""
 
 import numpy as np
-import pytest
 
 from services.pigmentation import (
     _build_exclude_mask,
-    _classify_spot_type,
     _compute_face_area,
     _compute_skin_percentiles,
     _compute_spatial_pattern,

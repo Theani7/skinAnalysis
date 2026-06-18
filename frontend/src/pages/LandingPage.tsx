@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Radio, Wifi, Cpu, BarChart3, FileText, Menu, X, Layers, Activity } from 'lucide-react';
+import { ArrowRight, Radio, Wifi, Cpu, BarChart3, Menu, X, Layers, Activity } from 'lucide-react';
 
 export default function LandingPage({ onStart }: { onStart: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
