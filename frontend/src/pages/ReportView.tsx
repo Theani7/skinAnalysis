@@ -380,6 +380,37 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
                 </ul>
               </div>
             )}
+
+            {/* Cost Summary */}
+            {result.routine.cost_summary && result.routine.cost_summary.products_found > 0 && (
+              <div className="mt-6 p-5 bg-surface-900 rounded-xl text-white">
+                <div className="flex items-center gap-2 mb-3">
+                  <ShoppingBag className="w-4 h-4 text-surface-400" />
+                  <span className="text-xs font-medium text-surface-400 uppercase tracking-wider">Estimated Routine Cost</span>
+                </div>
+                <div className="flex items-baseline gap-1 mb-3">
+                  <span className="text-2xl font-display font-bold">{result.routine.cost_summary.currency}{result.routine.cost_summary.total_cost}</span>
+                  <span className="text-xs text-surface-400">one-time (from Daraz)</span>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1 bg-white/10 rounded-lg p-3">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Sun className="w-3 h-3 text-warning-400" />
+                      <span className="text-[10px] font-medium text-surface-400 uppercase">Morning</span>
+                    </div>
+                    <span className="text-sm font-bold">{result.routine.cost_summary.currency}{result.routine.cost_summary.morning_cost}</span>
+                  </div>
+                  <div className="flex-1 bg-white/10 rounded-lg p-3">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Moon className="w-3 h-3 text-primary-400" />
+                      <span className="text-[10px] font-medium text-surface-400 uppercase">Evening</span>
+                    </div>
+                    <span className="text-sm font-bold">{result.routine.cost_summary.currency}{result.routine.cost_summary.evening_cost}</span>
+                  </div>
+                </div>
+                <p className="text-[10px] text-surface-500 mt-3">Prices from Daraz Nepal. Product availability and prices may change.</p>
+              </div>
+            )}
           </div>
         </div>
       )}
