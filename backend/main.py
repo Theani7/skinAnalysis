@@ -383,6 +383,8 @@ async def analyze_image(
             raise HTTPException(status_code=413, detail="File size exceeds 10MB limit")
 
         if not predictor.model_loaded:
+            predictor._ensure_models_loaded()
+        if not predictor.model_loaded:
             raise HTTPException(
                 status_code=503,
                 detail="AI model not available. Please check model file.",
