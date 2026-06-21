@@ -81,12 +81,20 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
       let response;
       if (isLogin) {
         response = await loginUser(email.trim(), password);
+        storeAuth(response.access_token, response.user);
+        onLogin(response.user);
       } else {
-        response = await registerUser(name.trim(), email.trim(), password);
+        const registeredEmail = email.trim();
+        await registerUser(name.trim(), registeredEmail, password);
+        setIsLogin(true);
+        setName('');
+        setPassword('');
+        setError('');
+        setSuccess('');
+        setShowPassword(false);
+        setEmail(registeredEmail);
+        setSuccess('Account created successfully. Please sign in.');
       }
-
-      storeAuth(response.access_token, response.user);
-      onLogin(response.user);
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {

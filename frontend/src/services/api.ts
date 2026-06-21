@@ -26,9 +26,12 @@ api.interceptors.response.use(
     const { status, data } = error.response;
 
     if (status === 401) {
-      clearAuth();
-      window.location.href = '/';
-      return Promise.reject(new ApiError('Session expired. Please log in again.', 401));
+      const isAuthRequest = error.config?.url?.startsWith('/auth/');
+      if (!isAuthRequest) {
+        clearAuth();
+        window.location.href = '/';
+        return Promise.reject(new ApiError('Session expired. Please log in again.', 401));
+      }
     }
 
     // Retry once on 503 (model loading)
