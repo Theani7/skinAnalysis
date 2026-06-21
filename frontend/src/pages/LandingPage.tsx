@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight, Radio, Wifi, Cpu, BarChart3, Menu, X, Layers, Activity } from 'lucide-react';
 
-export default function LandingPage({ onStart }: { onStart: () => void }) {
+export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -23,11 +23,11 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
             </nav>
 
             <div className="flex items-center gap-2">
-              <button onClick={onStart} className="hidden sm:block text-sm text-surface-600 hover:text-surface-900 px-4 py-2 rounded-lg transition-colors">
+              <button onClick={onLogin} className="hidden sm:block text-sm text-surface-600 hover:text-surface-900 px-4 py-2 rounded-lg transition-colors">
                 Log In
               </button>
-              <button onClick={onStart} className="bg-surface-900 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-surface-800 transition-colors">
-                Get Started
+              <button onClick={onSignup} className="bg-surface-900 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-surface-800 transition-colors">
+                Sign Up
               </button>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -52,8 +52,11 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
               <a href="#technology" onClick={() => setMenuOpen(false)} className="block px-4 py-3 rounded-xl text-sm text-surface-600 hover:bg-surface-50 transition-colors">
                 Technology
               </a>
-              <button onClick={() => { setMenuOpen(false); onStart(); }} className="block w-full text-left px-4 py-3 rounded-xl text-sm text-surface-600 hover:bg-surface-50 transition-colors sm:hidden">
+              <button onClick={() => { setMenuOpen(false); onLogin(); }} className="block w-full text-left px-4 py-3 rounded-xl text-sm text-surface-600 hover:bg-surface-50 transition-colors sm:hidden">
                 Log In
+              </button>
+              <button onClick={() => { setMenuOpen(false); onSignup(); }} className="block w-full text-left px-4 py-3 rounded-xl text-sm text-surface-600 hover:bg-surface-50 transition-colors sm:hidden">
+                Sign Up
               </button>
             </nav>
           </div>
@@ -79,7 +82,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mt-10 justify-center">
-              <button onClick={onStart} className="group bg-surface-900 text-white px-7 py-3.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:bg-surface-800 transition-colors">
+              <button onClick={onSignup} className="group bg-surface-900 text-white px-7 py-3.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:bg-surface-800 transition-colors">
                 Start Monitoring
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
@@ -241,7 +244,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
             <p className="text-surface-500 mt-4 mb-8">
               Connect your sensor device, capture skin data, and see real-time insights on your dashboard.
             </p>
-            <button onClick={onStart} className="bg-surface-900 text-white px-8 py-3.5 rounded-xl text-sm font-medium hover:bg-surface-800 transition-colors">
+            <button onClick={onSignup} className="bg-surface-900 text-white px-8 py-3.5 rounded-xl text-sm font-medium hover:bg-surface-800 transition-colors">
               Get Started
             </button>
           </div>

@@ -4,12 +4,13 @@ import { loginUser, registerUser, storeAuth, AuthUser } from '../services/auth';
 
 interface LoginPageProps {
   open: boolean;
+  initialMode?: 'login' | 'signup';
   onLogin: (user: AuthUser) => void;
   onClose: () => void;
 }
 
-export default function LoginPage({ open, onLogin, onClose }: LoginPageProps) {
-  const [isLogin, setIsLogin] = useState(true);
+export default function LoginPage({ open, initialMode = 'login', onLogin, onClose }: LoginPageProps) {
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -30,10 +31,10 @@ export default function LoginPage({ open, onLogin, onClose }: LoginPageProps) {
 
   useEffect(() => {
     if (open) {
-      setIsLogin(true);
+      setIsLogin(initialMode === 'login');
       resetForm();
     }
-  }, [open]);
+  }, [open, initialMode]);
 
   const resetForm = () => {
     setName('');

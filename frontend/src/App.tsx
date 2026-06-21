@@ -45,6 +45,7 @@ export default function App() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(getStoredUser());
   const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(getStoredResult);
   const [showLogin, setShowLogin] = useState(false);
+  const [loginMode, setLoginMode] = useState<'login' | 'signup'>('login');
 
   const navigate = useCallback((page: PageRoute) => {
     window.scrollTo(0, 0);
@@ -103,8 +104,8 @@ export default function App() {
   if (!isAuthenticated()) {
     return (
       <>
-        <LandingPage onStart={() => setShowLogin(true)} />
-        <LoginPage open={showLogin} onLogin={handleLogin} onClose={() => setShowLogin(false)} />
+        <LandingPage onLogin={() => { setLoginMode('login'); setShowLogin(true); }} onSignup={() => { setLoginMode('signup'); setShowLogin(true); }} />
+        <LoginPage open={showLogin} initialMode={loginMode} onLogin={handleLogin} onClose={() => setShowLogin(false)} />
       </>
     );
   }
