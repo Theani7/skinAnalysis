@@ -7,10 +7,12 @@ import ScanView from './pages/ScanView';
 import ReportView from './pages/ReportView';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
+import RemoteScanView from './pages/RemoteScanView';
+import MobileCaptureView from './pages/MobileCaptureView';
 import { AnalysisResponse } from './services/api';
 import { AuthUser, getStoredUser, isAuthenticated, clearAuth } from './services/auth';
 
-export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile';
+export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile' | 'remote-scan' | 'mobile-capture';
 
 const RESULT_STORAGE_KEY = 'skinai_last_result';
 
@@ -36,6 +38,8 @@ function getInitialRoute(): PageRoute {
   if (path === '/report') return 'report';
   if (path === '/history') return 'history';
   if (path === '/profile') return 'profile';
+  if (path === '/remote-scan') return 'remote-scan';
+  if (path === '/mobile-capture') return 'mobile-capture';
   if (path === '/dashboard' || path === '/') return isAuthenticated() ? 'dashboard' : 'landing';
   return isAuthenticated() ? 'dashboard' : 'landing';
 }
@@ -57,6 +61,8 @@ export default function App() {
       report: '/report',
       history: '/history',
       profile: '/profile',
+      'remote-scan': '/remote-scan',
+      'mobile-capture': '/mobile-capture',
     };
     window.history.pushState({}, '', paths[page] || '/');
   }, []);
@@ -100,8 +106,8 @@ export default function App() {
     setAuthUser(user);
   };
 
-  // Unauthenticated: landing page + login modal
-  if (!isAuthenticated()) {
+  // Unauthenticated: landing page + login modal (except for mobile capture which is unauthenticated)
+  if (!isAuthenticated() && currentPage !== 'mobile-capture') {
     return (
       <>
         <LandingPage onLogin={() => { setLoginMode('login'); setShowLogin(true); }} onSignup={() => { setLoginMode('signup'); setShowLogin(true); }} />
@@ -110,11 +116,17 @@ export default function App() {
     );
   }
 
+  // Mobile Capture View (Unauthenticated access allowed)
+  if (currentPage === 'mobile-capture') {
+    return <MobileCaptureView />;
+  }
+
   // Authenticated Dashboard Layout
   return (
     <DashboardShell currentRoute={currentPage} onNavigate={navigate} onLogout={handleLogout} user={authUser}>
-      {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onViewHistory={() => navigate('history')} user={authUser} />}
+      {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onStartRemoteScan={() => navigate('remote-scan')} onViewHistory={() => navigate('history')} user={authUser} />}
       {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} />}
+      {currentPage === 'remote-scan' && <RemoteScanView onComplete={handleAnalysisComplete} onBack={() => navigate('dashboard')} />}
       {currentPage === 'report' && <ReportView result={analysisResult} onBack={() => navigate('dashboard')} />}
       {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}
       {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} />}

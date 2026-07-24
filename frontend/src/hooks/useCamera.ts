@@ -6,7 +6,7 @@ interface UseCameraReturn {
   stream: MediaStream | null;
   isActive: boolean;
   error: string | null;
-  startCamera: () => Promise<void>;
+  startCamera: (facingMode?: 'user' | 'environment') => Promise<void>;
   stopCamera: () => void;
   capturePhoto: () => Promise<Blob | null>;
 }
@@ -18,12 +18,12 @@ export function useCamera(): UseCameraReturn {
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const startCamera = useCallback(async () => {
+  const startCamera = useCallback(async (facingMode: 'user' | 'environment' = 'user') => {
     try {
       setError(null);
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: 'user',
+          facingMode: facingMode,
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },

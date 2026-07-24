@@ -7,6 +7,7 @@ import { getProgressData, ProgressDataPoint, RecentScanItem } from '../services/
 
 interface DashboardHomeProps {
   onStartScan: () => void;
+  onStartRemoteScan?: () => void;
   onViewHistory?: () => void;
   user?: AuthUser | null;
 }
@@ -17,7 +18,7 @@ const quickTips = [
   { id: 3, icon: Heart, text: 'Get 7-9 hours of sleep for optimal skin repair' },
 ];
 
-export default function DashboardHome({ onStartScan, onViewHistory, user }: DashboardHomeProps) {
+export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHistory, user }: DashboardHomeProps) {
   const [progress, setProgress] = useState<ProgressDataPoint[]>([]);
   const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
   const [latestStats, setLatestStats] = useState<{ acne_count: number; severity: string; confidence: number } | null>(null);
@@ -71,13 +72,24 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
           <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight text-surface-950">{greeting}, {firstName}</h1>
           <p className="text-surface-500 text-sm mt-1">Your skin health overview</p>
         </div>
-        <button
-          onClick={onStartScan}
-          className="bg-surface-900 text-white px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 text-sm hover:bg-surface-800 transition-colors w-fit"
-        >
-          <ScanLine className="w-4 h-4" />
-          New Scan
-        </button>
+        <div className="flex items-center gap-2">
+          {onStartRemoteScan && (
+            <button
+              onClick={onStartRemoteScan}
+              className="bg-white border border-surface-200 text-surface-900 px-4 py-3 rounded-xl font-medium flex items-center justify-center gap-2 text-sm hover:bg-surface-50 transition-colors w-fit"
+            >
+              <ScanLine className="w-4 h-4" />
+              Remote Scan
+            </button>
+          )}
+          <button
+            onClick={onStartScan}
+            className="bg-surface-900 text-white px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 text-sm hover:bg-surface-800 transition-colors w-fit"
+          >
+            <ScanLine className="w-4 h-4" />
+            New Scan
+          </button>
+        </div>
       </div>
 
       {/* Status Bar */}
@@ -255,6 +267,22 @@ export default function DashboardHome({ onStartScan, onViewHistory, user }: Dash
               </div>
               <ChevronRight className="w-4 h-4 text-surface-400 group-hover:text-surface-600 transition-colors" />
             </button>
+            
+            {onStartRemoteScan && (
+              <button
+                onClick={onStartRemoteScan}
+                className="w-full flex items-center gap-4 p-4 bg-surface-50 rounded-xl hover:bg-surface-100 transition-colors text-left group"
+              >
+                <div className="w-10 h-10 bg-surface-200 rounded-xl flex items-center justify-center text-surface-900 flex-shrink-0">
+                  <ScanLine className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-surface-900 text-sm">Remote Scan via Mobile</div>
+                  <div className="text-xs text-surface-500">Scan a QR code to use your phone's camera</div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-surface-400 group-hover:text-surface-600 transition-colors" />
+              </button>
+            )}
 
             {onViewHistory && (
               <button

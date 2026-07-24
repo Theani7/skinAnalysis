@@ -45,6 +45,9 @@ from services.predictor import predictor
 setup_logging(os.getenv("SKINAI_ENV", "development"))
 logger = logging.getLogger(__name__)
 
+# ── Remote Capture Sessions ──
+REMOTE_SESSIONS: dict[str, str] = {}  # session_id -> filename
+
 # ── Rate limiting ──
 
 _rate_limit_store: dict[str, list[float]] = {}
@@ -481,6 +484,45 @@ async def analyze_image(
         raise HTTPException(status_code=500, detail="Analysis failed. Please try again.")
     finally:
         pass
+
+
+# ═══════════════════════════════════════════
+# REMOTE CAPTURE ROUTES
+# ═══════════════════════════════════════════
+
+@app.post("/remote/upload/{session_id}")
+async def remote_upload(session_id: str, file: UploadFile = File(...)):
+    """Mobile device uploads the captured image to the session."""
+    if not validate_image(file):
+        raise HTTPException(status_code=400, detail="Invalid file format")
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File size exceeds 10MB limit")
+        
+    filename = save_uploaded_file(file, contents, UPLOAD_DIR)
+    REMOTE_SESSIONS[session_id] = filename
+    return {"status": "success"}
+
+@app.get("/remote/status/{session_id}")
+async def remote_status(session_id: str):
+    """Laptop polls this to see if the mobile device has uploaded an image."""
+    filename = REMOTE_SESSIONS.get(session_id)
+    if filename:
+        return {"status": "ready"}
+    return {"status": "waiting"}
+
+@app.get("/remote/download/{session_id}")
+async def remote_download(session_id: str):
+    """Laptop downloads the image and we clear the session."""
+    filename = REMOTE_SESSIONS.get(session_id)
+    if not filename:
+        raise HTTPException(status_code=404, detail="Session not found or not ready")
+    
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    if session_id in REMOTE_SESSIONS:
+        del REMOTE_SESSIONS[session_id]
+    
+    return FileResponse(file_path)
 
 
 # ═══════════════════════════════════════════
