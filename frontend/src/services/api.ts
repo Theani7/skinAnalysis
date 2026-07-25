@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { getStoredToken, clearAuth } from './auth';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const host = window.location.hostname;
+export const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${host}:8000`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

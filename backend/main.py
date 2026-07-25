@@ -156,7 +156,7 @@ async def request_id_middleware(request: Request, call_next):
 
 # ── CORS ──
 
-CORS_ORIGINS = os.getenv("SKINAI_CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
+CORS_ORIGINS = os.getenv("SKINAI_CORS_ORIGINS", "http://localhost:3000,http://localhost:3001,http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,

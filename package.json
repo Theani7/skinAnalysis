@@ -5,13 +5,14 @@
   "main": "backend/main.py",
   "scripts": {
     "dev:backend": "cd backend && ./venv/bin/python -m uvicorn main:app --reload",
-    "dev:frontend": "cd frontend && npm run dev",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "build": "cd frontend && npm run build",
-    "install:frontend": "cd frontend && npm install",
+    "dev:frontend": "cd frontend && bun run dev",
+    "dev": "concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
+    "dev:remote": "bash start_tunnels.sh && concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
+    "build": "cd frontend && bun run build",
+    "install:frontend": "cd frontend && bun install",
     "install:backend": "cd backend && ./venv/bin/pip install -r requirements.txt",
     "setup": "cd backend && python3 -m venv venv && ./venv/bin/pip install -r requirements.txt",
-    "install:all": "npm run install:frontend && npm run install:backend"
+    "install:all": "bun run install:frontend && bun run install:backend"
   },
   "author": "",
   "license": "MIT",

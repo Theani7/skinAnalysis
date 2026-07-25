@@ -46,10 +46,14 @@ brew install git-lfs
 git lfs pull
 
 # Install all dependencies and create Python venv
-npm run setup
+bun run setup
+cd frontend && bun install && cd ..
 
-# Run both frontend and backend
-npm run dev
+# Run both frontend and backend locally
+bun dev
+
+# OR run with Cloudflare Tunnels (to access from your mobile phone)
+bun dev:remote
 ```
 
 Open http://localhost:3000
@@ -58,10 +62,10 @@ Open http://localhost:3000
 
 ```bash
 # Install root dependencies (concurrently)
-npm install
+bun install
 
 # Install frontend dependencies
-cd frontend && npm install && cd ..
+cd frontend && bun install && cd ..
 
 # Create Python venv and install backend dependencies
 cd backend
@@ -74,7 +78,7 @@ cp backend/.env.example backend/.env
 # Edit backend/.env and set SKINAI_JWT_SECRET to a random string
 
 # Run both
-npm run dev
+bun dev
 ```
 
 ### Run Individually
@@ -86,7 +90,7 @@ cd backend
 
 # Frontend (port 3000)
 cd frontend
-npm run dev
+bun run dev
 ```
 
 ### Docker Setup
@@ -205,16 +209,17 @@ SKINAI_DB_PATH=skinai.db
 VITE_API_URL=http://localhost:8000
 ```
 
-## NPM Scripts
+## Bun Scripts
 
 | Script | Description |
 |--------|-------------|
-| `npm run setup` | Create Python venv and install backend deps |
-| `npm run dev` | Run both frontend and backend |
-| `npm run dev:backend` | Run backend only |
-| `npm run dev:frontend` | Run frontend only |
-| `npm run install:all` | Install all dependencies |
-| `npm run build` | Build frontend for production |
+| `bun run setup` | Create Python venv and install backend deps |
+| `bun dev` | Run both frontend and backend locally |
+| `bun dev:remote` | Run everything and start Cloudflare Tunnels for mobile access |
+| `bun run dev:backend` | Run backend only |
+| `bun run dev:frontend` | Run frontend only |
+| `bun run install:all` | Install all dependencies |
+| `bun run build` | Build frontend for production |
 
 ## License
 

@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { ArrowLeft, Smartphone, Loader2, CheckCircle2 } from 'lucide-react';
 import { analyzeImage, AnalysisResponse } from '../services/api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const host = window.location.hostname;
+const API_URL = import.meta.env.VITE_API_URL || `http://${host}:8000`;
 
 interface RemoteScanViewProps {
   onComplete: (result: AnalysisResponse) => void;
