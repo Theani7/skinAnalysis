@@ -62,28 +62,28 @@ export default function ProfilePage({ user, onBack, onUserUpdate }: ProfilePageP
       <div className="flex items-center gap-4">
         <button
           onClick={onBack}
-          className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+          className="p-2 t-text-muted hover:t-text rounded-lg hover:t-bg-hover transition-colors"
           aria-label="Go back"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-display font-bold text-white tracking-tight">SkinAI Profile</h1>
-          <p className="text-sm text-gray-400">Manage your account settings</p>
+          <h1 className="text-2xl font-display font-bold t-text tracking-tight">SkinAI Profile</h1>
+          <p className="text-sm t-text-secondary">Manage your account settings</p>
         </div>
       </div>
 
-      <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-2xl overflow-hidden backdrop-blur-md">
+      <div className="t-card rounded-2xl overflow-hidden">
         {/* Avatar Section */}
-        <div className="p-6 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="p-6 border-b t-divider">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-teal-500/20 border border-teal-500/30 rounded-2xl flex items-center justify-center text-teal-300 font-bold text-xl flex-shrink-0">
+            <div className="w-16 h-16 t-tint-success border border-teal-500/30 rounded-2xl flex items-center justify-center text-teal-500 font-bold text-xl flex-shrink-0">
               {userInitials}
             </div>
             <div>
-              <h2 className="text-xl font-display font-bold text-white">{user.name}</h2>
-              <p className="text-sm text-gray-400">{user.email}</p>
-              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
+              <h2 className="text-xl font-display font-bold t-text">{user.name}</h2>
+              <p className="text-sm t-text-secondary">{user.email}</p>
+              <div className="flex items-center gap-1.5 mt-1 text-xs t-text-muted">
                 <Calendar className="w-3 h-3" />
                 Member since {memberSince}
               </div>
@@ -94,50 +94,50 @@ export default function ProfilePage({ user, onBack, onUserUpdate }: ProfilePageP
         {/* Edit Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
-              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-              <p className="text-sm text-red-300">{error}</p>
+            <div className="p-3 t-tint-danger border border-red-500/20 rounded-xl flex items-center gap-3">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <p className="text-sm text-red-500">{error}</p>
             </div>
           )}
           {success && (
-            <div className="p-3 bg-teal-500/10 border border-teal-500/20 rounded-xl flex items-center gap-3">
-              <CheckCircle2 className="w-4 h-4 text-teal-400 flex-shrink-0" />
-              <p className="text-sm text-teal-300">{success}</p>
+            <div className="p-3 t-tint-success border border-teal-500/20 rounded-xl flex items-center gap-3">
+              <CheckCircle2 className="w-4 h-4 text-teal-500 flex-shrink-0" />
+              <p className="text-sm text-teal-500">{success}</p>
             </div>
           )}
 
           <div>
-            <label htmlFor="profile-name" className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label htmlFor="profile-name" className="block text-sm font-medium t-text-secondary mb-1.5">
               Full Name
             </label>
             <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 t-text-muted" />
               <input
                 type="text"
                 id="profile-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-black/40 border border-[rgba(255,255,255,0.06)] rounded-xl text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all shadow-inner"
+                className="w-full pl-10 pr-4 py-3 t-input rounded-xl text-sm transition-all shadow-inner"
                 placeholder="Your full name"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="profile-email" className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label htmlFor="profile-email" className="block text-sm font-medium t-text-secondary mb-1.5">
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 t-text-muted" />
               <input
                 type="email"
                 id="profile-email"
                 value={user.email}
                 readOnly
-                className="w-full pl-10 pr-4 py-3 bg-white/5 border border-[rgba(255,255,255,0.06)] rounded-xl text-sm text-gray-500 cursor-not-allowed opacity-70"
+                className="w-full pl-10 pr-4 py-3 t-input rounded-xl text-sm cursor-not-allowed opacity-70"
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1.5 ml-1">Email cannot be changed</p>
+            <p className="text-xs t-text-muted mt-1.5 ml-1">Email cannot be changed</p>
           </div>
 
           <div className="pt-2">

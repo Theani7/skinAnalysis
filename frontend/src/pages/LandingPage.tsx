@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Camera, ScanFace, Activity, FileText, Droplets, Sun, Sparkles, ChevronRight, Zap, Shield, Clock } from 'lucide-react';
+import { Camera, ScanFace, Activity, FileText, Droplets, Sun, Moon, Sparkles, ChevronRight, Zap, Shield, Clock } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => void }) {
   const [scrolled, setScrolled] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,28 +15,35 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0e1a] text-slate-200 font-sans selection:bg-teal-500/30 overflow-hidden relative">
+    <div className="min-h-screen t-bg t-text font-sans selection:bg-teal-500/30 overflow-hidden relative transition-colors duration-300">
       {/* Background aurora effects */}
       <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-teal-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }} />
       <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
       
       {/* Navbar */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#0a0e1a]/80 backdrop-blur-md border-b border-white/5 py-4' : 'bg-transparent py-6'}`}>
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 't-bg/80 backdrop-blur-md border-b t-divider py-4' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold tracking-tighter text-white">SkinAI</span>
+            <span className="text-2xl font-bold tracking-tighter t-text">SkinAI</span>
             <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full t-text-secondary hover:t-text transition-colors"
+              aria-label="Toggle Theme"
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <button 
               onClick={onLogin}
-              className="px-5 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+              className="px-5 py-2 text-sm font-medium t-text-secondary hover:t-text transition-colors"
             >
               Log in
             </button>
             <button 
               onClick={onSignup}
-              className="px-5 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 border border-white/10 rounded-full text-white backdrop-blur-sm transition-all"
+              className="px-5 py-2 text-sm font-medium border t-divider rounded-full t-text t-bg-raised hover:t-bg-hover backdrop-blur-sm transition-all"
             >
               Sign up
             </button>
@@ -44,17 +53,17 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
 
       {/* Hero Section */}
       <section className="relative pt-40 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-sm font-medium mb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-500 text-sm font-medium mb-8">
           <Sparkles className="w-4 h-4" />
           <span>Next-generation skin intelligence</span>
         </div>
         
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-300 to-purple-400 leading-tight mb-6 max-w-4xl">
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-400 to-purple-400 leading-tight mb-6 max-w-4xl">
           AI-Powered <br className="hidden md:block" />
           Skin Analysis
         </h1>
         
-        <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10">
+        <p className="text-lg md:text-xl t-text-secondary max-w-2xl mb-10">
           Upload a clear photo of your skin and let our advanced neural networks detect, classify, and recommend targeted treatments in seconds.
         </p>
         
@@ -71,7 +80,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
           
           <button 
             onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-            className="px-8 py-4 rounded-full bg-white/5 border border-white/10 text-white font-semibold text-lg hover:bg-white/10 backdrop-blur-sm transition-all flex items-center justify-center gap-2"
+            className="px-8 py-4 rounded-full t-bg-raised border t-divider t-text font-semibold text-lg hover:t-bg-hover backdrop-blur-sm transition-all flex items-center justify-center gap-2"
           >
             Learn More
           </button>
@@ -79,7 +88,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
       </section>
 
       {/* Stats Section */}
-      <section className="py-10 border-y border-white/5 bg-white/[0.02]">
+      <section className="py-10 border-y t-divider t-bg-raised">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
             { value: '<2s', label: 'Analysis Time' },
@@ -88,8 +97,8 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
             { value: 'AI', label: 'Powered' },
           ].map((stat, i) => (
             <div key={i} className="flex flex-col items-center text-center space-y-2">
-              <span className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">{stat.value}</span>
-              <span className="text-sm text-slate-400 font-medium tracking-wide uppercase">{stat.label}</span>
+              <span className={`text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b ${isDark ? 'from-white to-white/50' : 'from-slate-900 to-slate-500'}`}>{stat.value}</span>
+              <span className="text-sm t-text-muted font-medium tracking-wide uppercase">{stat.label}</span>
             </div>
           ))}
         </div>
@@ -98,8 +107,8 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
       {/* How it Works Section */}
       <section id="how-it-works" className="py-32 px-6 max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">How it Works</h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">Four simple steps to understand your skin health.</p>
+          <h2 className="text-3xl md:text-5xl font-bold t-text mb-6">How it Works</h2>
+          <p className="t-text-secondary max-w-2xl mx-auto">Four simple steps to understand your skin health.</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -109,27 +118,27 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
             { icon: Activity, title: 'Classify', desc: 'We identify conditions, concerns, and skin types instantly.' },
             { icon: FileText, title: 'Report', desc: 'Get a detailed breakdown with actionable, personalized recommendations.' }
           ].map((step, i) => (
-            <div key={i} className="relative p-6 rounded-3xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.05] transition-all group overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 text-7xl font-bold text-white/[0.02] group-hover:text-white/[0.05] transition-colors pointer-events-none">
+            <div key={i} className="relative p-6 rounded-3xl t-card hover:t-bg-hover transition-all group overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 text-7xl font-bold t-text-muted opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
                 0{i + 1}
               </div>
               <div className="w-14 h-14 rounded-2xl bg-teal-500/20 flex items-center justify-center mb-6 border border-teal-500/30 group-hover:scale-110 transition-transform">
-                <step.icon className="w-7 h-7 text-teal-400" />
+                <step.icon className="w-7 h-7 text-teal-500" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">{step.title}</h3>
-              <p className="text-slate-400 leading-relaxed">{step.desc}</p>
+              <h3 className="text-xl font-semibold t-text mb-3">{step.title}</h3>
+              <p className="t-text-secondary leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-32 px-6 bg-white/[0.01] border-y border-white/5 relative">
+      <section className="py-32 px-6 t-bg-raised border-y t-divider relative">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row gap-16 items-center">
             <div className="md:w-1/3">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Advanced <br/><span className="text-teal-400">Capabilities</span></h2>
-              <p className="text-slate-400 mb-8 leading-relaxed">
+              <h2 className="text-3xl md:text-5xl font-bold t-text mb-6">Advanced <br/><span className="text-teal-500">Capabilities</span></h2>
+              <p className="t-text-secondary mb-8 leading-relaxed">
                 Discover what's beneath the surface. Our diagnostic suite provides comprehensive insights into various aspects of your dermatological health.
               </p>
             </div>
@@ -141,10 +150,10 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
                 { icon: Droplets, title: 'Hydration Mapping', desc: 'Assess skin moisture levels and barrier health visually.' },
                 { icon: Shield, title: 'Smart Recommendations', desc: 'Receive tailored product suggestions and care routines.' }
               ].map((feat, i) => (
-                <div key={i} className="p-8 rounded-3xl bg-[#0d1326] border border-white/[0.05] hover:border-teal-500/30 transition-colors">
-                  <feat.icon className="w-8 h-8 text-teal-400 mb-6" />
-                  <h3 className="text-xl font-semibold text-white mb-3">{feat.title}</h3>
-                  <p className="text-slate-400">{feat.desc}</p>
+                <div key={i} className="p-8 rounded-3xl t-card hover:border-teal-500/30 transition-colors">
+                  <feat.icon className="w-8 h-8 text-teal-500 mb-6" />
+                  <h3 className="text-xl font-semibold t-text mb-3">{feat.title}</h3>
+                  <p className="t-text-secondary">{feat.desc}</p>
                 </div>
               ))}
             </div>
@@ -154,12 +163,12 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
 
       {/* CTA Section */}
       <section className="py-32 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-teal-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-teal-900/10"></div>
         <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <h2 className="text-4xl md:text-6xl font-bold text-white mb-8">Ready to transform your skin journey?</h2>
+          <h2 className="text-4xl md:text-6xl font-bold t-text mb-8">Ready to transform your skin journey?</h2>
           <button 
             onClick={onSignup}
-            className="px-10 py-5 rounded-full bg-white text-[#0a0e1a] font-bold text-xl hover:bg-slate-200 hover:scale-105 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
+            className="px-10 py-5 rounded-full btn-premium text-white font-bold text-xl hover:scale-105 transition-all shadow-[0_0_50px_rgba(6,182,212,0.3)]"
           >
             Start Your Free Analysis
           </button>
@@ -167,13 +176,13 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-white/5 bg-[#0a0e1a]">
+      <footer className="py-12 border-t t-divider t-bg">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold tracking-tighter text-white">SkinAI</span>
+            <span className="text-xl font-bold tracking-tighter t-text">SkinAI</span>
             <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
           </div>
-          <p className="text-slate-500 text-sm">
+          <p className="t-text-muted text-sm">
             &copy; {new Date().getFullYear()} SkinAI. All rights reserved.
           </p>
         </div>

@@ -15,8 +15,8 @@ export function ProgressRing({
   value,
   size = 100,
   strokeWidth = 6,
-  color = '#1E3A8A',
-  bgColor = '#E2E8F0',
+  color = '#06b6d4',
+  bgColor = 'rgba(6, 182, 212, 0.15)',
   showValue = true,
   label,
   className,
@@ -38,11 +38,11 @@ export function ProgressRing({
       </svg>
       {showValue && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-bold text-white" style={{ fontSize: size * 0.22 }}>
+          <span className="font-bold t-text" style={{ fontSize: size * 0.22 }}>
             {Math.round(value)}%
           </span>
           {label && (
-            <span className="text-xs text-gray-400 mt-0.5">{label}</span>
+            <span className="text-xs t-text-muted mt-0.5">{label}</span>
           )}
         </div>
       )}

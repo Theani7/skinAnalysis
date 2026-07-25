@@ -105,20 +105,20 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-sans">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-[#0f1424]/95 backdrop-blur-2xl"
+        className="absolute inset-0 t-overlay backdrop-blur-2xl"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal */}
-      <div className="relative bg-white/[0.02] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative t-modal rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+          className="absolute top-4 right-4 z-10 p-2 t-text-secondary hover:t-text rounded-full hover:t-bg-hover transition-colors"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
@@ -129,11 +129,11 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
           <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(20,184,166,0.3)]">
             <Camera className="w-6 h-6 text-white" />
           </div>
-          <div className="text-teal-400 font-bold text-sm tracking-wider uppercase mb-2">SkinAI</div>
-          <h2 className="text-2xl font-display font-bold tracking-tight text-white">
+          <div className="text-teal-500 font-bold text-sm tracking-wider uppercase mb-2">SkinAI</div>
+          <h2 className="text-2xl font-display font-bold tracking-tight t-text">
             {isLogin ? 'Welcome back' : 'Create account'}
           </h2>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm t-text-secondary mt-2">
             {isLogin
               ? 'Sign in to access your dashboard'
               : 'Create an account to get started'}
@@ -143,34 +143,34 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
         {/* Form */}
         <div className="px-8 pb-8">
           {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3">
-              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-400">{error}</p>
+            <div className="mb-4 p-3 t-tint-danger border border-red-500/20 rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm" style={{ color: 'var(--text-danger)' }}>{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-start gap-3">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-emerald-400">{success}</p>
+            <div className="mb-4 p-3 t-tint-success border border-emerald-500/20 rounded-xl flex items-start gap-3">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm" style={{ color: 'var(--text-success)' }}>{success}</p>
             </div>
           )}
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
-                <label htmlFor="modal-name" className="block text-sm font-medium text-gray-300 mb-1.5">
+                <label htmlFor="modal-name" className="block text-sm font-medium t-text-secondary mb-1.5">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 t-text-muted" />
                   <input
                     type="text"
                     id="modal-name"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-colors"
+                    className="t-input pl-10"
                     placeholder="Your full name"
                   />
                 </div>
@@ -178,29 +178,29 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
             )}
 
             <div>
-              <label htmlFor="modal-email" className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="modal-email" className="block text-sm font-medium t-text-secondary mb-1.5">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 t-text-muted" />
                 <input
                   type="email"
                   id="modal-email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-colors"
+                  className="t-input pl-10"
                   placeholder="you@example.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="modal-password" className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="modal-password" className="block text-sm font-medium t-text-secondary mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 t-text-muted" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="modal-password"
@@ -208,13 +208,13 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
                   minLength={isLogin ? undefined : 8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-11 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-colors"
+                  className="t-input pl-10 pr-11"
                   placeholder={isLogin ? 'Enter your password' : 'Minimum 8 characters'}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 t-text-muted hover:t-text-secondary transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -225,7 +225,7 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(20,184,166,0.4)] shadow-[0_0_15px_rgba(20,184,166,0.2)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 mt-2"
+              className="w-full btn-premium py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 mt-2"
             >
               {isLoading ? (
                 <>
@@ -239,16 +239,16 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
           </form>
 
           <div className="my-6 flex items-center gap-4">
-            <div className="flex-1 h-px bg-white/[0.06]"></div>
-            <span className="text-xs text-gray-500">or</span>
-            <div className="flex-1 h-px bg-white/[0.06]"></div>
+            <div className="flex-1 border-t t-divider"></div>
+            <span className="text-xs t-text-muted">or</span>
+            <div className="flex-1 border-t t-divider"></div>
           </div>
 
-          <p className="text-gray-400 text-sm text-center">
+          <p className="t-text-secondary text-sm text-center">
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={handleToggle}
-              className="font-medium text-teal-400 hover:text-teal-300 transition-colors"
+              className="font-medium text-teal-500 hover:text-teal-400 transition-colors"
             >
               {isLogin ? 'Sign Up' : 'Sign In'}
             </button>

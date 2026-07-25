@@ -86,27 +86,27 @@ export default function ConfirmDialog({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 t-overlay"
         onClick={onCancel}
         aria-hidden="true"
       />
 
       {/* Dialog */}
-      <div className="relative bg-[rgba(20,20,20,0.95)] border border-[rgba(255,255,255,0.08)] rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden sm:rounded-2xl backdrop-blur-xl">
+      <div className="relative t-modal rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden sm:rounded-2xl">
         {/* Header */}
         <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-6 pb-3 sm:pb-4">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border ${
-            danger ? 'bg-red-500/10 border-red-500/20' : 'bg-teal-500/10 border-teal-500/20'
+            danger ? 't-tint-danger border-red-500/20' : 't-tint-success border-teal-500/20'
           }`}>
-            <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-400' : 'text-teal-400'}`} />
+            <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-500' : 'text-teal-500'}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 id="confirm-dialog-title" className="text-lg font-bold text-white">{title}</h3>
-            <p id="confirm-dialog-message" className="text-sm text-gray-400 mt-1">{message}</p>
+            <h3 id="confirm-dialog-title" className="text-lg font-bold t-text">{title}</h3>
+            <p id="confirm-dialog-message" className="text-sm t-text-secondary mt-1">{message}</p>
           </div>
           <button
             onClick={onCancel}
-            className="p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            className="p-1 t-text-muted hover:t-text rounded-lg hover:t-bg-hover transition-colors"
             aria-label="Close dialog"
           >
             <X className="w-4 h-4" />
@@ -117,7 +117,7 @@ export default function ConfirmDialog({
         <div className="flex gap-3 px-4 sm:px-6 pb-4 sm:pb-6">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] text-sm font-bold text-gray-300 hover:bg-[rgba(255,255,255,0.08)] hover:text-white transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl t-btn-secondary text-sm font-bold transition-all"
           >
             {cancelLabel}
           </button>

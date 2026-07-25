@@ -159,8 +159,8 @@ export default function ScanView({ onComplete, onStartRemoteScan }: { onComplete
     <div className="h-full flex flex-col space-y-6">
       <header className="flex flex-col sm:flex-row justify-between items-start gap-3">
         <div>
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Scan</h2>
-          <h1 className="text-3xl font-display font-bold tracking-tight text-white">New Analysis</h1>
+          <h2 className="text-xs font-medium t-text-muted uppercase tracking-wider mb-1">Scan</h2>
+          <h1 className="text-3xl font-display font-bold tracking-tight t-text">New Analysis</h1>
         </div>
         <div className="flex gap-3">
           <input
@@ -174,10 +174,10 @@ export default function ScanView({ onComplete, onStartRemoteScan }: { onComplete
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isAnalyzing}
-            className="bg-surface-900 border border-white/10 text-gray-300 px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 disabled:opacity-50 hover:border-teal-500 hover:bg-surface-800 transition-colors text-sm"
+            className="t-btn-secondary px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 disabled:opacity-50 text-sm"
             aria-label="Upload image for analysis"
           >
-            <Upload className="w-4 h-4 text-gray-400" />
+            <Upload className="w-4 h-4 t-text-muted" />
             Upload Image
           </button>
           {onStartRemoteScan && (
@@ -197,24 +197,24 @@ export default function ScanView({ onComplete, onStartRemoteScan }: { onComplete
       <div className="flex-1 flex flex-col items-center">
         <div
           ref={videoContainerRef}
-          className="w-full max-w-4xl aspect-[4/3] bg-surface-900/50 backdrop-blur-md rounded-2xl border border-white/10 relative overflow-hidden flex flex-col items-center justify-center transition-colors hover:border-teal-500/50 hover:shadow-[0_0_30px_rgba(20,184,166,0.1)]"
+          className="w-full max-w-4xl aspect-[4/3] t-card bg-gray-950 relative overflow-hidden flex flex-col items-center justify-center transition-colors hover:border-teal-500/50 hover:shadow-[0_0_30px_rgba(20,184,166,0.1)]"
           role="img"
           aria-label="Camera view for face capture"
         >
           {cameraError || error || modelError ? (
-            <div className="bg-surface-900/80 backdrop-blur-md rounded-xl p-12 text-center space-y-5 text-white border border-white/5">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto bg-surface-800 border border-white/10">
-                <AlertCircle className="w-8 h-8 text-red-400" />
+            <div className="t-card p-12 text-center space-y-5 t-text">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto t-bg-raised border t-divider">
+                <AlertCircle className="w-8 h-8 text-red-500" />
               </div>
               <div>
                 <h3 className="text-lg font-display font-semibold mb-2">
                   {modelError && !cameraError && !error ? 'Model Unavailable' : 'Camera Error'}
                 </h3>
-                <p className="text-gray-400 max-w-xs mx-auto text-sm">{cameraError || error || modelError}</p>
+                <p className="t-text-secondary max-w-xs mx-auto text-sm">{cameraError || error || modelError}</p>
               </div>
               <button
                 onClick={() => { setError(null); startCamera(); }}
-                className="inline-flex items-center gap-2 text-teal-400 font-medium hover:text-teal-300 text-sm transition-colors"
+                className="inline-flex items-center gap-2 text-teal-500 font-medium hover:text-teal-400 text-sm transition-colors"
                 aria-label="Retry camera connection"
               >
                 <RefreshCcw className="w-4 h-4" /> Retry
@@ -240,8 +240,8 @@ export default function ScanView({ onComplete, onStartRemoteScan }: { onComplete
               {/* Status Badge */}
               {isActive && !isAnalyzing && (
                 <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-                  <div className="bg-surface-900/80 backdrop-blur-md border border-teal-500/30 px-5 py-2.5 rounded-xl text-center shadow-[0_0_15px_rgba(20,184,166,0.2)]">
-                    <p className="text-teal-400 text-xs font-medium tracking-wide">
+                  <div className="t-card border-teal-500/30 px-5 py-2.5 rounded-xl text-center shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+                    <p className="text-teal-500 text-xs font-medium tracking-wide">
                       {getStatusMessage()}
                     </p>
                   </div>
@@ -251,11 +251,11 @@ export default function ScanView({ onComplete, onStartRemoteScan }: { onComplete
               {/* Analyzing Overlay */}
               <div className="z-20 w-full h-full flex flex-col items-center justify-center">
                 {isAnalyzing ? (
-                  <div className="bg-surface-900/90 backdrop-blur-md rounded-2xl p-10 flex flex-col items-center gap-4 shadow-[0_0_30px_rgba(20,184,166,0.2)] border border-teal-500/30">
-                    <Loader2 className="w-12 h-12 text-teal-400 animate-spin" />
+                  <div className="t-card p-10 flex flex-col items-center gap-4 shadow-[0_0_30px_rgba(20,184,166,0.2)] border-teal-500/30">
+                    <Loader2 className="w-12 h-12 text-teal-500 animate-spin" />
                     <div className="text-center">
-                      <p className="text-white font-display font-bold text-sm">Analyzing</p>
-                      <p className="text-gray-400 text-xs mt-1">Processing your image...</p>
+                      <p className="t-text font-display font-bold text-sm">Analyzing</p>
+                      <p className="t-text-muted text-xs mt-1">Processing your image...</p>
                     </div>
                   </div>
                 ) : !isActive ? (
@@ -279,7 +279,7 @@ export default function ScanView({ onComplete, onStartRemoteScan }: { onComplete
                         faceMetrics.overall > 40 ? 'bg-white/60 border-white/40' : 'bg-white/20 border-white/20'
                       }`}></div>
                     </button>
-                    <span className="text-gray-400 text-xs font-medium">
+                    <span className="t-text-secondary text-xs font-medium">
                       {faceMetrics.overall > 70 ? 'Tap to capture' : 'Align face'}
                     </span>
                   </div>
@@ -295,12 +295,12 @@ export default function ScanView({ onComplete, onStartRemoteScan }: { onComplete
               { icon: Focus, label: 'Size', value: faceMetrics.size },
               { icon: Sun, label: 'Angle', value: faceMetrics.angle },
             ].map((m) => (
-               <div key={m.label} className="bg-surface-900/70 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
+               <div key={m.label} className="t-card px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
                  <m.icon className="w-3 h-3 text-teal-500/70" />
-                 <span className="text-xs text-gray-400 hidden sm:inline">{m.label}:</span>
+                 <span className="text-xs t-text-muted hidden sm:inline">{m.label}:</span>
                  <span className={`text-xs font-medium ${
-                   m.value > 70 ? 'text-teal-400' :
-                   m.value > 40 ? 'text-teal-400/70' : 'text-gray-500'
+                   m.value > 70 ? 'text-teal-500' :
+                   m.value > 40 ? 'text-teal-500/70' : 't-text-muted'
                  }`}>
                    {m.value}%
                  </span>
@@ -309,7 +309,7 @@ export default function ScanView({ onComplete, onStartRemoteScan }: { onComplete
           </div>
         </div>
 
-        <p className="mt-5 text-sm text-gray-400 text-center max-w-md px-4">
+        <p className="mt-5 text-sm t-text-secondary text-center max-w-md px-4">
           Position your face within the frame. The system will validate image quality before analysis.
         </p>
       </div>

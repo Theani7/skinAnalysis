@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { LayoutDashboard, ScanLine, History, LogOut, Menu, X, Camera } from 'lucide-react';
+import { LayoutDashboard, ScanLine, History, LogOut, Menu, X, Camera, Sun, Moon } from 'lucide-react';
 import { PageRoute } from '../../App';
 import { AuthUser } from '../../services/auth';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLElement>(null);
+  const { isDark, toggleTheme } = useTheme();
 
   const userInitials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -49,7 +51,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
   };
 
   return (
-    <div className="flex h-screen bg-[#0a0e1a] text-gray-300 overflow-hidden font-sans">
+    <div className="flex h-screen t-bg t-text overflow-hidden font-sans">
       <style>{`
         .sidebar-transition {
           transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -58,7 +60,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed inset-0 t-overlay z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -77,13 +79,13 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => { setExpanded(false); setHoveredItem(null); }}
       >
-        <div className="flex flex-col bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md rounded-2xl sidebar-transition overflow-hidden py-4 px-3 shadow-2xl">
+        <div className="flex flex-col t-card backdrop-blur-md rounded-2xl sidebar-transition overflow-hidden py-4 px-3 shadow-2xl">
           <div className={`flex items-center mb-6 ${expanded ? 'gap-2.5 px-1.5' : 'justify-center'}`}>
             <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-teal-500/20">
               <Camera className="w-5 h-5 text-white" />
             </div>
             {expanded && (
-              <span className="text-lg font-display font-bold tracking-tight text-white whitespace-nowrap overflow-hidden">
+              <span className="text-lg font-display font-bold tracking-tight t-text whitespace-nowrap overflow-hidden">
                 SkinAI
               </span>
             )}
@@ -103,7 +105,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
                       ${expanded ? 'px-3 py-2.5' : 'justify-center py-2.5'}
                       ${isActive
                         ? 'bg-gradient-to-r from-teal-500 to-teal-400 text-white shadow-md shadow-teal-500/20'
-                        : 'text-gray-400 hover:bg-[rgba(255,255,255,0.04)] hover:text-white'
+                        : 't-text-secondary hover:t-bg-hover hover:t-text'
                       }
                     `}
                     aria-current={isActive ? 'page' : undefined}
@@ -119,9 +121,8 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
 
                   {!expanded && hoveredItem === item.id && (
                     <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-                      <div className="bg-[#131b2f] border border-[rgba(255,255,255,0.1)] text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
+                      <div className="t-card t-text text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
                         {item.label}
-                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(255,255,255,0.1)]" />
                       </div>
                     </div>
                   )}
@@ -130,9 +131,34 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
             })}
           </nav>
 
-          <div className="my-3 border-t border-[rgba(255,255,255,0.06)]" />
-
+          <div className="my-3 border-t t-divider" />
+          
           <div className={`space-y-1 ${expanded ? '' : 'flex flex-col items-center'}`}>
+            <div className="relative">
+              <button
+                onClick={toggleTheme}
+                onMouseEnter={() => setHoveredItem('theme')}
+                onMouseLeave={() => setHoveredItem(null)}
+                className={`
+                  flex items-center gap-2.5 rounded-xl transition-all duration-200 t-text-secondary hover:t-text hover:t-bg-hover
+                  ${expanded ? 'w-full px-3 py-2.5' : 'justify-center py-2.5'}
+                `}
+                title={!expanded ? "Toggle Theme" : undefined}
+              >
+                {isDark ? <Sun className="w-5 h-5 flex-shrink-0" /> : <Moon className="w-5 h-5 flex-shrink-0" />}
+                {expanded && (
+                  <span className="text-sm font-medium">Toggle Theme</span>
+                )}
+              </button>
+              {!expanded && hoveredItem === 'theme' && (
+                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
+                  <div className="t-card t-text text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
+                    Toggle Theme
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="relative">
               <button
                 onClick={handleProfileClick}
@@ -140,24 +166,23 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
                 onMouseLeave={() => setHoveredItem(null)}
                 className={`
                   flex items-center gap-2.5 rounded-xl transition-all duration-200
-                  ${expanded ? 'w-full px-3 py-2.5 hover:bg-[rgba(255,255,255,0.04)]' : 'justify-center py-2.5'}
+                  ${expanded ? 'w-full px-3 py-2.5 hover:t-bg-hover' : 'justify-center py-2.5'}
                 `}
                 title={!expanded ? userName : undefined}
               >
-                <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-teal-400 font-semibold text-xs flex-shrink-0">
+                <div className="w-8 h-8 t-bg-raised border t-divider rounded-lg flex items-center justify-center text-teal-400 font-semibold text-xs flex-shrink-0">
                   {userInitials}
                 </div>
                 {expanded && (
                   <div className="flex-1 min-w-0 text-left">
-                    <div className="text-sm font-medium text-white truncate">{userName}</div>
+                    <div className="text-sm font-medium t-text truncate">{userName}</div>
                   </div>
                 )}
               </button>
               {!expanded && hoveredItem === 'profile' && (
                 <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-                  <div className="bg-[#131b2f] border border-[rgba(255,255,255,0.1)] text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
+                  <div className="t-card t-text text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
                     Profile
-                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(255,255,255,0.1)]" />
                   </div>
                 </div>
               )}
@@ -170,7 +195,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
                 onMouseLeave={() => setHoveredItem(null)}
                 className={`
                   flex items-center gap-2.5 rounded-xl transition-all duration-200
-                  text-gray-400 hover:text-red-400 hover:bg-red-400/10
+                  t-text-secondary hover:text-red-500 hover:bg-red-500/10
                   ${expanded ? 'w-full px-3 py-2.5' : 'justify-center py-2.5'}
                 `}
                 title={!expanded ? 'Sign Out' : undefined}
@@ -182,9 +207,8 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
               </button>
               {!expanded && hoveredItem === 'logout' && (
                 <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-                  <div className="bg-[#131b2f] border border-[rgba(255,255,255,0.1)] text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
+                  <div className="t-card t-text text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
                     Sign Out
-                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(255,255,255,0.1)]" />
                   </div>
                 </div>
               )}
@@ -196,17 +220,17 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
       {/* Mobile Sidebar */}
       {sidebarOpen && (
         <aside className="lg:hidden fixed inset-y-0 left-0 z-40 flex flex-col w-[85vw] max-w-[340px]">
-          <div className="flex flex-col h-full m-3 mt-16 mb-16 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl">
+          <div className="flex flex-col h-full m-3 mt-16 mb-16 t-card backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between p-5 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
                   <Camera className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-lg font-display font-bold text-white">SkinAI</span>
+                <span className="text-lg font-display font-bold t-text">SkinAI</span>
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+                className="p-2 t-text-secondary hover:t-text rounded-lg hover:t-bg-hover transition-colors"
                 aria-label="Close sidebar"
               >
                 <X className="w-5 h-5" />
@@ -224,7 +248,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
                       w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-200
                       ${isActive
                         ? 'bg-gradient-to-r from-teal-500 to-teal-400 text-white shadow-md shadow-teal-500/20'
-                        : 'text-gray-400 hover:bg-[rgba(255,255,255,0.04)] hover:text-white'
+                        : 't-text-secondary hover:t-bg-hover hover:t-text'
                       }
                     `}
                     aria-current={isActive ? 'page' : undefined}
@@ -236,23 +260,30 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
               })}
             </nav>
 
-            <div className="mx-4 border-t border-[rgba(255,255,255,0.06)]" />
+            <div className="mx-4 border-t t-divider" />
 
             <div className="p-3 space-y-1">
               <button
-                onClick={handleProfileClick}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[rgba(255,255,255,0.04)] transition-all duration-200"
+                onClick={toggleTheme}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:t-bg-hover transition-all duration-200 t-text-secondary hover:t-text"
               >
-                <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-teal-400 font-semibold text-xs flex-shrink-0">
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                <span className="text-sm font-medium">Toggle Theme</span>
+              </button>
+              <button
+                onClick={handleProfileClick}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:t-bg-hover transition-all duration-200"
+              >
+                <div className="w-8 h-8 t-bg-raised border t-divider rounded-lg flex items-center justify-center text-teal-400 font-semibold text-xs flex-shrink-0">
                   {userInitials}
                 </div>
                 <div className="flex-1 min-w-0 text-left">
-                  <div className="text-sm font-medium text-white truncate">{userName}</div>
+                  <div className="text-sm font-medium t-text truncate">{userName}</div>
                 </div>
               </button>
               <button
                 onClick={handleLogoutClick}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-all duration-200"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl t-text-secondary hover:text-red-500 hover:bg-red-500/10 transition-all duration-200"
               >
                 <LogOut className="w-5 h-5" />
                 <span className="text-sm font-medium">Sign Out</span>
@@ -264,10 +295,10 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 lg:ml-[88px] xl:ml-[96px]">
-        <header className="lg:hidden flex items-center gap-3 p-4 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md mx-3 mt-3 rounded-2xl sticky top-3 z-30 shadow-lg">
+        <header className="lg:hidden flex items-center gap-3 p-4 t-card backdrop-blur-md mx-3 mt-3 rounded-2xl sticky top-3 z-30 shadow-lg">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+            className="p-2 t-text-secondary hover:t-text rounded-lg hover:t-bg-hover transition-colors"
             aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5" />
@@ -276,7 +307,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
             <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center shadow-lg shadow-teal-500/20">
               <Camera className="w-4 h-4 text-white" />
             </div>
-            <span className="font-display font-bold text-base text-white tracking-wide">SkinAI</span>
+            <span className="font-display font-bold text-base t-text tracking-wide">SkinAI</span>
           </div>
         </header>
 
@@ -300,4 +331,3 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
     </div>
   );
 }
-

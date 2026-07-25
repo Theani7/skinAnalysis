@@ -10,9 +10,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+      // Initialize theme before React hydration to prevent flash
+      (function() {
+        var theme = localStorage.getItem('skinai_theme') || 'dark';
+        document.documentElement.classList.add(theme);
+        if (theme === 'light') document.documentElement.classList.remove('dark');
+        document.querySelector('meta[name="theme-color"]')
+          ?.setAttribute('content', theme === 'dark' ? '#0a0e1a' : '#f8fafc');
+      })();
+    </script>
     <style>
-      /* Prevent flash of light bg on load */
-      html, body { background-color: #0a0e1a; }
+      /* Prevent flash — match initial theme bg */
+      html.dark, html.dark body { background-color: #0a0e1a; }
+      html.light, html.light body { background-color: #f8fafc; }
     </style>
   </head>
   <body>
