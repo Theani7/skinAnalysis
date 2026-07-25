@@ -21,8 +21,8 @@ def analyze_skin_with_gemini(image: np.ndarray) -> dict:
         
         genai.configure(api_key=api_key)
         
-        # Use flash for speed, it's very capable and free
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Use gemini-2.0-flash for speed, it's very capable and free
+        model = genai.GenerativeModel('gemini-2.0-flash')
         
         # Encode image to JPEG
         success, encoded_image = cv2.imencode('.jpg', image)
