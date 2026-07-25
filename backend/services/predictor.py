@@ -22,6 +22,7 @@ from ultralytics import YOLO
 
 from services.pigmentation import detect_pigmentation
 from services.roboflow_classifier import classifier
+from services.vision_api import analyze_skin_with_gemini
 
 logger = logging.getLogger(__name__)
 
@@ -1125,6 +1126,13 @@ class AcnePredictor:
 
             pigment_result = detect_pigmentation(image, skin_mask, acne_mask, face_regions)
 
+            # Call Gemini Vision API (if configured) to override heuristics
+            gemini_results = analyze_skin_with_gemini(orig_image)
+            if gemini_results:
+                logger.info("Overriding heuristic scores with Gemini Vision API")
+                pigment_result["clarity_score"] = gemini_results.get("pigmentation", {}).get("clarity_score", pigment_result["clarity_score"])
+                pigment_result["intensity"] = gemini_results.get("pigmentation", {}).get("intensity", pigment_result["intensity"])
+
             # Generate heatmap using jet colormap with intensity gradient
             heatmap = image.copy().astype(np.uint8)
             intensity_map = pigment_result.get("intensity_map")
@@ -1164,6 +1172,10 @@ class AcnePredictor:
 
             # --- Dryness Detection ---
             dryness_result = _detect_dryness(image, skin_mask)
+            
+            if gemini_results:
+                dryness_result["hydration_score"] = gemini_results.get("dryness", {}).get("hydration_score", dryness_result["hydration_score"])
+                dryness_result["roughness_score"] = gemini_results.get("dryness", {}).get("roughness_score", dryness_result["roughness_score"])
 
             # Generate texture heatmap (Teal/Cyan)
             texture_map = image.copy()

@@ -76,9 +76,9 @@ export default function ConfirmDialog({
   if (!open) return null;
 
   return (
-      <div
-        ref={dialogRef}
-        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4"
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
@@ -86,27 +86,27 @@ export default function ConfirmDialog({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onCancel}
         aria-hidden="true"
       />
 
       {/* Dialog */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden sm:rounded-2xl">
+      <div className="relative bg-[rgba(20,20,20,0.95)] border border-[rgba(255,255,255,0.08)] rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden sm:rounded-2xl backdrop-blur-xl">
         {/* Header */}
         <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-6 pb-3 sm:pb-4">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-            danger ? 'bg-danger-50' : 'bg-amber-50'
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border ${
+            danger ? 'bg-red-500/10 border-red-500/20' : 'bg-teal-500/10 border-teal-500/20'
           }`}>
-            <AlertTriangle className={`w-5 h-5 ${danger ? 'text-danger-500' : 'text-amber-500'}`} />
+            <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-400' : 'text-teal-400'}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 id="confirm-dialog-title" className="text-lg font-bold text-surface-900">{title}</h3>
-            <p id="confirm-dialog-message" className="text-sm text-surface-500 mt-1">{message}</p>
+            <h3 id="confirm-dialog-title" className="text-lg font-bold text-white">{title}</h3>
+            <p id="confirm-dialog-message" className="text-sm text-gray-400 mt-1">{message}</p>
           </div>
           <button
             onClick={onCancel}
-            className="p-1 text-surface-400 hover:text-surface-600 rounded-lg hover:bg-surface-50 transition-colors"
+            className="p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
             aria-label="Close dialog"
           >
             <X className="w-4 h-4" />
@@ -117,7 +117,7 @@ export default function ConfirmDialog({
         <div className="flex gap-3 px-4 sm:px-6 pb-4 sm:pb-6">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-surface-200 text-sm font-bold text-surface-700 hover:bg-surface-50 transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] text-sm font-bold text-gray-300 hover:bg-[rgba(255,255,255,0.08)] hover:text-white transition-all"
           >
             {cancelLabel}
           </button>
@@ -126,8 +126,8 @@ export default function ConfirmDialog({
             onClick={onConfirm}
             className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all ${
               danger
-                ? 'bg-danger-500 hover:bg-danger-600'
-                : 'bg-primary-600 hover:bg-primary-700'
+                ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-lg shadow-red-500/20'
+                : 'bg-gradient-to-r from-teal-500 to-teal-400 hover:from-teal-400 hover:to-teal-300 shadow-lg shadow-teal-500/20'
             }`}
           >
             {confirmLabel}

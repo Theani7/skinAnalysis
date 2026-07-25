@@ -125,7 +125,7 @@ export default function App() {
   return (
     <DashboardShell currentRoute={currentPage} onNavigate={navigate} onLogout={handleLogout} user={authUser}>
       {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onStartRemoteScan={() => navigate('remote-scan')} onViewHistory={() => navigate('history')} user={authUser} />}
-      {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} />}
+      {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} onStartRemoteScan={() => navigate('remote-scan')} />}
       {currentPage === 'remote-scan' && <RemoteScanView onComplete={handleAnalysisComplete} onBack={() => navigate('dashboard')} />}
       {currentPage === 'report' && <ReportView result={analysisResult} onBack={() => navigate('dashboard')} />}
       {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}

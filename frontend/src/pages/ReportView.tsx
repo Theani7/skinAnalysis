@@ -16,29 +16,29 @@ function ScoreRing({ score, size = 140, stroke = 10 }: { score: number; size?: n
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
-  const color = score >= 70 ? '#0f172a' : score >= 40 ? '#d4a853' : '#ef4444';
+  const color = score >= 70 ? '#14b8a6' : score >= 40 ? '#f59e0b' : '#ef4444';
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e2e8f0" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
         <circle
           cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color}
           strokeWidth={stroke} strokeLinecap="round"
           strokeDasharray={circumference} strokeDashoffset={offset}
-          className="transition-all duration-1000 ease-out"
+          className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(20,184,166,0.5)]"
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-display font-bold text-surface-900 leading-none">{score}</span>
-        <span className="text-[10px] font-medium text-surface-400 mt-1">/ 100</span>
+        <span className="text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-teal-200 leading-none">{score}</span>
+        <span className="text-[10px] font-medium text-gray-400 mt-1">/ 100</span>
       </div>
     </div>
   );
 }
 
 function StatusDot({ status }: { status: 'good' | 'warning' | 'danger' }) {
-  const color = status === 'danger' ? 'bg-danger-500' : status === 'warning' ? 'bg-warning-500' : 'bg-success-500';
+  const color = status === 'danger' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : status === 'warning' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]';
   return <span className={`w-2 h-2 rounded-full flex-shrink-0 ${color}`} />;
 }
 
@@ -48,23 +48,23 @@ function MetricCard({
   icon: React.ElementType; label: string; value: string; score: number;
   maxLabel: string; color: 'danger' | 'warning' | 'success'; barWidth: number;
 }) {
-  const bg = color === 'danger' ? 'bg-danger-50 text-danger-500' : color === 'warning' ? 'bg-warning-50 text-warning-500' : 'bg-success-50 text-success-500';
-  const bar = color === 'danger' ? 'bg-danger-500' : color === 'warning' ? 'bg-warning-500' : 'bg-success-500';
-  const textColor = color === 'danger' ? 'text-danger-500' : color === 'warning' ? 'text-warning-500' : 'text-success-500';
+  const bg = color === 'danger' ? 'bg-red-500/10 text-red-400' : color === 'warning' ? 'bg-amber-500/10 text-amber-400' : 'bg-teal-500/10 text-teal-400';
+  const bar = color === 'danger' ? 'bg-red-500' : color === 'warning' ? 'bg-amber-500' : 'bg-gradient-to-r from-teal-500 to-teal-400';
+  const textColor = color === 'danger' ? 'text-red-400' : color === 'warning' ? 'text-amber-400' : 'text-teal-400';
 
   return (
-    <div className="bg-white border border-surface-200 rounded-2xl p-5 transition-all duration-300 hover:shadow-premium-sm">
+    <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md rounded-2xl p-5 transition-all duration-300 hover:border-teal-500/30">
       <div className="flex items-center gap-2.5 mb-3">
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${bg}`}>
           <Icon className="w-4 h-4" />
         </div>
-        <span className="text-xs font-medium text-surface-400 uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</span>
       </div>
       <div className="flex items-baseline gap-1.5 mb-2.5">
-        <span className="text-2xl font-display font-bold text-surface-900">{score}</span>
-        <span className="text-xs text-surface-400">{maxLabel}</span>
+        <span className="text-2xl font-display font-bold text-white">{score}</span>
+        <span className="text-xs text-gray-400">{maxLabel}</span>
       </div>
-      <div className="w-full h-1.5 bg-surface-100 rounded-full overflow-hidden mb-2">
+      <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden mb-2">
         <div className={`h-full rounded-full transition-all duration-700 ${bar}`} style={{ width: `${barWidth}%` }} />
       </div>
       <span className={`text-xs font-medium ${textColor}`}>{value}</span>
@@ -126,8 +126,8 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
   ];
 
   const typeColors: Record<string, string> = {
-    freckle: 'bg-primary-400', melasma: 'bg-warning-500', pih: 'bg-danger-400',
-    sun_spot: 'bg-gold-500', unknown: 'bg-surface-300',
+    freckle: 'bg-teal-400', melasma: 'bg-amber-500', pih: 'bg-red-400',
+    sun_spot: 'bg-yellow-500', unknown: 'bg-gray-500',
   };
   const typeDist = result.pigmentation_data?.type_distribution || {};
   const totalTypes = Object.values(typeDist).reduce((a, b) => a + (b as number), 0) as number;
@@ -145,27 +145,27 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
 
   const getPriorityDot = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-danger-500';
-      case 'medium': return 'bg-warning-500';
-      default: return 'bg-surface-400';
+      case 'high': return 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]';
+      case 'medium': return 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]';
+      default: return 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]';
     }
   };
 
   return (
-    <div className="min-h-full space-y-6 pb-16">
+    <div className="min-h-full space-y-6 pb-16 text-gray-300">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <button onClick={onBack} className="flex items-center gap-2 text-surface-400 hover:text-surface-900 transition-colors flex-shrink-0">
+        <button onClick={onBack} className="flex items-center gap-2 text-gray-400 hover:text-white px-4 py-2 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] transition-all flex-shrink-0">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-xs font-medium hidden sm:inline">Back</span>
         </button>
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <span className="text-xs text-surface-400 font-mono hidden sm:inline truncate">
+          <span className="text-xs text-gray-500 font-mono hidden sm:inline truncate">
             #{result.result_image.split('_')[1].substring(0, 8).toUpperCase()}
           </span>
           <button
             onClick={handleDownloadPDF}
-            className="bg-surface-900 text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 flex-shrink-0 text-sm hover:bg-surface-800 transition-colors"
+            className="bg-gradient-to-r from-teal-500 to-teal-400 text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 flex-shrink-0 text-sm hover:from-teal-400 hover:to-teal-300 transition-all shadow-[0_0_15px_rgba(20,184,166,0.3)]"
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
@@ -177,48 +177,48 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
       {result.conflicts && result.conflicts.length > 0 && (
         <div className="space-y-2">
           {result.conflicts.map((conflict, idx) => (
-            <div key={idx} className="bg-warning-50 border border-warning-200 rounded-xl p-4 flex items-center gap-3">
-              <AlertTriangle className="w-4 h-4 text-warning-500 flex-shrink-0" />
-              <p className="text-sm text-warning-700">{conflict.message}</p>
+            <div key={idx} className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3 backdrop-blur-md">
+              <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <p className="text-sm text-amber-200">{conflict.message}</p>
             </div>
           ))}
         </div>
       )}
 
       {pdfError && (
-        <div className="bg-danger-50 border border-danger-200 rounded-xl p-4 flex items-center gap-3">
-          <AlertTriangle className="w-4 h-4 text-danger-500 flex-shrink-0" />
-          <p className="text-sm text-danger-600">{pdfError}</p>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center gap-3 backdrop-blur-md">
+          <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+          <p className="text-sm text-red-200">{pdfError}</p>
         </div>
       )}
 
       {/* Hero: Score Ring + Image */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-2 bg-white border border-surface-200 rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center">
+        <div className="lg:col-span-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center">
           <div className="mb-4">
             <ScoreRing score={overallScore} />
           </div>
           <div className="flex items-center gap-2 mb-1">
-            <CheckCircle2 className="w-4 h-4 text-surface-900" />
-            <span className="text-xs font-medium text-surface-500 uppercase tracking-wider">Analysis Complete</span>
+            <CheckCircle2 className="w-4 h-4 text-teal-400" />
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Analysis Complete</span>
           </div>
-          <h2 className="text-xl font-display font-bold text-surface-900 mb-1">Skin Health Score</h2>
-          <p className="text-sm text-surface-500">
+          <h2 className="text-xl font-display font-bold text-white mb-1">Skin Health Score</h2>
+          <p className="text-sm text-gray-400">
             {overallScore >= 70 ? 'Healthy skin profile detected.' : overallScore >= 40 ? 'Some attention recommended.' : 'Consult a dermatologist.'}
           </p>
         </div>
 
-        <div className="lg:col-span-3 bg-white border border-surface-200 rounded-2xl overflow-hidden">
-          <div className="p-4 border-b border-surface-100">
-            <div className="flex gap-1 bg-surface-50 rounded-lg p-1">
+        <div className="lg:col-span-3 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md rounded-2xl overflow-hidden">
+          <div className="p-4 border-b border-[rgba(255,255,255,0.06)]">
+            <div className="flex gap-1 bg-[rgba(255,255,255,0.03)] rounded-lg p-1">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-white text-surface-900 shadow-sm'
-                      : 'text-surface-400 hover:text-surface-600'
+                      ? 'bg-gradient-to-r from-teal-500 to-teal-400 text-white shadow-[0_0_10px_rgba(20,184,166,0.2)]'
+                      : 'text-gray-500 hover:text-gray-300'
                   }`}
                 >
                   {tab.label}
@@ -226,7 +226,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
               ))}
             </div>
           </div>
-          <div className="aspect-[4/3] bg-surface-50 relative">
+          <div className="aspect-[4/3] bg-gray-900/50 relative">
             {tabs.find(t => t.id === activeTab)?.img && !imageErrors[activeTab] ? (
               <img
                 src={tabs.find(t => t.id === activeTab)!.img!}
@@ -235,7 +235,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
                 onError={() => setImageErrors(prev => ({ ...prev, [activeTab]: true }))}
               />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-surface-300 gap-2">
+              <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 gap-2">
                 <ImageOff className="w-8 h-8" />
                 <span className="text-sm">No image available</span>
               </div>
@@ -253,34 +253,34 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
 
       {/* Key Findings + Pigmentation Types */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white border border-surface-200 rounded-2xl p-5 md:p-6">
+        <div className="lg:col-span-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md rounded-2xl p-5 md:p-6">
           <div className="flex items-center gap-3 mb-5">
-            <Zap className="w-5 h-5 text-surface-400" />
-            <h3 className="text-lg font-display font-bold text-surface-900">Key Findings</h3>
+            <Zap className="w-5 h-5 text-teal-400" />
+            <h3 className="text-lg font-display font-bold text-white">Key Findings</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
             {findings.map((f) => (
-              <div key={f.label} className="flex items-center gap-3 py-2 border-b border-surface-100 last:border-0">
+              <div key={f.label} className="flex items-center gap-3 py-2 border-b border-[rgba(255,255,255,0.06)] last:border-0">
                 <StatusDot status={f.status} />
-                <span className="text-sm text-surface-500 flex-1">{f.label}</span>
-                <span className="text-sm font-medium text-surface-900">{f.value}</span>
+                <span className="text-sm text-gray-400 flex-1">{f.label}</span>
+                <span className="text-sm font-medium text-white">{f.value}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-white border border-surface-200 rounded-2xl p-5 md:p-6">
+        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md rounded-2xl p-5 md:p-6">
           <div className="flex items-center gap-3 mb-5">
-            <CircleDot className="w-5 h-5 text-surface-400" />
-            <h3 className="text-lg font-display font-bold text-surface-900">Pigmentation Types</h3>
+            <CircleDot className="w-5 h-5 text-teal-400" />
+            <h3 className="text-lg font-display font-bold text-white">Pigmentation Types</h3>
           </div>
           {totalTypes > 0 ? (
             <div className="space-y-4">
-              <div className="w-full h-3 bg-surface-100 rounded-full overflow-hidden flex">
+              <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden flex">
                 {Object.entries(typeDist).map(([type, count]) => (
                   <div
                     key={type}
-                    className={`h-full ${typeColors[type] || 'bg-surface-300'} transition-all duration-500`}
+                    className={`h-full ${typeColors[type] || 'bg-gray-600'} transition-all duration-500`}
                     style={{ width: `${((count as number) / totalTypes) * 100}%` }}
                     title={`${type}: ${count}`}
                   />
@@ -289,49 +289,49 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
               <div className="space-y-2">
                 {Object.entries(typeDist).map(([type, count]) => (
                   <div key={type} className="flex items-center gap-2.5">
-                    <span className={`w-3 h-3 rounded-sm flex-shrink-0 ${typeColors[type] || 'bg-surface-300'}`} />
-                    <span className="text-sm text-surface-600 flex-1 capitalize">{type.replace('_', ' ')}</span>
-                    <span className="text-sm font-medium text-surface-900">{count as number}</span>
+                    <span className={`w-3 h-3 rounded-sm flex-shrink-0 ${typeColors[type] || 'bg-gray-600'}`} />
+                    <span className="text-sm text-gray-400 flex-1 capitalize">{type.replace('_', ' ')}</span>
+                    <span className="text-sm font-medium text-white">{count as number}</span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="text-sm text-surface-400">No spots detected</p>
+            <p className="text-sm text-gray-500">No spots detected</p>
           )}
         </div>
       </div>
 
       {/* Daily Routine */}
       {result.routine && (
-        <div className="bg-white border border-surface-200 rounded-2xl overflow-hidden">
-          <div className="p-6 border-b border-surface-100">
+        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md rounded-2xl overflow-hidden">
+          <div className="p-6 border-b border-[rgba(255,255,255,0.06)]">
             <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-surface-400" />
-              <h3 className="text-lg font-display font-bold text-surface-900">Daily Routine</h3>
+              <Clock className="w-5 h-5 text-teal-400" />
+              <h3 className="text-lg font-display font-bold text-white">Daily Routine</h3>
             </div>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-warning-50 rounded-xl flex items-center justify-center">
-                    <Sun className="w-4 h-4 text-warning-500" />
+                  <div className="w-8 h-8 bg-amber-500/10 rounded-xl flex items-center justify-center border border-amber-500/20">
+                    <Sun className="w-4 h-4 text-amber-400" />
                   </div>
-                  <span className="text-sm font-semibold text-surface-900">Morning</span>
+                  <span className="text-sm font-semibold text-white">Morning</span>
                 </div>
                 <div className="space-y-0">
                   {result.routine.morning.map((step, idx, arr) => (
                     <div key={step.id} className="flex gap-3">
                       <div className="flex flex-col items-center">
-                        <div className="w-7 h-7 bg-surface-900 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 z-10">
+                        <div className="w-7 h-7 bg-gradient-to-r from-teal-500 to-teal-400 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 z-10 shadow-[0_0_8px_rgba(20,184,166,0.4)]">
                           {step.step}
                         </div>
-                        {idx < arr.length - 1 && <div className="w-px flex-1 bg-surface-200 my-1" />}
+                        {idx < arr.length - 1 && <div className="w-px flex-1 bg-[rgba(255,255,255,0.1)] my-1" />}
                       </div>
                       <div className="flex-1 pb-5">
-                        <h4 className="font-semibold text-surface-900 text-sm">{step.product}</h4>
-                        <p className="text-xs text-surface-400 mt-0.5">{step.action}</p>
+                        <h4 className="font-semibold text-white text-sm">{step.product}</h4>
+                        <p className="text-xs text-gray-400 mt-0.5">{step.action}</p>
                       </div>
                     </div>
                   ))}
@@ -340,23 +340,23 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
 
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-primary-50 rounded-xl flex items-center justify-center">
-                    <Moon className="w-4 h-4 text-primary-500" />
+                  <div className="w-8 h-8 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
+                    <Moon className="w-4 h-4 text-indigo-400" />
                   </div>
-                  <span className="text-sm font-semibold text-surface-900">Evening</span>
+                  <span className="text-sm font-semibold text-white">Evening</span>
                 </div>
                 <div className="space-y-0">
                   {result.routine.evening.map((step, idx, arr) => (
                     <div key={step.id} className="flex gap-3">
                       <div className="flex flex-col items-center">
-                        <div className="w-7 h-7 bg-surface-900 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 z-10">
+                        <div className="w-7 h-7 bg-gradient-to-r from-teal-500 to-teal-400 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 z-10 shadow-[0_0_8px_rgba(20,184,166,0.4)]">
                           {step.step}
                         </div>
-                        {idx < arr.length - 1 && <div className="w-px flex-1 bg-surface-200 my-1" />}
+                        {idx < arr.length - 1 && <div className="w-px flex-1 bg-[rgba(255,255,255,0.1)] my-1" />}
                       </div>
                       <div className="flex-1 pb-5">
-                        <h4 className="font-semibold text-surface-900 text-sm">{step.product}</h4>
-                        <p className="text-xs text-surface-400 mt-0.5">{step.action}</p>
+                        <h4 className="font-semibold text-white text-sm">{step.product}</h4>
+                        <p className="text-xs text-gray-400 mt-0.5">{step.action}</p>
                       </div>
                     </div>
                   ))}
@@ -365,15 +365,15 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
             </div>
 
             {result.routine.tips.length > 0 && (
-              <div className="mt-6 p-5 bg-surface-50 rounded-xl">
+              <div className="mt-6 p-5 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="w-4 h-4 text-surface-500" />
-                  <span className="text-xs font-medium text-surface-500 uppercase tracking-wider">Tips</span>
+                  <Lightbulb className="w-4 h-4 text-teal-400" />
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Tips</span>
                 </div>
                 <ul className="space-y-2">
                   {result.routine.tips.map((tip, idx) => (
-                    <li key={idx} className="text-xs text-surface-600 flex items-start gap-2">
-                      <span className="text-surface-300 mt-0.5">&#8226;</span>
+                    <li key={idx} className="text-xs text-gray-300 flex items-start gap-2">
+                      <span className="text-teal-500 mt-0.5">&#8226;</span>
                       {tip}
                     </li>
                   ))}
@@ -387,26 +387,26 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
       {/* Recommendations */}
       <div className="space-y-4">
         <div className="flex items-center gap-3 px-1">
-          <Sparkles className="w-5 h-5 text-surface-400" />
-          <h3 className="text-lg font-display font-bold text-surface-900">Recommendations</h3>
+          <Sparkles className="w-5 h-5 text-teal-400" />
+          <h3 className="text-lg font-display font-bold text-white">Recommendations</h3>
         </div>
         <div className="space-y-4">
           {result.recommendations?.map((rec) => (
-            <div key={rec.id} className="bg-white border border-surface-200 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-premium-sm">
+            <div key={rec.id} className={`bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-md rounded-2xl overflow-hidden transition-all duration-300 hover:border-teal-500/30 border-l-4 ${rec.category === 'skincare' ? 'border-l-teal-500' : 'border-l-amber-500'}`}>
               {/* Recommendation info */}
               <div className="p-4">
                 <div className="flex items-start gap-3">
                   <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${getPriorityDot(rec.priority)}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-surface-900 text-sm">{rec.title}</h4>
+                      <h4 className="font-semibold text-white text-sm">{rec.title}</h4>
                       {rec.category === 'skincare' && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-accent-50 text-accent-600 rounded">Shop</span>
+                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded">Shop</span>
                       )}
                     </div>
-                    <p className="text-xs text-surface-400 leading-relaxed mt-0.5">{rec.description}</p>
+                    <p className="text-xs text-gray-400 leading-relaxed mt-0.5">{rec.description}</p>
                     {rec.why && (
-                      <p className="text-xs text-surface-500 font-medium mt-1">{rec.why}</p>
+                      <p className="text-xs text-gray-500 font-medium mt-1">{rec.why}</p>
                     )}
                   </div>
                 </div>
@@ -414,10 +414,10 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
 
               {/* Daraz products */}
               {rec.products && rec.products.length > 0 && (
-                <div className="border-t border-surface-100 bg-surface-50/50 px-4 py-3">
+                <div className="border-t border-[rgba(255,255,255,0.06)] bg-[rgba(0,0,0,0.2)] px-4 py-3">
                   <div className="flex items-center gap-1.5 mb-2">
-                    <ShoppingBag className="w-3 h-3 text-surface-400" />
-                    <span className="text-[10px] font-medium text-surface-400 uppercase tracking-wider">Available on Daraz</span>
+                    <ShoppingBag className="w-3 h-3 text-teal-500" />
+                    <span className="text-[10px] font-medium text-teal-500 uppercase tracking-wider">Available on Daraz</span>
                   </div>
                   <div className="space-y-2">
                     {rec.products.map((product, idx) => (
@@ -426,23 +426,23 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
                         href={product.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-2.5 bg-white border border-surface-200 rounded-xl hover:border-accent-300 hover:shadow-sm transition-all group"
+                        className="flex items-center gap-3 p-2.5 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-xl hover:border-teal-500/50 hover:bg-[rgba(255,255,255,0.05)] transition-all group"
                       >
-                        <div className="w-12 h-12 rounded-lg bg-surface-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-lg bg-gray-800 flex-shrink-0 overflow-hidden flex items-center justify-center">
                           {product.image ? (
                             <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                           ) : (
-                            <ShoppingBag className="w-5 h-5 text-surface-300" />
+                            <ShoppingBag className="w-5 h-5 text-gray-600" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-surface-800 line-clamp-2 group-hover:text-accent-600 transition-colors">
+                          <p className="text-xs font-medium text-gray-300 line-clamp-2 group-hover:text-teal-400 transition-colors">
                             {product.name}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm font-bold text-surface-900">{product.price_show}</span>
+                            <span className="text-sm font-bold text-white">{product.price_show}</span>
                             {product.discount && (
-                              <span className="text-[10px] font-medium text-success-600 bg-success-50 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-medium text-teal-400 bg-teal-500/20 px-1.5 py-0.5 rounded">
                                 {product.discount}
                               </span>
                             )}
@@ -450,19 +450,19 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
                           <div className="flex items-center gap-2 mt-0.5">
                             {product.rating > 0 && (
                               <div className="flex items-center gap-0.5">
-                                <Star className="w-3 h-3 fill-warning-400 text-warning-400" />
-                                <span className="text-[10px] text-surface-500">{product.rating}</span>
+                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                <span className="text-[10px] text-gray-400">{product.rating}</span>
                               </div>
                             )}
                             {product.reviews > 0 && (
-                              <span className="text-[10px] text-surface-400">({product.reviews})</span>
+                              <span className="text-[10px] text-gray-500">({product.reviews})</span>
                             )}
                             {product.sold && (
-                              <span className="text-[10px] text-surface-400">{product.sold}</span>
+                              <span className="text-[10px] text-gray-500">{product.sold}</span>
                             )}
                           </div>
                         </div>
-                        <ExternalLink className="w-4 h-4 text-surface-300 group-hover:text-accent-500 flex-shrink-0 transition-colors" />
+                        <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-teal-400 flex-shrink-0 transition-colors" />
                       </a>
                     ))}
                   </div>
@@ -474,7 +474,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
 
         <button
           onClick={handleDownloadPDF}
-          className="w-full bg-surface-900 text-white py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:bg-surface-800 transition-colors"
+          className="w-full bg-gradient-to-r from-teal-500 to-teal-400 text-white py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:from-teal-400 hover:to-teal-300 transition-all shadow-[0_0_15px_rgba(20,184,166,0.3)] mt-6"
         >
           <Download className="w-4 h-4" /> Save Report
         </button>

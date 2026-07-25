@@ -199,14 +199,16 @@ def detect_pigmentation(
         face_only = (labels == largest_label).astype(np.uint8) * 255
 
     # If face bounding boxes available, use them to further restrict
-    # This eliminates ears, neck, hands that are connected to face skin
+    # This eliminates ears, neck, hands, and hair at the sides of the face
     if face_regions:
         face_bbox_mask = np.zeros_like(skin_mask)
         for (fx1, fy1, fx2, fy2) in face_regions:
             face_bbox_mask[fy1:fy2, fx1:fx2] = 255
-        # Erode the bbox slightly to exclude edges (ears are at the sides)
-        erode_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
-        face_bbox_mask = cv2.erode(face_bbox_mask, erode_kernel, iterations=2)
+        # Erode the bbox significantly to exclude edges (hair, shadow, ears)
+        erode_w = max(20, int(w * 0.08))
+        erode_h = max(20, int(h * 0.05))
+        erode_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (erode_w, erode_h))
+        face_bbox_mask = cv2.erode(face_bbox_mask, erode_kernel, iterations=1)
         face_only = cv2.bitwise_and(face_only, face_bbox_mask)
 
     # Create a moderately wider skin mask for dark patch detection only
@@ -355,20 +357,21 @@ def _build_exclude_mask(
     h, w = gray.shape
     exclude_mask = np.zeros_like(gray)
 
-    # Eyebrows: only in upper 40% of image (eyebrow zone)
+    # Eyebrows: only in upper 45% of image (eyebrow zone)
     eyebrow_zone = np.zeros_like(gray)
-    eyebrow_zone[:int(h * 0.4), :] = 255
-    eyebrow_thresh = max(10, int(skin_g_stats["p10"] * 0.45))
+    eyebrow_zone[:int(h * 0.45), :] = 255
+    # Increase threshold significantly to catch all dark hair
+    eyebrow_thresh = max(50, int(skin_g_stats["p25"] * 0.85))
     eyebrow_mask = cv2.inRange(gray, 0, eyebrow_thresh)
     eyebrow_mask = cv2.bitwise_and(eyebrow_mask, eyebrow_zone)
     exclude_mask = cv2.bitwise_or(exclude_mask, eyebrow_mask)
 
-    # Eyes: only in upper 45% of image
+    # Eyes: only in upper 50% of image
     eye_zone = np.zeros_like(gray)
-    eye_zone[:int(h * 0.45), :] = 255
-    eye_dark_thresh = max(10, int(skin_g_stats["p10"] * 0.35))
+    eye_zone[:int(h * 0.50), :] = 255
+    eye_dark_thresh = max(40, int(skin_g_stats["p25"] * 0.75))
     eye_dark = cv2.inRange(gray, 0, eye_dark_thresh)
-    eye_white = cv2.inRange(hsv, np.array([0, 0, 220]), np.array([180, 30, 255]))
+    eye_white = cv2.inRange(hsv, np.array([0, 0, 200]), np.array([180, 40, 255]))
     eye_mask = cv2.bitwise_or(eye_dark, eye_white)
     eye_mask = cv2.bitwise_and(eye_mask, eye_zone)
     exclude_mask = cv2.bitwise_or(exclude_mask, eye_mask)
@@ -426,7 +429,7 @@ def _validate_spots(
             continue
 
         aspect = float(bw) / bh if bh > 0 else 0
-        if aspect > 5.0 or aspect < 0.2:
+        if aspect > 4.0 or aspect < 0.25:
             continue
 
         cx, cy = x + bw // 2, y + bh // 2

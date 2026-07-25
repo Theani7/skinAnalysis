@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, AlertCircle, RefreshCcw, Upload, Eye, Focus, Sun } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCcw, Upload, Eye, Focus, Sun, Smartphone } from 'lucide-react';
 import { useCamera } from '../hooks/useCamera';
 import { useFaceDetection } from '../hooks/useFaceDetection';
 import { analyzeImage, validateFile, AnalysisResponse } from '../services/api';
 
-export default function ScanView({ onComplete }: { onComplete: (result: AnalysisResponse) => void }) {
+export default function ScanView({ onComplete, onStartRemoteScan }: { onComplete: (result: AnalysisResponse) => void, onStartRemoteScan?: () => void }) {
   const { videoRef, canvasRef, isActive, error: cameraError, startCamera, stopCamera, capturePhoto } = useCamera();
   const { isModelLoaded, modelError, detection, faceMetrics, startDetection, stopDetection } = useFaceDetection();
   const videoContainerRef = useRef<HTMLDivElement>(null);
@@ -75,7 +75,7 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
         ctx.quadraticCurveTo(drawX, drawY, drawX + radius, drawY);
         ctx.closePath();
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.strokeStyle = 'rgba(45, 212, 191, 0.85)';
         ctx.lineWidth = 2;
         ctx.stroke();
       }
@@ -159,8 +159,8 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
     <div className="h-full flex flex-col space-y-6">
       <header className="flex flex-col sm:flex-row justify-between items-start gap-3">
         <div>
-          <h2 className="text-xs font-medium text-surface-400 uppercase tracking-wider mb-1">Scan</h2>
-          <h1 className="text-3xl font-display font-bold tracking-tight text-surface-950">New Analysis</h1>
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Scan</h2>
+          <h1 className="text-3xl font-display font-bold tracking-tight text-white">New Analysis</h1>
         </div>
         <div className="flex gap-3">
           <input
@@ -174,38 +174,47 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isAnalyzing}
-            className="bg-white border border-surface-200 px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 disabled:opacity-50 hover:bg-surface-50 transition-colors text-sm"
+            className="bg-surface-900 border border-white/10 text-gray-300 px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 disabled:opacity-50 hover:border-teal-500 hover:bg-surface-800 transition-colors text-sm"
             aria-label="Upload image for analysis"
           >
-            <Upload className="w-4 h-4 text-surface-500" />
+            <Upload className="w-4 h-4 text-gray-400" />
             Upload Image
           </button>
+          {onStartRemoteScan && (
+            <button
+              onClick={onStartRemoteScan}
+              disabled={isAnalyzing}
+              className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 disabled:opacity-50 hover:from-teal-400 hover:to-cyan-400 transition-all text-sm shadow-[0_0_15px_rgba(20,184,166,0.3)] hover:shadow-[0_0_20px_rgba(20,184,166,0.6)]"
+              aria-label="Scan using mobile phone"
+            >
+              <Smartphone className="w-4 h-4 text-white/90" />
+              Use Phone
+            </button>
+          )}
         </div>
       </header>
 
       <div className="flex-1 flex flex-col items-center">
         <div
           ref={videoContainerRef}
-          className="w-full max-w-4xl aspect-[4/3] bg-surface-950 rounded-2xl border border-surface-200 relative overflow-hidden flex flex-col items-center justify-center"
+          className="w-full max-w-4xl aspect-[4/3] bg-surface-900/50 backdrop-blur-md rounded-2xl border border-white/10 relative overflow-hidden flex flex-col items-center justify-center transition-colors hover:border-teal-500/50 hover:shadow-[0_0_30px_rgba(20,184,166,0.1)]"
           role="img"
           aria-label="Camera view for face capture"
         >
           {cameraError || error || modelError ? (
-            <div className="p-12 text-center space-y-5 text-white">
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto ${
-                modelError && !cameraError && !error ? 'bg-surface-800' : 'bg-surface-800'
-              }`}>
-                <AlertCircle className="w-8 h-8 text-surface-400" />
+            <div className="bg-surface-900/80 backdrop-blur-md rounded-xl p-12 text-center space-y-5 text-white border border-white/5">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto bg-surface-800 border border-white/10">
+                <AlertCircle className="w-8 h-8 text-red-400" />
               </div>
               <div>
                 <h3 className="text-lg font-display font-semibold mb-2">
                   {modelError && !cameraError && !error ? 'Model Unavailable' : 'Camera Error'}
                 </h3>
-                <p className="text-surface-400 max-w-xs mx-auto text-sm">{cameraError || error || modelError}</p>
+                <p className="text-gray-400 max-w-xs mx-auto text-sm">{cameraError || error || modelError}</p>
               </div>
               <button
                 onClick={() => { setError(null); startCamera(); }}
-                className="inline-flex items-center gap-2 text-surface-300 font-medium hover:text-white text-sm transition-colors"
+                className="inline-flex items-center gap-2 text-teal-400 font-medium hover:text-teal-300 text-sm transition-colors"
                 aria-label="Retry camera connection"
               >
                 <RefreshCcw className="w-4 h-4" /> Retry
@@ -231,8 +240,8 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
               {/* Status Badge */}
               {isActive && !isAnalyzing && (
                 <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-                  <div className="bg-surface-900/80 backdrop-blur-sm px-5 py-2.5 rounded-xl text-center">
-                    <p className="text-white text-xs font-medium">
+                  <div className="bg-surface-900/80 backdrop-blur-md border border-teal-500/30 px-5 py-2.5 rounded-xl text-center shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+                    <p className="text-teal-400 text-xs font-medium tracking-wide">
                       {getStatusMessage()}
                     </p>
                   </div>
@@ -242,17 +251,17 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
               {/* Analyzing Overlay */}
               <div className="z-20 w-full h-full flex flex-col items-center justify-center">
                 {isAnalyzing ? (
-                  <div className="bg-white rounded-2xl p-10 flex flex-col items-center gap-4 shadow-lg">
-                    <Loader2 className="w-12 h-12 text-surface-400 animate-spin" />
+                  <div className="bg-surface-900/90 backdrop-blur-md rounded-2xl p-10 flex flex-col items-center gap-4 shadow-[0_0_30px_rgba(20,184,166,0.2)] border border-teal-500/30">
+                    <Loader2 className="w-12 h-12 text-teal-400 animate-spin" />
                     <div className="text-center">
-                      <p className="text-surface-900 font-display font-bold text-sm">Analyzing</p>
-                      <p className="text-surface-400 text-xs mt-1">Processing your image...</p>
+                      <p className="text-white font-display font-bold text-sm">Analyzing</p>
+                      <p className="text-gray-400 text-xs mt-1">Processing your image...</p>
                     </div>
                   </div>
                 ) : !isActive ? (
                   <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-10 h-10 text-white/30 animate-spin" />
-                    <p className="text-white/50 font-medium text-xs">Starting camera...</p>
+                    <Loader2 className="w-10 h-10 text-teal-500/50 animate-spin" />
+                    <p className="text-teal-500/50 font-medium text-xs">Starting camera...</p>
                   </div>
                 ) : (
                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
@@ -262,15 +271,15 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
                       className="group relative w-18 h-18 flex items-center justify-center transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                       aria-label={faceMetrics.overall > 70 ? 'Capture photo' : 'Align face first'}
                     >
-                      <div className={`absolute inset-0 border-2 rounded-full transition-opacity ${
-                        faceMetrics.overall > 70 ? 'border-white/60' : 'border-white/30'
+                      <div className={`absolute inset-0 border-2 rounded-full transition-all duration-300 ${
+                        faceMetrics.overall > 70 ? 'border-teal-400 shadow-[0_0_15px_rgba(45,212,191,0.5)]' : 'border-white/30'
                       }`}></div>
-                      <div className={`w-14 h-14 rounded-full border-[5px] transition-all ${
-                        faceMetrics.overall > 70 ? 'bg-white border-white/80' :
-                        faceMetrics.overall > 40 ? 'bg-white/80 border-white/50' : 'bg-white/40 border-white/30'
+                      <div className={`w-14 h-14 rounded-full border-[5px] transition-all duration-300 ${
+                        faceMetrics.overall > 70 ? 'bg-gradient-to-tr from-teal-400 to-cyan-400 border-teal-200 shadow-[0_0_20px_rgba(45,212,191,0.6)] animate-pulse' :
+                        faceMetrics.overall > 40 ? 'bg-white/60 border-white/40' : 'bg-white/20 border-white/20'
                       }`}></div>
                     </button>
-                    <span className="text-white/50 text-xs font-medium">
+                    <span className="text-gray-400 text-xs font-medium">
                       {faceMetrics.overall > 70 ? 'Tap to capture' : 'Align face'}
                     </span>
                   </div>
@@ -286,21 +295,21 @@ export default function ScanView({ onComplete }: { onComplete: (result: Analysis
               { icon: Focus, label: 'Size', value: faceMetrics.size },
               { icon: Sun, label: 'Angle', value: faceMetrics.angle },
             ].map((m) => (
-              <div key={m.label} className="bg-surface-900/70 backdrop-blur-sm px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-                <m.icon className="w-3 h-3 text-surface-400" />
-                <span className="text-xs text-surface-400 hidden sm:inline">{m.label}:</span>
-                <span className={`text-xs font-medium ${
-                  m.value > 70 ? 'text-white' :
-                  m.value > 40 ? 'text-surface-300' : 'text-surface-500'
-                }`}>
-                  {m.value}%
-                </span>
-              </div>
+               <div key={m.label} className="bg-surface-900/70 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
+                 <m.icon className="w-3 h-3 text-teal-500/70" />
+                 <span className="text-xs text-gray-400 hidden sm:inline">{m.label}:</span>
+                 <span className={`text-xs font-medium ${
+                   m.value > 70 ? 'text-teal-400' :
+                   m.value > 40 ? 'text-teal-400/70' : 'text-gray-500'
+                 }`}>
+                   {m.value}%
+                 </span>
+               </div>
             ))}
           </div>
         </div>
 
-        <p className="mt-5 text-sm text-surface-500 text-center max-w-md px-4">
+        <p className="mt-5 text-sm text-gray-400 text-center max-w-md px-4">
           Position your face within the frame. The system will validate image quality before analysis.
         </p>
       </div>
