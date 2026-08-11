@@ -27,9 +27,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.auth import (
+    ChangePassword,
     UserCreate,
     UserLogin,
     UserUpdate,
+    change_user_password,
+    delete_user_account,
     get_current_user,
     login_user,
     register_user,
@@ -280,6 +283,39 @@ async def update_profile(
         raise HTTPException(status_code=500, detail="Failed to update profile.")
 
 
+@app.put("/auth/password")
+async def change_password(
+    data: ChangePassword,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Change the user's password."""
+    try:
+        await change_user_password(user["id"], data, db)
+        return {"status": "success", "message": "Password updated successfully."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Password change error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to change password.")
+
+
+@app.delete("/auth/account")
+async def delete_account(
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete the user's account and all associated data."""
+    try:
+        await delete_user_account(user["id"], db)
+        return {"status": "success", "message": "Account deleted successfully."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Account deletion error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete account.")
+
+
 # ═══════════════════════════════════════════
 # PROTECTED CLINICAL ROUTES
 # ═══════════════════════════════════════════
@@ -498,7 +534,7 @@ async def remote_upload(session_id: str, file: UploadFile = File(...)):
     contents = await file.read()
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(status_code=413, detail="File size exceeds 10MB limit")
-        
+
     filename = save_uploaded_file(file, contents, UPLOAD_DIR)
     REMOTE_SESSIONS[session_id] = filename
     return {"status": "success"}
@@ -517,11 +553,11 @@ async def remote_download(session_id: str):
     filename = REMOTE_SESSIONS.get(session_id)
     if not filename:
         raise HTTPException(status_code=404, detail="Session not found or not ready")
-    
+
     file_path = os.path.join(UPLOAD_DIR, filename)
     if session_id in REMOTE_SESSIONS:
         del REMOTE_SESSIONS[session_id]
-    
+
     return FileResponse(file_path)
 
 

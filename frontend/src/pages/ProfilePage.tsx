@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, User, Mail, Calendar, Loader2, CheckCircle2, AlertCircle, LogOut, ChevronDown, Info } from 'lucide-react';
-import { AuthUser, updateProfile, storeAuth, getStoredToken } from '../services/auth';
+import { ArrowLeft, User, Mail, Calendar, Loader2, CheckCircle2, AlertCircle, LogOut, ChevronDown, Info, Shield, Key, Trash2 } from 'lucide-react';
+import { AuthUser, updateProfile, storeAuth, getStoredToken, changePassword, deleteAccount } from '../services/auth';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 interface ProfilePageProps {
@@ -43,6 +43,17 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  
+  // Security Tab States
+  const [activeTab, setActiveTab] = useState<'personalization' | 'security'>('personalization');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!user) return null;
 
@@ -146,8 +157,32 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
           </div>
         </div>
 
-        {/* Edit Form */}
-        <form onSubmit={handleSubmit} className="p-8">
+        {/* Tabs */}
+        <div className="flex border-b border-gray-100 px-8 gap-8">
+          <button
+            onClick={() => setActiveTab('personalization')}
+            className={`py-4 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'personalization' 
+                ? 'border-primary-500 text-primary-700' 
+                : 'border-transparent text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            Personalization
+          </button>
+          <button
+            onClick={() => setActiveTab('security')}
+            className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+              activeTab === 'security' 
+                ? 'border-primary-500 text-primary-700' 
+                : 'border-transparent text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            <Shield className="w-4 h-4" /> Security
+          </button>
+        </div>
+
+        {activeTab === 'personalization' ? (
+          <form onSubmit={handleSubmit} className="p-8 animate-in fade-in duration-300">
           {error && (
             <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
@@ -400,6 +435,105 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
             </button>
           </div>
         </form>
+        ) : (
+          <div className="p-8 space-y-12 animate-in fade-in duration-300">
+            {/* Change Password */}
+            <div>
+              <div className="mb-6">
+                <h3 className="text-lg font-display font-bold text-gray-900 flex items-center gap-2">
+                  <Key className="w-5 h-5 text-gray-400" /> Change Password
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">Ensure your account is using a long, random password to stay secure.</p>
+              </div>
+
+              {passwordError && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 max-w-md">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <p className="text-sm font-medium text-red-700">{passwordError}</p>
+                </div>
+              )}
+              {passwordSuccess && (
+                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3 max-w-md">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                  <p className="text-sm font-medium text-emerald-700">{passwordSuccess}</p>
+                </div>
+              )}
+
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setPasswordError('');
+                  setPasswordSuccess('');
+                  if (newPassword.length < 8) {
+                    setPasswordError('New password must be at least 8 characters.');
+                    return;
+                  }
+                  setIsChangingPassword(true);
+                  try {
+                    await changePassword(currentPassword, newPassword);
+                    setPasswordSuccess('Password updated successfully.');
+                    setCurrentPassword('');
+                    setNewPassword('');
+                  } catch (err: any) {
+                    setPasswordError(err.message || 'Failed to update password.');
+                  } finally {
+                    setIsChangingPassword(false);
+                  }
+                }} 
+                className="max-w-md space-y-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
+                  <input
+                    type="password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm outline-none"
+                    placeholder="Enter current password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm outline-none"
+                    placeholder="Minimum 8 characters"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isChangingPassword || !currentPassword || !newPassword}
+                  className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  {isChangingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Update Password'}
+                </button>
+              </form>
+            </div>
+
+            <hr className="border-gray-100" />
+
+            {/* Delete Account */}
+            <div>
+              <div className="mb-6">
+                <h3 className="text-lg font-display font-bold text-red-600 flex items-center gap-2">
+                  <Trash2 className="w-5 h-5" /> Danger Zone
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">Once you delete your account, there is no going back. All your data and scan history will be permanently deleted.</p>
+              </div>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 px-6 py-2.5 rounded-xl font-medium text-sm transition-colors border border-red-100"
+              >
+                Delete Account
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <ConfirmDialog
@@ -414,6 +548,29 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
           onLogout();
         }}
         onCancel={() => setShowLogoutConfirm(false)}
+      />
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete Account"
+        message="Are you absolutely sure you want to delete your account? This action cannot be undone and all your scan data will be permanently erased."
+        confirmLabel={isDeleting ? 'Deleting...' : 'Delete Account'}
+        cancelLabel="Cancel"
+        danger
+        onConfirm={async () => {
+          if (isDeleting) return;
+          setIsDeleting(true);
+          try {
+            await deleteAccount();
+            setShowDeleteConfirm(false);
+            onLogout();
+          } catch (err: any) {
+            alert(err.message || 'Failed to delete account.');
+            setShowDeleteConfirm(false);
+            setIsDeleting(false);
+          }
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
       />
     </div>
   );

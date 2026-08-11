@@ -4,11 +4,11 @@ JWT-based auth with bcrypt password hashing.
 Uses SQLAlchemy async sessions for user persistence.
 """
 
+import json
 import os
 import re
-import json
-from typing import Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
 
 import jwt
 from fastapi import Depends, HTTPException
@@ -106,6 +106,20 @@ class UserResponse(BaseModel):
     profile_data: Dict[str, Any] = {}
 
 
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters.")
+        if len(v) > 128:
+            raise ValueError("Password must be at most 128 characters.")
+        return v
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -123,9 +137,9 @@ def _create_token(user_id: str) -> str:
 def _user_response(user: User) -> UserResponse:
     try:
         profile_data = json.loads(user.profile_data) if getattr(user, 'profile_data', None) else {}
-    except:
+    except Exception:
         profile_data = {}
-        
+
     return UserResponse(
         id=user.id,
         name=user.name,
@@ -193,13 +207,13 @@ async def get_current_user(
 
     try:
         profile_data = json.loads(user.profile_data) if getattr(user, 'profile_data', None) else {}
-    except:
+    except Exception:
         profile_data = {}
 
     return {
-        "id": user.id, 
-        "name": user.name, 
-        "email": user.email, 
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
         "created_at": user.created_at.isoformat(),
         "profile_data": profile_data
     }
@@ -219,3 +233,30 @@ async def update_user_profile(
         user.profile_data = json.dumps(data.profile_data)
     await db.flush()
     return _user_response(user)
+
+
+async def change_user_password(
+    user_id: str, data: ChangePassword, db: AsyncSession
+) -> None:
+    """Change the user's password."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if not pwd_context.verify(data.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Incorrect current password.")
+
+    user.password_hash = pwd_context.hash(data.new_password)
+    await db.flush()
+
+
+async def delete_user_account(user_id: str, db: AsyncSession) -> None:
+    """Delete the user account."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    await db.delete(user)
+    await db.flush()

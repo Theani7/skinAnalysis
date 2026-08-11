@@ -1172,7 +1172,7 @@ class AcnePredictor:
 
             # --- Dryness Detection ---
             dryness_result = _detect_dryness(image, skin_mask)
-            
+
             if gemini_results:
                 dryness_result["hydration_score"] = gemini_results.get("dryness", {}).get("hydration_score", dryness_result["hydration_score"])
                 dryness_result["roughness_score"] = gemini_results.get("dryness", {}).get("roughness_score", dryness_result["roughness_score"])

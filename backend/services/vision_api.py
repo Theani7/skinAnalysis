@@ -1,7 +1,7 @@
-import os
 import json
 import logging
-import base64
+import os
+
 import cv2
 import numpy as np
 
@@ -18,20 +18,20 @@ def analyze_skin_with_gemini(image: np.ndarray) -> dict:
 
     try:
         import google.generativeai as genai
-        
+
         genai.configure(api_key=api_key)
-        
+
         # Use gemini-2.0-flash for speed, it's very capable and free
         model = genai.GenerativeModel('gemini-2.0-flash')
-        
+
         # Encode image to JPEG
         success, encoded_image = cv2.imencode('.jpg', image)
         if not success:
             logger.error("Failed to encode image for Gemini")
             return None
-            
+
         image_bytes = encoded_image.tobytes()
-        
+
         prompt = """
         You are an expert dermatologist AI. Analyze this image of a face for skin conditions.
         Provide a JSON response with exactly the following structure (no markdown, just the JSON string):
@@ -47,26 +47,26 @@ def analyze_skin_with_gemini(image: np.ndarray) -> dict:
         }
         Only output the raw JSON object.
         """
-        
+
         blob = {
             "mime_type": "image/jpeg",
             "data": image_bytes
         }
-        
+
         logger.info("Sending image to Gemini Vision API for classification...")
         response = model.generate_content([prompt, blob])
-        
+
         text_response = response.text.strip()
         # Clean up in case Gemini returns markdown block
         if text_response.startswith("```json"):
             text_response = text_response[7:]
         if text_response.endswith("```"):
             text_response = text_response[:-3]
-            
+
         result = json.loads(text_response.strip())
         logger.info("Successfully received classification from Gemini.")
         return result
-        
+
     except Exception as e:
         logger.error(f"Gemini API analysis failed: {e}")
         return None
