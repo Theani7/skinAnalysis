@@ -22,8 +22,8 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin mb-4" />
-        <p className="text-sm t-text-secondary">Loading scan history...</p>
+        <Loader2 className="w-8 h-8 text-primary-500 animate-spin mb-4" />
+        <p className="text-sm text-gray-500">Loading scan history...</p>
       </div>
     );
   }
@@ -31,13 +31,13 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-16 h-16 t-tint-danger rounded-2xl flex items-center justify-center mb-6">
+        <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-6 border border-red-100">
           <AlertCircle className="w-8 h-8 text-red-500" />
         </div>
-        <h3 className="text-lg font-display font-semibold t-text mb-2">Failed to load history</h3>
-        <p className="text-sm t-text-secondary max-w-sm mb-6">{error}</p>
+        <h3 className="text-lg font-display font-semibold text-gray-900 mb-2">Failed to load history</h3>
+        <p className="text-sm text-gray-500 max-w-sm mb-6">{error}</p>
         {onBack && (
-          <button onClick={onBack} className="text-sm font-medium t-text hover:text-teal-500 transition-colors">
+          <button onClick={onBack} className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
             Go to Dashboard
           </button>
         )}
@@ -48,13 +48,13 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
   if (scans.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-16 h-16 t-card rounded-2xl flex items-center justify-center mb-6">
-          <Inbox className="w-8 h-8 t-text-muted" />
+        <div className="w-16 h-16 bg-gray-50 border border-gray-200 border-dashed rounded-2xl flex items-center justify-center mb-6">
+          <Inbox className="w-8 h-8 text-gray-400" />
         </div>
-        <h3 className="text-lg font-display font-semibold t-text mb-2">No scans yet</h3>
-        <p className="text-sm t-text-secondary max-w-sm mb-6">Start your first analysis to see your progress over time.</p>
+        <h3 className="text-lg font-display font-semibold text-gray-900 mb-2">No scans yet</h3>
+        <p className="text-sm text-gray-500 max-w-sm mb-6">Start your first analysis to see your progress over time.</p>
         {onBack && (
-          <button onClick={onBack} className="text-sm font-medium t-text hover:text-teal-500 transition-colors">
+          <button onClick={onBack} className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
             Go to Dashboard
           </button>
         )}
@@ -86,15 +86,15 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
           {onBack && (
-            <button onClick={onBack} className="flex items-center t-text-muted hover:t-text text-xs mb-3 transition-colors">
+            <button onClick={onBack} className="flex items-center text-gray-500 hover:text-gray-900 text-xs mb-3 transition-colors">
               <ArrowLeft className="w-4 h-4 mr-1" /> Dashboard
             </button>
           )}
-          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight t-text">History</h1>
-          <p className="t-text-secondary text-sm mt-1">Track your SkinAI improvements over time</p>
+          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-gray-900">History</h1>
+          <p className="text-gray-500 text-sm mt-1">Track your SkinAI improvements over time</p>
         </div>
         {historyList.length >= 2 && (
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${scoreChange >= 0 ? 't-tint-success text-teal-600 border-teal-500/20' : 't-tint-danger text-red-600 border-red-500/20'}`}>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${scoreChange >= 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
             <TrendingUp className="w-3 h-3" />
             {scoreChange >= 0 ? '+' : ''}{scoreChange}% from last scan
           </div>
@@ -108,38 +108,38 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
           { label: 'Best Score', value: Math.max(...historyList.map(s => s.score)), icon: TrendingUp },
           { label: 'Avg. Score', value: Math.round(historyList.reduce((a, s) => a + s.score, 0) / historyList.length), icon: TrendingUp },
         ].map((stat) => (
-          <div key={stat.label} className="t-card rounded-2xl p-4">
+          <div key={stat.label} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
             <div className="flex items-center gap-2 mb-2">
-              <stat.icon className="w-4 h-4 t-text-muted" />
-              <span className="text-xs t-text-secondary">{stat.label}</span>
+              <stat.icon className="w-4 h-4 text-gray-400" />
+              <span className="text-xs text-gray-500">{stat.label}</span>
             </div>
-            <div className="text-xl font-display font-bold t-text">{stat.value}</div>
+            <div className="text-xl font-display font-bold text-gray-900">{stat.value}</div>
           </div>
         ))}
       </div>
 
-      <div className="t-card rounded-2xl p-6">
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-display font-bold t-text">Progress</h3>
-          <span className="text-xs t-text-muted">{progressData.length} scans</span>
+          <h3 className="font-display font-bold text-gray-900">Progress</h3>
+          <span className="text-xs text-gray-500">{progressData.length} scans</span>
         </div>
         <div className="h-56 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={progressData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-              <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} dy={10} fontWeight={500} />
-              <YAxis domain={[0, 100]} stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} fontWeight={500} />
+              <XAxis dataKey="date" stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} dy={10} fontWeight={500} />
+              <YAxis domain={[0, 100]} stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} fontWeight={500} />
               <Tooltip
-                contentStyle={{ backgroundColor: 'var(--bg-surface)', borderRadius: '12px', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-card)', padding: '8px 12px' }}
-                itemStyle={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '13px' }}
-                labelStyle={{ color: 'var(--text-secondary)', fontWeight: '500', marginBottom: '2px', fontSize: '11px' }}
+                contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', padding: '8px 12px' }}
+                itemStyle={{ color: '#111827', fontWeight: '600', fontSize: '13px' }}
+                labelStyle={{ color: '#6b7280', fontWeight: '500', marginBottom: '2px', fontSize: '11px' }}
               />
               <Line
                 type="monotone"
                 dataKey="score"
-                stroke="#2dd4bf"
+                stroke="#d6335a"
                 strokeWidth={2}
-                dot={{ fill: 'var(--bg-base)', strokeWidth: 2, r: 3, stroke: '#2dd4bf' }}
-                activeDot={{ r: 5, strokeWidth: 0, fill: '#2dd4bf' }}
+                dot={{ fill: '#ffffff', strokeWidth: 2, r: 3, stroke: '#d6335a' }}
+                activeDot={{ r: 5, strokeWidth: 0, fill: '#d6335a' }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -147,43 +147,43 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
       </div>
 
       <div>
-        <h3 className="text-xs font-medium t-text-muted uppercase tracking-wider mb-4 px-1">All Scans</h3>
+        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 px-1">All Scans</h3>
         <div className="space-y-2">
           {historyList.map((item, idx) => {
             const change = idx < historyList.length - 1 ? item.score - historyList[idx + 1].score : 0;
             return (
-              <div key={item.id} className="t-card rounded-2xl p-4 flex items-center gap-4 hover:t-bg-hover transition-colors">
-                <div className="w-11 h-11 t-bg-raised border t-divider rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-5 h-5 t-text-muted" />
+              <div key={item.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex items-center gap-4 hover:border-primary-100 hover:shadow-md transition-all cursor-default">
+                <div className="w-11 h-11 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Calendar className="w-5 h-5 text-gray-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-medium t-text text-sm truncate">{item.date}</h4>
+                    <h4 className="font-medium text-gray-900 text-sm truncate">{item.date}</h4>
                     {idx === 0 && (
-                      <span className="px-2 py-0.5 t-tint-success text-teal-600 border border-teal-500/30 rounded-full text-xs font-medium">Latest</span>
+                      <span className="px-2 py-0.5 bg-primary-50 text-primary-600 border border-primary-100 rounded-full text-xs font-medium">Latest</span>
                     )}
                   </div>
                   <div className="flex items-center gap-3 mt-1 flex-wrap">
-                    <span className="text-xs t-text-secondary flex items-center gap-1">
+                    <span className="text-xs text-gray-500 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {item.time}
                     </span>
-                    <span className={`text-xs font-medium ${item.severity === 'Clear' ? 'text-teal-500' : item.severity === 'Mild' ? 'text-yellow-500' : 'text-red-500'}`}>
+                    <span className={`text-xs font-medium ${item.severity === 'Clear' ? 'text-emerald-500' : item.severity === 'Mild' ? 'text-amber-500' : 'text-rose-500'}`}>
                       {item.severity}
                     </span>
-                    <span className="text-xs t-text-secondary">{item.acne} spots</span>
+                    <span className="text-xs text-gray-500">{item.acne} spots</span>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="text-xl font-display font-bold t-text">{item.score}</div>
+                  <div className="text-xl font-display font-bold text-gray-900">{item.score}</div>
                   <div className="flex items-center justify-end gap-1 mt-0.5">
                     {change !== 0 && (
-                      <span className={`text-xs font-medium ${change > 0 ? 'text-teal-500' : 'text-red-500'}`}>
+                      <span className={`text-xs font-medium ${change > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                         {change > 0 ? '+' : ''}{change}
                       </span>
                     )}
                   </div>
-                  <div className="text-xs t-text-secondary">Score</div>
+                  <div className="text-xs text-gray-500">Score</div>
                 </div>
               </div>
             );

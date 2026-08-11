@@ -65,28 +65,28 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
       <div className="flex items-center gap-4">
         <button
           onClick={onBack}
-          className="p-2 t-text-muted hover:t-text rounded-lg hover:t-bg-hover transition-colors"
+          className="p-2 text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
           aria-label="Go back"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-display font-bold t-text tracking-tight">SkinAI Profile</h1>
-          <p className="text-sm t-text-secondary">Manage your account settings</p>
+          <h1 className="text-2xl font-display font-bold text-gray-900 tracking-tight">SkinAI Profile</h1>
+          <p className="text-sm text-gray-500">Manage your account settings</p>
         </div>
       </div>
 
-      <div className="t-card rounded-2xl overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {/* Avatar Section */}
-        <div className="p-6 border-b t-divider">
+        <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 t-tint-success border border-teal-500/30 rounded-2xl flex items-center justify-center text-teal-500 font-bold text-xl flex-shrink-0">
+            <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-700 font-bold text-xl flex-shrink-0">
               {userInitials}
             </div>
             <div>
-              <h2 className="text-xl font-display font-bold t-text">{user.name}</h2>
-              <p className="text-sm t-text-secondary">{user.email}</p>
-              <div className="flex items-center gap-1.5 mt-1 text-xs t-text-muted">
+              <h2 className="text-xl font-display font-bold text-gray-900">{user.name}</h2>
+              <p className="text-sm text-gray-500">{user.email}</p>
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-400">
                 <Calendar className="w-3 h-3" />
                 Member since {memberSince}
               </div>
@@ -97,57 +97,57 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
         {/* Edit Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="p-3 t-tint-danger border border-red-500/20 rounded-xl flex items-center gap-3">
-              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-              <p className="text-sm text-red-500">{error}</p>
+            <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3">
+              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
           {success && (
-            <div className="p-3 t-tint-success border border-teal-500/20 rounded-xl flex items-center gap-3">
-              <CheckCircle2 className="w-4 h-4 text-teal-500 flex-shrink-0" />
-              <p className="text-sm text-teal-500">{success}</p>
+            <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <p className="text-sm text-emerald-700">{success}</p>
             </div>
           )}
 
           <div>
-            <label htmlFor="profile-name" className="block text-sm font-medium t-text-secondary mb-1.5">
+            <label htmlFor="profile-name" className="block text-sm font-medium text-gray-700 mb-1.5">
               Full Name
             </label>
             <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 t-text-muted" />
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 id="profile-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 t-input rounded-xl text-sm transition-all shadow-inner"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none"
                 placeholder="Your full name"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="profile-email" className="block text-sm font-medium t-text-secondary mb-1.5">
+            <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1.5">
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 t-text-muted" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="email"
                 id="profile-email"
                 value={user.email}
                 readOnly
-                className="w-full pl-10 pr-4 py-3 t-input rounded-xl text-sm cursor-not-allowed opacity-70"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-500 rounded-xl text-sm cursor-not-allowed opacity-70"
               />
             </div>
-            <p className="text-xs t-text-muted mt-1.5 ml-1">Email cannot be changed</p>
+            <p className="text-xs text-gray-400 mt-1.5 ml-1">Email cannot be changed</p>
           </div>
 
           <div className="pt-2">
             <button
               type="submit"
               disabled={isLoading || name.trim() === user.name}
-              className="w-full sm:w-auto bg-gradient-to-r from-teal-500 to-teal-400 text-white px-6 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:from-teal-400 hover:to-teal-300 transition-colors shadow-lg shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-sm shadow-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
