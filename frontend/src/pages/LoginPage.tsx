@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle2, Camera } from 'lucide-react';
+import { X, Loader2, Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { loginUser, registerUser, storeAuth, AuthUser } from '../services/auth';
 
 interface LoginPageProps {
@@ -114,11 +114,11 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
       />
 
       {/* Modal */}
-      <div className="relative t-modal rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative t-modal rounded-xl shadow-[0_12px_40px_-12px_rgb(0_0_0/0.15)] w-full max-w-md overflow-hidden t-reveal">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 t-text-secondary hover:t-text rounded-full hover:t-bg-hover transition-colors"
+          className="absolute top-4 right-4 z-10 p-2 t-text-secondary hover:t-text rounded-lg hover:t-bg-hover transition-colors"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
@@ -126,11 +126,10 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
 
         {/* Header */}
         <div className="px-8 pt-10 pb-6 text-center">
-          <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(20,184,166,0.3)]">
-            <Camera className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 rounded-xl bg-primary-700 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-5.5 h-5.5 text-white" />
           </div>
-          <div className="text-teal-500 font-bold text-sm tracking-wider uppercase mb-2">SkinAI</div>
-          <h2 className="text-2xl font-display font-bold tracking-tight t-text">
+          <h2 className="font-sans text-2xl font-bold tracking-tight t-text">
             {isLogin ? 'Welcome back' : 'Create account'}
           </h2>
           <p className="text-sm t-text-secondary mt-2">
@@ -143,16 +142,16 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
         {/* Form */}
         <div className="px-8 pb-8">
           {error && (
-            <div className="mb-4 p-3 t-tint-danger border border-red-500/20 rounded-xl flex items-start gap-3">
-              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm" style={{ color: 'var(--text-danger)' }}>{error}</p>
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 t-tint-success border border-emerald-500/20 rounded-xl flex items-start gap-3">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm" style={{ color: 'var(--text-success)' }}>{success}</p>
+            <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-3">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-emerald-700">{success}</p>
             </div>
           )}
 
@@ -225,7 +224,7 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full btn-premium py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 mt-2"
+              className="w-full h-11 mt-2 rounded-lg bg-primary-700 hover:bg-primary-600 disabled:opacity-60 disabled:hover:bg-primary-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors active:translate-y-px"
             >
               {isLoading ? (
                 <>
@@ -248,7 +247,7 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={handleToggle}
-              className="font-medium text-teal-500 hover:text-teal-400 transition-colors"
+              className="font-semibold text-primary-700 hover:text-primary-600 transition-colors"
             >
               {isLogin ? 'Sign Up' : 'Sign In'}
             </button>
