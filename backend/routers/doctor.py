@@ -71,7 +71,7 @@ Please provide professional, empathetic, and expert advice. Do not provide defin
         async_client = AsyncGroq(api_key=api_key)
         chat_completion = await async_client.chat.completions.create(
             messages=messages,
-            model="llama3-8b-8192",
+            model="llama-3.1-8b-instant",
         )
         return {"response": chat_completion.choices[0].message.content}
     except Exception as e:
