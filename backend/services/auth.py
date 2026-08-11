@@ -44,7 +44,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ── JWT scheme ──
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 # ── Request/Response schemas ──
 
@@ -187,12 +187,14 @@ async def login_user(data: UserLogin, db: AsyncSession) -> TokenResponse:
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> Optional[dict]:
     """FastAPI dependency: extract and verify JWT, return user dict."""
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str | None = payload.get("sub")
+        user_id: Optional[str] = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token.")
     except jwt.ExpiredSignatureError:

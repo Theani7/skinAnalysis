@@ -1256,7 +1256,7 @@ class AcnePredictor:
             score -= max(0, 100 - hydration) * 0.2
             # Texture penalty: up to 20 points
             score -= min(20, roughness * 2)
-            
+
             health_score = max(0, int(round(score)))
 
             return {

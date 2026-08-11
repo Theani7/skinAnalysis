@@ -16,7 +16,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 os.environ["SKINAI_JWT_SECRET"] = "test-secret-key-for-ci-only-32chars!!"
 os.environ["SKINAI_ENV"] = "test"
 
-from main import _rate_limit_store, app
+from utils import RATE_LIMITS
+from main import app
 from services.database import Base, get_db
 
 # ── Database fixtures ──
@@ -62,7 +63,7 @@ async def client(db_engine) -> AsyncGenerator[AsyncClient, None]:
                 raise
 
     app.dependency_overrides[get_db] = override_get_db
-    _rate_limit_store.clear()  # Reset rate limiter between tests
+    RATE_LIMITS.clear()  # Reset rate limiter between tests
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
