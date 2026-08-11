@@ -17,7 +17,9 @@ export default function LifestyleWidget() {
         if (typeof parsed.water === 'number') setWater(parsed.water);
         if (typeof parsed.sleep === 'number') setSleep(parsed.sleep);
         if (['low', 'med', 'high'].includes(parsed.stress)) setStress(parsed.stress);
-      } catch (e) {}
+      } catch (e) {
+        console.error('Failed to parse', e);
+      }
     }
   }, [storageKey]);
 

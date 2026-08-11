@@ -11,7 +11,7 @@ function CountUp({ target, suffix = '' }: { target: number | string; suffix?: st
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return;
       observer.disconnect();
-      let start = 0;
+
       const duration = 1200;
       const step = (timestamp: number, startTime: number) => {
         const progress = Math.min((timestamp - startTime) / duration, 1);

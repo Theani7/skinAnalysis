@@ -29,7 +29,9 @@ export default function RoutinePage({ onStartScan }: RoutinePageProps) {
     try {
       const savedChecks = localStorage.getItem(todayKey);
       if (savedChecks) setCompletedSteps(JSON.parse(savedChecks));
-    } catch {}
+    } catch (e) {
+      console.error('Failed to parse checklist', e);
+    }
 
     async function fetchRoutine() {
       try {

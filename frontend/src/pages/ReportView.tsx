@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
-  Download, ArrowLeft, ShieldAlert, Droplets, Activity, Maximize,
-  CheckCircle2, AlertTriangle, Sun, Moon, Lightbulb, Clock, Zap,
-  ImageOff, CircleDot, Sparkles, ExternalLink, Star, ShoppingBag, Heart,
+  Download, ArrowLeft, AlertTriangle, ImageOff, ExternalLink, Star, ShoppingBag, Heart,
+  FileText, Activity, Droplets, ShieldAlert, Maximize, Sun, Moon, CheckCircle
 } from 'lucide-react';
 import { AnalysisResponse, getResultImageUrl, getScanHistory, getScanDetail, saveProduct, removeSavedProduct, getSavedProducts } from '../services/api';
 import { getStoredUser } from '../services/auth';
@@ -14,60 +13,24 @@ interface ReportViewProps {
   onScanNow?: () => void;
 }
 
-function ScoreRing({ score, size = 140, stroke = 10 }: { score: number; size?: number; stroke?: number }) {
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
-  const color = score >= 70 ? '#14b8a6' : score >= 40 ? '#f59e0b' : '#ef4444';
-
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--border-default)" strokeWidth={stroke} />
-        <circle
-          cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color}
-          strokeWidth={stroke} strokeLinecap="round"
-          strokeDasharray={circumference} strokeDashoffset={offset}
-          className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(20,184,166,0.5)]"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-teal-200 leading-none">{score}</span>
-        <span className="text-[10px] font-medium t-text-muted mt-1">/ 100</span>
-      </div>
-    </div>
-  );
-}
-
-function StatusDot({ status }: { status: 'good' | 'warning' | 'danger' }) {
-  const color = status === 'danger' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : status === 'warning' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]';
-  return <span className={`w-2 h-2 rounded-full flex-shrink-0 ${color}`} />;
-}
-
 function MetricCard({
-  icon: Icon, label, value, score, maxLabel, color, barWidth,
+  label, value, score, maxLabel, color, barWidth,
 }: {
-  icon: React.ElementType; label: string; value: string; score: number;
+  label: string; value: string; score: number | string;
   maxLabel: string; color: 'danger' | 'warning' | 'success'; barWidth: number;
 }) {
-  const bg = color === 'danger' ? 'bg-red-50 text-red-600' : color === 'warning' ? 'bg-amber-50 text-amber-600' : 'bg-primary-50 text-primary-600';
-  const bar = color === 'danger' ? 'bg-red-500' : color === 'warning' ? 'bg-amber-500' : 'bg-primary-500';
-  const textColor = color === 'danger' ? 'text-red-600' : color === 'warning' ? 'text-amber-600' : 'text-primary-600';
+  const textColor = color === 'danger' ? 'text-red-700' : color === 'warning' ? 'text-amber-700' : 'text-gray-900';
+  const barColor = color === 'danger' ? 'bg-red-500' : color === 'warning' ? 'bg-amber-500' : 'bg-[#880d1e]';
 
   return (
-    <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 transition-all duration-300 hover:border-primary-200">
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${bg}`}>
-          <Icon className="w-4 h-4" />
-        </div>
-        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</span>
+    <div className="bg-white border border-gray-200 p-5 flex flex-col gap-3 transition-shadow hover:shadow-sm">
+      <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">{label}</span>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-3xl font-light text-gray-900 tracking-tight">{score}</span>
+        <span className="text-xs text-gray-400 font-medium">{maxLabel}</span>
       </div>
-      <div className="flex items-baseline gap-1.5 mb-2.5">
-        <span className="text-2xl font-display font-bold text-gray-900">{score}</span>
-        <span className="text-xs text-gray-500">{maxLabel}</span>
-      </div>
-      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
-        <div className={`h-full rounded-full transition-all duration-700 ${bar}`} style={{ width: `${barWidth}%` }} />
+      <div className="w-full h-1 bg-gray-100">
+        <div className={`h-full ${barColor} transition-all duration-1000`} style={{ width: `${barWidth}%` }} />
       </div>
       <span className={`text-xs font-medium ${textColor}`}>{value}</span>
     </div>
@@ -84,7 +47,6 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
   const [savedProductUrls, setSavedProductUrls] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Fetch saved products to know which are already saved
     getSavedProducts().then(res => {
       setSavedProductUrls(new Set(res.products.map(p => p.url)));
     }).catch(console.error);
@@ -115,29 +77,26 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
-        <p className="mt-4 text-gray-500 font-medium">Loading recent analysis...</p>
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-[#880d1e] rounded-full animate-spin"></div>
+        <p className="mt-4 text-sm text-gray-500 font-medium tracking-wide">Retrieving analysis...</p>
       </div>
     );
   }
 
   if (!result) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center mt-8">
-        <div className="w-20 h-20 bg-gray-50 border border-gray-100 rounded-3xl flex items-center justify-center mb-6 shadow-sm">
-          <Sparkles className="w-10 h-10 text-gray-400" />
-        </div>
-        <h3 className="text-xl font-display font-bold text-gray-900 mb-2">No Analysis Yet</h3>
-        <p className="text-sm text-gray-500 max-w-sm mb-8 leading-relaxed">
-          You haven't performed a skin analysis yet. Scan your face now to get personalized insights and recommendations.
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <FileText className="w-12 h-12 text-gray-300 mb-6" />
+        <h3 className="text-xl font-light text-gray-900 mb-2 tracking-tight">No Analysis Found</h3>
+        <p className="text-sm text-gray-500 max-w-sm mb-8">
+          Perform a skin scan to view your detailed clinical report and recommendations.
         </p>
         {onScanNow && (
           <button
             onClick={onScanNow}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all shadow-sm active:scale-95"
+            className="px-6 py-2.5 bg-[#880d1e] hover:bg-[#6a0a17] text-white text-sm font-medium transition-colors"
           >
-            <Sparkles className="w-4 h-4" />
-            Scan Now
+            Start Scan
           </button>
         )}
       </div>
@@ -148,63 +107,50 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
   const hydration = result.dryness_data?.hydration_score ?? 100;
   const roughness = result.dryness_data?.roughness_score ?? 0;
 
-  // Fallback calculation for old cached results that lack health_score
   let fallbackScore = 100;
   fallbackScore -= Math.min(30, (result.acne_count || 0) * 2);
   fallbackScore -= Math.max(0, 100 - clarity) * 0.3;
   fallbackScore -= Math.max(0, 100 - hydration) * 0.2;
   fallbackScore -= Math.min(20, roughness * 2);
   const calculatedFallback = Math.max(0, Math.round(fallbackScore));
-
   const overallScore = result.health_score ?? calculatedFallback;
 
   const metrics = [
     {
-      icon: ShieldAlert, label: 'Acne', value: result.severity, score: result.acne_count,
-      maxLabel: 'spots', color: result.severity === 'Severe' ? 'danger' as const : result.severity === 'Moderate' ? 'warning' as const : 'success' as const,
+      label: 'Acne Severity', value: result.severity, score: result.acne_count,
+      maxLabel: 'lesions', color: result.severity === 'Severe' ? 'danger' as const : result.severity === 'Moderate' ? 'warning' as const : 'success' as const,
       barWidth: Math.min(100, (result.acne_count / 20) * 100),
     },
     {
-      icon: Maximize, label: 'Pigmentation', value: result.pigmentation_data?.intensity || 'Low', score: clarity,
-      maxLabel: 'clarity', color: clarity < 85 ? 'warning' as const : 'success' as const,
+      label: 'Pigmentation', value: result.pigmentation_data?.intensity || 'Low', score: clarity,
+      maxLabel: '/ 100 clarity', color: clarity < 85 ? 'warning' as const : 'success' as const,
       barWidth: clarity,
     },
     {
-      icon: Droplets, label: 'Hydration', value: hydration < 60 ? 'Low' : 'Healthy', score: hydration,
-      maxLabel: 'score', color: hydration < 60 ? 'danger' as const : 'success' as const,
+      label: 'Hydration Level', value: hydration < 60 ? 'Suboptimal' : 'Optimal', score: hydration,
+      maxLabel: '/ 100', color: hydration < 60 ? 'danger' as const : 'success' as const,
       barWidth: hydration,
     },
     {
-      icon: Activity, label: 'Texture', value: roughness > 5 ? 'Rough' : 'Smooth', score: roughness,
-      maxLabel: 'roughness', color: roughness > 5 ? 'warning' as const : 'success' as const,
+      label: 'Skin Texture', value: roughness > 5 ? 'Elevated Roughness' : 'Smooth', score: roughness,
+      maxLabel: 'index', color: roughness > 5 ? 'warning' as const : 'success' as const,
       barWidth: Math.min(100, roughness * 10),
     },
   ];
 
   const findings = [
-    { label: 'Sebaceous activity', value: result.acne_count > 5 ? 'Elevated' : 'Optimal', status: result.acne_count > 5 ? 'danger' as const : 'good' as const },
-    { label: 'Melanin clarity', value: `${clarity}%`, status: clarity < 70 ? 'danger' as const : clarity < 85 ? 'warning' as const : 'good' as const },
-    { label: 'Skin hydration', value: `${hydration}%`, status: hydration < 60 ? 'danger' as const : 'good' as const },
-    { label: 'Surface texture', value: roughness > 5 ? 'Rough' : 'Smooth', status: roughness > 5 ? 'warning' as const : 'good' as const },
-    { label: 'Pigment pattern', value: result.pigmentation_data?.spatial_pattern || 'N/A', status: 'good' as const },
-    { label: 'Pigment coverage', value: `${result.pigmentation_data?.normalized_coverage || 0}%`, status: (result.pigmentation_data?.normalized_coverage || 0) > 3 ? 'warning' as const : 'good' as const },
+    { label: 'Sebaceous activity', value: result.acne_count > 5 ? 'Elevated' : 'Normal', status: result.acne_count > 5 ? 'danger' : 'good' },
+    { label: 'Melanin clarity', value: `${clarity}%`, status: clarity < 70 ? 'danger' : clarity < 85 ? 'warning' : 'good' },
+    { label: 'Surface hydration', value: `${hydration}%`, status: hydration < 60 ? 'danger' : 'good' },
+    { label: 'Texture variation', value: roughness > 5 ? 'Irregular' : 'Smooth', status: roughness > 5 ? 'warning' : 'good' },
+    { label: 'Pigment pattern', value: result.pigmentation_data?.spatial_pattern || 'N/A', status: 'good' },
   ];
-  if (result.face_quality) {
-    findings.push({ label: 'Image quality', value: `${result.face_quality.overall}%`, status: result.face_quality.overall < 60 ? 'warning' as const : 'good' as const });
-  }
 
   const tabs = [
-    { id: 'acne' as const, label: 'Acne', img: getResultImageUrl(result.result_image) },
+    { id: 'acne' as const, label: 'Acne Map', img: getResultImageUrl(result.result_image) },
     { id: 'pigment' as const, label: 'Pigmentation', img: result.pigmentation_data?.heatmap_image ? getResultImageUrl(result.pigmentation_data.heatmap_image) : null },
-    { id: 'moisture' as const, label: 'Moisture', img: result.dryness_data?.texture_map_image ? getResultImageUrl(result.dryness_data.texture_map_image) : null },
+    { id: 'moisture' as const, label: 'Texture', img: result.dryness_data?.texture_map_image ? getResultImageUrl(result.dryness_data.texture_map_image) : null },
   ];
-
-  const typeColors: Record<string, string> = {
-    freckle: 'bg-teal-400', melasma: 'bg-amber-500', pih: 'bg-red-400',
-    sun_spot: 'bg-yellow-500', unknown: 'bg-gray-500',
-  };
-  const typeDist = result.pigmentation_data?.type_distribution || {};
-  const totalTypes = Object.values(typeDist).reduce((a: number, b: any) => a + (b as number), 0) as number;
 
   const handleDownloadPDF = async () => {
     try {
@@ -213,16 +159,8 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
       await generateClinicalReportPDF(result, { name: user?.name, email: user?.email });
     } catch (err) {
       console.error('PDF generation failed:', err);
-      setPdfError('Failed to generate PDF. Please try again.');
+      setPdfError('Report generation failed. Please try again.');
       setTimeout(() => setPdfError(null), 5000);
-    }
-  };
-
-  const getPriorityDot = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]';
-      case 'medium': return 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]';
-      default: return 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]';
     }
   };
 
@@ -258,341 +196,275 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
   };
 
   return (
-    <div className="min-h-full space-y-6 pb-16 text-gray-600">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 rounded-xl transition-all flex-shrink-0">
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-xs font-medium hidden sm:inline">Back</span>
-        </button>
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <span className="text-xs text-gray-400 font-mono hidden sm:inline truncate">
-            #{result.result_image.split('_')[1]?.substring(0, 8).toUpperCase() || result.id?.split('-')[0].toUpperCase()}
-          </span>
-          <button
-            onClick={handleDownloadPDF}
-            className="bg-primary-600 text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 flex-shrink-0 text-sm hover:bg-primary-700 transition-all shadow-sm shadow-primary-500/30"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export</span>
+    <div className="max-w-6xl mx-auto pb-20 font-sans text-gray-800">
+      {/* Premium Header */}
+      <div className="border-b border-gray-200 pb-6 mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 pt-4">
+        <div>
+          <button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-[#880d1e] transition-colors mb-4 group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-medium tracking-wide">Return</span>
           </button>
+          <h1 className="text-3xl font-light text-gray-900 tracking-tight">Clinical Analysis Report</h1>
+          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+            <span className="font-mono tracking-wider text-xs">
+              ID: {result.result_image.split('_')[1]?.substring(0, 8).toUpperCase() || result.id?.split('-')[0].toUpperCase()}
+            </span>
+            <span>&bull;</span>
+            <span>{new Date(result.created_at || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          </div>
         </div>
+        <button
+          onClick={handleDownloadPDF}
+          className="bg-[#880d1e] text-white px-5 py-2.5 text-sm font-medium hover:bg-[#6a0a17] transition-colors flex items-center gap-2"
+        >
+          <Download className="w-4 h-4" />
+          Download PDF
+        </button>
       </div>
 
-      {/* Conflicts */}
       {result.conflicts && result.conflicts.length > 0 && (
-        <div className="space-y-2">
+        <div className="mb-8 border-l-2 border-amber-500 bg-amber-50 p-4">
           {result.conflicts.map((conflict: any, idx: number) => (
-            <div key={idx} className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
-              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-              <p className="text-sm text-amber-700">{conflict.message}</p>
+            <div key={idx} className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-800">{conflict.message}</p>
             </div>
           ))}
         </div>
       )}
 
       {pdfError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-          <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
-          <p className="text-sm text-red-700">{pdfError}</p>
+        <div className="mb-8 border-l-2 border-red-500 bg-red-50 p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-800">{pdfError}</p>
         </div>
       )}
 
-      {/* Hero: Score Ring + Image */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-2 bg-white border border-gray-100 shadow-sm rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center">
-          <div className="mb-4">
-            <ScoreRing score={overallScore} />
+      {/* Hero Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+        <div className="lg:col-span-4 bg-white border border-gray-200 p-8 flex flex-col items-center justify-center text-center">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-6">Overall Skin Health</span>
+          <div className="flex items-baseline gap-2 mb-6">
+            <span className="text-7xl font-light text-gray-900 tracking-tighter">{overallScore}</span>
+            <span className="text-xl text-gray-400">/ 100</span>
           </div>
-          <div className="flex items-center gap-2 mb-1">
-            <CheckCircle2 className="w-4 h-4 text-primary-500" />
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Analysis Complete</span>
-          </div>
-          <h2 className="text-xl font-display font-bold text-gray-900 mb-1">Skin Health Score</h2>
-          <p className="text-sm text-gray-500">
-            {overallScore >= 70 ? 'Healthy skin profile detected.' : overallScore >= 40 ? 'Some attention recommended.' : 'Consult a dermatologist.'}
+          <div className="h-px w-16 bg-gray-200 mb-6" />
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {overallScore >= 70 ? 'Healthy skin profile detected. Focus on maintenance.' : overallScore >= 40 ? 'Moderate attention required. See targeted recommendations.' : 'Professional consultation advised for treatment.'}
           </p>
         </div>
 
-        <div className="lg:col-span-3 bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex gap-1 bg-gray-50 rounded-lg p-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                    activeTab === tab.id
-                      ? 'bg-primary-500 text-white shadow-sm'
-                      : 'text-gray-500 hover:text-gray-900'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+        <div className="lg:col-span-8 bg-white border border-gray-200 flex flex-col">
+          <div className="flex gap-4 border-b border-gray-200 px-6 pt-4">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-3 text-sm font-medium tracking-wide transition-colors relative ${
+                  activeTab === tab.id
+                    ? 'text-[#880d1e]'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                {tab.label}
+                {activeTab === tab.id && (
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#880d1e]" />
+                )}
+              </button>
+            ))}
           </div>
-          <div className="aspect-[4/3] bg-gray-900/50 relative overflow-hidden">
+          <div className="flex-1 bg-gray-50 relative overflow-hidden min-h-[400px]">
             {tabs.find(t => t.id === activeTab)?.img && !imageErrors[activeTab] ? (
               <img
                 src={tabs.find(t => t.id === activeTab)!.img!}
                 alt={tabs.find(t => t.id === activeTab)!.label}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 onError={() => setImageErrors(prev => ({ ...prev, [activeTab]: true }))}
               />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center t-text-muted gap-2">
-                <ImageOff className="w-8 h-8" />
-                <span className="text-sm">No image available</span>
+              <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-3">
+                <ImageOff className="w-10 h-10" />
+                <span className="text-sm">Scan image unavailable</span>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
         {metrics.map((m) => (
           <MetricCard key={m.label} {...m} />
         ))}
       </div>
 
-      {/* Key Findings + Pigmentation Types */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white border border-gray-100 shadow-sm rounded-2xl p-5 md:p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <Zap className="w-5 h-5 text-primary-500" />
-            <h3 className="text-lg font-display font-bold text-gray-900">Key Findings</h3>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-            {findings.map((f) => (
-              <div key={f.label} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
-                <StatusDot status={f.status} />
-                <span className="text-sm text-gray-600 flex-1">{f.label}</span>
-                <span className="text-sm font-medium text-gray-900">{f.value}</span>
+      {/* Clinical Findings & Routine */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        {/* Findings */}
+        <div className="bg-white border border-gray-200 p-8">
+          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-widest mb-6">Diagnostic Findings</h3>
+          <div className="space-y-4">
+            {findings.map((f, idx) => (
+              <div key={idx} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                <span className="text-sm text-gray-600">{f.label}</span>
+                <span className={`text-sm font-medium ${f.status === 'danger' ? 'text-red-600' : f.status === 'warning' ? 'text-amber-600' : 'text-gray-900'}`}>
+                  {f.value}
+                </span>
               </div>
             ))}
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 md:p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <CircleDot className="w-5 h-5 text-primary-500" />
-            <h3 className="text-lg font-display font-bold text-gray-900">Pigmentation Types</h3>
-          </div>
-          {totalTypes > 0 ? (
-            <div className="space-y-4">
-              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden flex">
-                {Object.entries(typeDist).map(([type, count]) => (
-                  <div
-                    key={type}
-                    className={`h-full ${typeColors[type] || 'bg-gray-500'} transition-all duration-500`}
-                    style={{ width: `${((count as number) / totalTypes) * 100}%` }}
-                    title={`${type}: ${count}`}
-                  />
-                ))}
-              </div>
-              <div className="space-y-2">
-                {Object.entries(typeDist).map(([type, count]) => (
-                  <div key={type} className="flex items-center gap-2.5">
-                    <span className={`w-3 h-3 rounded-sm flex-shrink-0 ${typeColors[type] || 'bg-gray-500'}`} />
-                    <span className="text-sm t-text-secondary flex-1 capitalize">{type.replace('_', ' ')}</span>
-                    <span className="text-sm font-medium t-text">{count as number}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm t-text-muted">No spots detected</p>
-          )}
-        </div>
-      </div>
-
-      {/* Daily Routine */}
-      {result.routine && (
-        <div className="bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-primary-500" />
-              <h3 className="text-lg font-display font-bold text-gray-900">Daily Routine</h3>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-200">
-                    <Sun className="w-4 h-4 text-amber-500" />
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">Morning</span>
-                </div>
-                <div className="space-y-4">
-                  {result.routine.morning.map((step: any, idx: number) => (
-                    <div key={step.id || idx} className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex gap-4 items-start transition-all hover:bg-white hover:shadow-md hover:border-gray-200 group">
-                      <div className="w-8 h-8 bg-white border border-gray-200 text-gray-900 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm group-hover:bg-primary-600 group-hover:text-white group-hover:border-primary-600 transition-colors">
-                        {step.step}
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <h4 className="font-semibold text-gray-900">{step.product}</h4>
-                        <p className="text-sm text-gray-500 mt-1 leading-relaxed">{step.action}</p>
-                      </div>
-                    </div>
+            {result.pigmentation_data?.type_distribution && Object.keys(result.pigmentation_data.type_distribution).length > 0 && (
+              <div className="pt-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-3">Detected Conditions</span>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(result.pigmentation_data.type_distribution).map(([type, count]) => (
+                    <span key={type} className="px-3 py-1 bg-gray-50 border border-gray-200 text-xs font-medium text-gray-700 capitalize">
+                      {type.replace('_', ' ')} ({(count as number)})
+                    </span>
                   ))}
                 </div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-indigo-50 rounded-xl flex items-center justify-center border border-indigo-200">
-                    <Moon className="w-4 h-4 text-indigo-500" />
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">Evening</span>
-                </div>
-                <div className="space-y-4">
-                  {result.routine.evening.map((step: any, idx: number) => (
-                    <div key={step.id || idx} className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex gap-4 items-start transition-all hover:bg-white hover:shadow-md hover:border-gray-200 group">
-                      <div className="w-8 h-8 bg-white border border-gray-200 text-gray-900 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm group-hover:bg-primary-600 group-hover:text-white group-hover:border-primary-600 transition-colors">
-                        {step.step}
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <h4 className="font-semibold text-gray-900">{step.product}</h4>
-                        <p className="text-sm text-gray-500 mt-1 leading-relaxed">{step.action}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {result.routine.tips.length > 0 && (
-              <div className="mt-6 p-5 bg-gray-50 border border-gray-100 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="w-4 h-4 text-primary-500" />
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Tips</span>
-                </div>
-                <ul className="space-y-2">
-                  {result.routine.tips.map((tip: string, idx: number) => (
-                    <li key={idx} className="text-xs text-gray-500 flex items-start gap-2">
-                      <span className="text-teal-500 mt-0.5">&#8226;</span>
-                      {tip}
-                    </li>
-                  ))}
-                </ul>
               </div>
             )}
           </div>
         </div>
-      )}
 
-      {/* Recommendations */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 px-1">
-          <Sparkles className="w-5 h-5 text-primary-500" />
-          <h3 className="text-lg font-display font-bold text-gray-900">Recommendations</h3>
-        </div>
-        <div className="space-y-4">
-          {result.recommendations?.map((rec: any) => (
-            <div key={rec.id} className={`bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden transition-all duration-300 hover:border-primary-200 border-l-4 ${rec.category === 'skincare' ? 'border-l-primary-500' : 'border-l-amber-500'}`}>
-              {/* Recommendation info */}
-              <div className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${getPriorityDot(rec.priority)}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-gray-900 text-sm">{rec.title}</h4>
-                      {rec.category === 'skincare' && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-primary-50 text-primary-600 border border-primary-200 rounded">Shop</span>
-                      )}
+        {/* Routine */}
+        {result.routine && (
+          <div className="bg-white border border-gray-200 p-8">
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-widest mb-6">Prescribed Routine</h3>
+            <div className="space-y-8">
+              <div>
+                <div className="flex items-center gap-2 mb-4 text-[#880d1e]">
+                  <Sun className="w-4 h-4" />
+                  <span className="text-sm font-semibold tracking-wide">AM Regimen</span>
+                </div>
+                <div className="space-y-3">
+                  {result.routine.morning.map((step: any, idx: number) => (
+                    <div key={idx} className="flex gap-4">
+                      <div className="w-6 text-xs font-semibold text-gray-400 pt-0.5">{step.step}.</div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">{step.product}</h4>
+                        <p className="text-xs text-gray-500 mt-1 leading-relaxed">{step.action}</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-600 leading-relaxed mt-0.5">{rec.description}</p>
-                    {rec.why && (
-                      <p className="text-xs text-gray-500 font-medium mt-1">{rec.why}</p>
-                    )}
-                  </div>
+                  ))}
                 </div>
               </div>
-
-              {/* Daraz products */}
-              {rec.products && rec.products.length > 0 && (
-                <div className="border-t border-gray-100 bg-gray-50/50 px-5 py-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <ShoppingBag className="w-4 h-4 text-primary-500" />
-                      <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Recommended Products</span>
+              
+              <div className="h-px w-full bg-gray-100" />
+              
+              <div>
+                <div className="flex items-center gap-2 mb-4 text-[#880d1e]">
+                  <Moon className="w-4 h-4" />
+                  <span className="text-sm font-semibold tracking-wide">PM Regimen</span>
+                </div>
+                <div className="space-y-3">
+                  {result.routine.evening.map((step: any, idx: number) => (
+                    <div key={idx} className="flex gap-4">
+                      <div className="w-6 text-xs font-semibold text-gray-400 pt-0.5">{step.step}.</div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">{step.product}</h4>
+                        <p className="text-xs text-gray-500 mt-1 leading-relaxed">{step.action}</p>
+                      </div>
                     </div>
-                    <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Daraz</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Product Recommendations */}
+      {result.recommendations && result.recommendations.length > 0 && (
+        <div className="space-y-8">
+          <h3 className="text-2xl font-light text-gray-900 tracking-tight border-b border-gray-200 pb-4">Targeted Interventions</h3>
+          
+          <div className="space-y-12">
+            {result.recommendations.map((rec: any) => (
+              <div key={rec.id} className="bg-white border border-gray-200">
+                <div className="p-6 border-b border-gray-100">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h4 className="text-lg font-medium text-gray-900">{rec.title}</h4>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] uppercase tracking-wider font-semibold">
+                      {rec.category}
+                    </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {rec.products.map((product: any, idx: number) => (
-                      <a
-                        key={idx}
-                        href={product.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex flex-col p-3 bg-white border border-gray-100 hover:border-primary-300 hover:shadow-md transition-all group rounded-2xl shadow-sm relative overflow-hidden"
-                      >
-                        <div className="w-full aspect-square rounded-xl bg-gray-50 overflow-hidden mb-3 relative flex items-center justify-center">
-                          {product.image ? (
-                            <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />
-                          ) : (
-                            <ShoppingBag className="w-8 h-8 text-gray-300" />
-                          )}
-                          <div className="absolute top-2 right-2 flex flex-col gap-2">
+                  <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
+                  {rec.why && <p className="text-sm text-gray-500 italic">"{rec.why}"</p>}
+                </div>
+
+                {rec.products && rec.products.length > 0 && (
+                  <div className="p-6 bg-gray-50">
+                    <div className="flex items-center gap-2 mb-6 text-[#880d1e]">
+                      <ShoppingBag className="w-4 h-4" />
+                      <span className="text-xs font-semibold uppercase tracking-widest">Recommended Products</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {rec.products.map((product: any, idx: number) => (
+                        <a
+                          key={idx}
+                          href={product.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex flex-col bg-white border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                        >
+                          <div className="relative aspect-square bg-white border-b border-gray-100 overflow-hidden p-4 flex items-center justify-center">
+                            {product.image ? (
+                              <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700" />
+                            ) : (
+                              <ShoppingBag className="w-12 h-12 text-gray-200" />
+                            )}
+                            
                             <button
                               onClick={(e) => toggleSaveProduct(e, product)}
-                              className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:scale-110 transition-transform"
+                              className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur border border-gray-100 rounded-full shadow-sm hover:scale-110 transition-transform"
                             >
-                              <Heart className={`w-4 h-4 ${savedProductUrls.has(product.url) ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+                              <Heart className={`w-4 h-4 ${savedProductUrls.has(product.url) ? 'fill-[#880d1e] text-[#880d1e]' : 'text-gray-400'}`} />
                             </button>
-                            <div className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center">
-                              <ExternalLink className="w-3.5 h-3.5 text-gray-700" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex-1 flex flex-col">
-                          <p className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors flex-1 mb-3">
-                            {product.name}
-                          </p>
-                          <div className="flex items-end justify-between mt-auto pt-2 border-t border-gray-50">
-                            <div className="flex flex-col">
-                              <span className="text-lg font-display font-bold text-gray-900 tracking-tight leading-none">{product.price_show}</span>
-                              {product.discount && (
-                                <span className="text-[10px] font-semibold text-primary-600 mt-1">
-                                  {product.discount} OFF
-                               </span>
-                              )}
-                            </div>
-                            {(product.rating > 0 || product.sold) && (
-                              <div className="flex flex-col items-end gap-1">
-                                {product.rating > 0 && (
-                                  <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded text-amber-700">
-                                    <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                                    <span className="text-xs font-bold">{product.rating}</span>
-                                  </div>
-                                )}
-                                {product.sold && (
-                                  <span className="text-[10px] text-gray-400 font-medium">{product.sold.replace(' sold', '')} sold</span>
-                                )}
+                            
+                            {product.discount && (
+                              <div className="absolute top-3 left-3 bg-[#880d1e] text-white text-[10px] font-bold px-2.5 py-1 uppercase tracking-widest shadow-sm">
+                                {product.discount} OFF
                               </div>
                             )}
                           </div>
-                        </div>
-                      </a>
-                    ))}
+                          
+                          <div className="p-5 flex flex-col flex-1">
+                            <h5 className="text-sm font-medium text-gray-900 line-clamp-2 leading-relaxed mb-4 group-hover:text-[#880d1e] transition-colors">
+                              {product.name}
+                            </h5>
+                            
+                            <div className="mt-auto pt-4 border-t border-gray-100 flex items-end justify-between">
+                              <span className="text-xl font-light text-gray-900 tracking-tight">
+                                {product.price_show}
+                              </span>
+                              
+                              <div className="flex flex-col items-end gap-1.5">
+                                {product.rating > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                    <span className="text-xs font-semibold text-gray-700">{product.rating}</span>
+                                  </div>
+                                )}
+                                {product.sold && (
+                                  <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+                                    {product.sold}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-
-        <button
-          onClick={handleDownloadPDF}
-          className="w-full bg-primary-600 text-white py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:bg-primary-700 transition-all shadow-sm shadow-primary-500/30 mt-6"
-        >
-          <Download className="w-4 h-4" /> Save Report
-        </button>
-      </div>
+      )}
     </div>
   );
 }

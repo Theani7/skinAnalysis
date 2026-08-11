@@ -74,7 +74,9 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
         const p = JSON.parse(saved);
         if (typeof p.water === 'number') water = p.water * 10; // Scale 0-10 up to 0-100 for visibility
         if (typeof p.sleep === 'number') sleep = p.sleep * 10; // Scale 0-10 up to 0-100
-      } catch (e) {}
+      } catch (e) {
+        console.error('Failed to parse lifestyle', e);
+      }
     }
     return {
       date: new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),

@@ -304,7 +304,12 @@ export const getScanDetail = async (scanId: string): Promise<ScanDetailResponse>
 };
 
 export const deleteAccount = async () => {
-  const response = await api.delete('/users/me');
+  const response = await api.delete('/auth/account');
+  return response.data;
+};
+
+export const changePassword = async (data: any) => {
+  const response = await api.put('/auth/password', data);
   return response.data;
 };
 

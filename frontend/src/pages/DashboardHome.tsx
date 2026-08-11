@@ -50,7 +50,9 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
     if (saved) {
       try {
         setLifestyle(JSON.parse(saved));
-      } catch (e) {}
+      } catch (e) {
+        console.error('Failed to parse lifestyle', e);
+      }
     }
 
     return () => { cancelled = true; };
