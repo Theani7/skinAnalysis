@@ -15,6 +15,7 @@ import AIDoctorPage from './pages/AIDoctorPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { AnalysisResponse } from './services/api';
 import { AuthUser, getStoredUser, isAuthenticated, clearAuth, storeAuth } from './services/auth';
+import { ChatProvider } from './contexts/ChatContext';
 
 export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile' | 'remote-scan' | 'mobile-capture' | 'saved-products' | 'routine' | 'doctor' | 'not-found';
 
@@ -133,22 +134,25 @@ export default function App() {
   }
 
   // Mobile Capture View (Unauthenticated access allowed)
-  if (currentPage === 'mobile-capture') {
+  if (currentPage === 'mobile-capture' && !isAuthenticated()) {
     return <MobileCaptureView />;
   }
 
   // Authenticated Dashboard Layout
   return (
-    <DashboardLayout currentRoute={currentPage} onNavigate={navigate} user={authUser}>
-      {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onStartRemoteScan={() => navigate('remote-scan')} onViewHistory={() => navigate('history')} user={authUser} />}
-      {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} onStartRemoteScan={() => navigate('remote-scan')} />}
-      {currentPage === 'remote-scan' && <RemoteScanView onComplete={handleAnalysisComplete} onBack={() => navigate('dashboard')} />}
-      {currentPage === 'report' && <ReportView result={analysisResult} onBack={() => navigate('dashboard')} onScanNow={() => navigate('scan')} />}
-      {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}
-      {currentPage === 'saved-products' && <SavedProductsPage />}
-      {currentPage === 'routine' && <RoutinePage onStartScan={() => navigate('scan')} />}
-      {currentPage === 'doctor' && <AIDoctorPage />}
-      {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} onLogout={handleLogout} />}
-    </DashboardLayout>
+    <ChatProvider>
+      <DashboardLayout currentRoute={currentPage} onNavigate={navigate} user={authUser}>
+        {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onStartRemoteScan={() => navigate('remote-scan')} onViewHistory={() => navigate('history')} user={authUser} />}
+        {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} onStartRemoteScan={() => navigate('remote-scan')} />}
+        {currentPage === 'mobile-capture' && <MobileCaptureView />}
+        {currentPage === 'remote-scan' && <RemoteScanView onComplete={handleAnalysisComplete} onBack={() => navigate('dashboard')} />}
+        {currentPage === 'report' && <ReportView result={analysisResult} onBack={() => navigate('dashboard')} onScanNow={() => navigate('scan')} />}
+        {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}
+        {currentPage === 'saved-products' && <SavedProductsPage />}
+        {currentPage === 'routine' && <RoutinePage onStartScan={() => navigate('scan')} />}
+        {currentPage === 'doctor' && <AIDoctorPage />}
+        {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} onLogout={handleLogout} />}
+      </DashboardLayout>
+    </ChatProvider>
   );
 }

@@ -2,15 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bot, User, Send, Loader2, X, Sparkles } from 'lucide-react';
 import { sendDoctorMessage, ChatMessage } from '../../services/api';
 import { getStoredUser } from '../../services/auth';
+import { useChat } from '../../contexts/ChatContext';
 
 export default function FloatingAssistant() {
+  const { messages, setMessages, isLoading, setIsLoading } = useChat();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([{
-    role: 'assistant',
-    content: 'Hi! I am your SkinAI Assistant. How can I help you today?'
-  }]);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
