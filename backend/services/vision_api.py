@@ -1,7 +1,8 @@
 import json
 import logging
 import os
-from typing import Optional, Any
+from typing import Any, Optional
+
 import cv2
 import numpy as np
 

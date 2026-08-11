@@ -3,7 +3,7 @@ Legacy YOLOv8 inference engine for H5 weights (kept as fallback).
 """
 
 import logging
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
