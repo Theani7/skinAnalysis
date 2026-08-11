@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { LayoutDashboard, ScanLine, History, LogOut, Menu, X, Camera } from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutDashboard, ScanLine, History, LogOut, Menu, X, Sparkles } from 'lucide-react';
 import { PageRoute } from '../../App';
 import { AuthUser } from '../../services/auth';
 import ConfirmDialog from '../ui/ConfirmDialog';
@@ -14,15 +14,13 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ children, currentRoute, onNavigate, onLogout, user }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const sidebarRef = useRef<HTMLElement>(null);
 
   const userInitials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U';
   const userName = user?.name || 'User';
+  const userEmail = user?.email || '';
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -37,6 +35,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
 
   const handleProfileClick = () => {
     handleNav('profile');
+    setSidebarOpen(false);
   };
 
   const handleLogoutClick = () => {
@@ -49,232 +48,107 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
   };
 
   return (
-    <div className="flex h-screen t-bg t-text overflow-hidden font-sans">
-      <style>{`
-        .sidebar-transition {
-          transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-      `}</style>
-
+    <div className="flex h-screen bg-gray-50 text-gray-900 font-sans overflow-hidden">
+      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 t-overlay z-30 lg:hidden"
+          className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-30 lg:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Desktop Sidebar */}
+      {/* Sidebar */}
       <aside
-        ref={sidebarRef}
         className={`
-          hidden lg:flex fixed z-40 flex-col
-          top-1/2 -translate-y-1/2
-          left-6 xl:left-8
-          sidebar-transition
-          ${expanded ? 'w-60' : 'w-[72px]'}
+          fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 shadow-sm
+          transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
-        onMouseEnter={() => setExpanded(true)}
-        onMouseLeave={() => { setExpanded(false); setHoveredItem(null); }}
       >
-        <div className="flex flex-col t-card backdrop-blur-md rounded-2xl sidebar-transition overflow-hidden py-4 px-3 shadow-2xl">
-          <div className={`flex items-center mb-6 ${expanded ? 'gap-2.5 px-1.5' : 'justify-center'}`}>
-            <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-teal-500/20">
-              <Camera className="w-5 h-5 text-white" />
+        {/* Brand */}
+        <div className="h-20 flex items-center px-6 border-b border-gray-100 justify-between lg:justify-start">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary-700 flex items-center justify-center shadow-sm">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            {expanded && (
-              <span className="text-lg font-display font-bold tracking-tight t-text whitespace-nowrap overflow-hidden">
-                SkinAI
-              </span>
-            )}
+            <span className="text-xl font-display font-bold tracking-tight text-gray-900">
+              SkinAI
+            </span>
           </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          <nav className="flex-1 space-y-1" role="navigation" aria-label="Main navigation">
-            {navItems.map((item) => {
-              const isActive = currentRoute === item.id;
-              return (
-                <div key={item.id} className="relative">
-                  <button
-                    onClick={() => handleNav(item.id as PageRoute)}
-                    onMouseEnter={() => setHoveredItem(item.id)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                    className={`
-                      w-full flex items-center gap-2.5 rounded-xl relative transition-all duration-200
-                      ${expanded ? 'px-3 py-2.5' : 'justify-center py-2.5'}
-                      ${isActive
-                        ? 'bg-gradient-to-r from-teal-500 to-teal-400 text-white shadow-md shadow-teal-500/20'
-                        : 't-text-secondary hover:t-bg-hover hover:t-text'
-                      }
-                    `}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
-                    {expanded && (
-                      <span className="whitespace-nowrap text-sm font-medium">{item.label}</span>
-                    )}
-                    {isActive && !expanded && (
-                      <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-5 bg-teal-400 rounded-r-full shadow-[0_0_8px_rgba(45,212,191,0.6)]" />
-                    )}
-                  </button>
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5" role="navigation">
+          {navItems.map((item) => {
+            const isActive = currentRoute === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNav(item.id as PageRoute)}
+                className={`
+                  w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 font-medium text-sm
+                  ${isActive
+                    ? 'bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }
+                `}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-700' : 'text-gray-400'}`} />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
 
-                  {!expanded && hoveredItem === item.id && (
-                    <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-                      <div className="t-card t-text text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
-                        {item.label}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-
-          <div className="my-3 border-t t-divider" />
+        {/* User Profile & Logout */}
+        <div className="p-4 border-t border-gray-100">
+          <button
+            onClick={handleProfileClick}
+            className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors text-left"
+          >
+            <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold text-sm shrink-0">
+              {userInitials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
+              <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+            </div>
+          </button>
           
-          <div className={`space-y-1 ${expanded ? '' : 'flex flex-col items-center'}`}>
-            <div className="relative">
-              <button
-                onClick={handleProfileClick}
-                onMouseEnter={() => setHoveredItem('profile')}
-                onMouseLeave={() => setHoveredItem(null)}
-                className={`
-                  flex items-center gap-2.5 rounded-xl transition-all duration-200
-                  ${expanded ? 'w-full px-3 py-2.5 hover:t-bg-hover' : 'justify-center py-2.5'}
-                `}
-                title={!expanded ? userName : undefined}
-              >
-                <div className="w-8 h-8 t-bg-raised border t-divider rounded-lg flex items-center justify-center text-teal-400 font-semibold text-xs flex-shrink-0">
-                  {userInitials}
-                </div>
-                {expanded && (
-                  <div className="flex-1 min-w-0 text-left">
-                    <div className="text-sm font-medium t-text truncate">{userName}</div>
-                  </div>
-                )}
-              </button>
-              {!expanded && hoveredItem === 'profile' && (
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-                  <div className="t-card t-text text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
-                    Profile
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button
-                onClick={handleLogoutClick}
-                onMouseEnter={() => setHoveredItem('logout')}
-                onMouseLeave={() => setHoveredItem(null)}
-                className={`
-                  flex items-center gap-2.5 rounded-xl transition-all duration-200
-                  t-text-secondary hover:text-red-500 hover:bg-red-500/10
-                  ${expanded ? 'w-full px-3 py-2.5' : 'justify-center py-2.5'}
-                `}
-                title={!expanded ? 'Sign Out' : undefined}
-              >
-                <LogOut className="w-5 h-5 flex-shrink-0" />
-                {expanded && (
-                  <span className="text-sm font-medium">Sign Out</span>
-                )}
-              </button>
-              {!expanded && hoveredItem === 'logout' && (
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-                  <div className="t-card t-text text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
-                    Sign Out
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <button
+            onClick={handleLogoutClick}
+            className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors font-medium text-sm group"
+          >
+            <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
+            Sign Out
+          </button>
         </div>
       </aside>
 
-      {/* Mobile Sidebar */}
-      {sidebarOpen && (
-        <aside className="lg:hidden fixed inset-y-0 left-0 z-40 flex flex-col w-[85vw] max-w-[340px]">
-          <div className="flex flex-col h-full m-3 mt-16 mb-16 t-card backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between p-5 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
-                  <Camera className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-lg font-display font-bold t-text">SkinAI</span>
-              </div>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="p-2 t-text-secondary hover:t-text rounded-lg hover:t-bg-hover transition-colors"
-                aria-label="Close sidebar"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <nav className="flex-1 py-4 px-3 space-y-1" role="navigation" aria-label="Main navigation">
-              {navItems.map((item) => {
-                const isActive = currentRoute === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNav(item.id as PageRoute)}
-                    className={`
-                      w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-200
-                      ${isActive
-                        ? 'bg-gradient-to-r from-teal-500 to-teal-400 text-white shadow-md shadow-teal-500/20'
-                        : 't-text-secondary hover:t-bg-hover hover:t-text'
-                      }
-                    `}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-
-            <div className="mx-4 border-t t-divider" />
-
-            <div className="p-3 space-y-1">
-              <button
-                onClick={handleProfileClick}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:t-bg-hover transition-all duration-200"
-              >
-                <div className="w-8 h-8 t-bg-raised border t-divider rounded-lg flex items-center justify-center text-teal-400 font-semibold text-xs flex-shrink-0">
-                  {userInitials}
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <div className="text-sm font-medium t-text truncate">{userName}</div>
-                </div>
-              </button>
-              <button
-                onClick={handleLogoutClick}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl t-text-secondary hover:text-red-500 hover:bg-red-500/10 transition-all duration-200"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="text-sm font-medium">Sign Out</span>
-              </button>
-            </div>
-          </div>
-        </aside>
-      )}
-
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 lg:ml-[88px] xl:ml-[96px]">
-        <header className="lg:hidden flex items-center gap-3 p-4 t-card backdrop-blur-md mx-3 mt-3 rounded-2xl sticky top-3 z-30 shadow-lg">
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
+        {/* Mobile Header */}
+        <header className="lg:hidden h-16 flex items-center justify-between px-4 bg-white border-b border-gray-200 z-20">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary-700 flex items-center justify-center shadow-sm">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-display font-bold text-lg tracking-tight text-gray-900">SkinAI</span>
+          </div>
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 t-text-secondary hover:t-text rounded-lg hover:t-bg-hover transition-colors"
-            aria-label="Open navigation menu"
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-6 h-6" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center shadow-lg shadow-teal-500/20">
-              <Camera className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-display font-bold text-base t-text tracking-wide">SkinAI</span>
-          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto">
