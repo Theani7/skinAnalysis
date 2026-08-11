@@ -9,10 +9,12 @@ A clinical-grade skin analysis platform that leverages multi-spectral computer v
 - **Pigmentation Analysis** — LAB a* (redness) + HSV V (dark patches) with adaptive thresholds
 - **Moisture/Texture Analysis** — Gabor filter + White Top-Hat transform for hydration and flake detection
 - **Dynamic Heatmaps** — Visualizes pigmentation and moisture levels with jet colormap gradients
-- **Personalized Recommendations** — Rule-based engine providing skincare, lifestyle, and medical advice with AM/PM routines
+- **AI Doctor (LLaMA 3)** — Real-time streaming AI chatbot via Groq, providing customized advice based on user profile and latest scan
+- **Chat History** — Persistent chat sessions with auto-titling
+- **Personalized Recommendations** — Rule-based engine providing skincare, lifestyle, and medical advice with AM/PM routines, featuring product cards
 - **Clinical Report PDF** — Export detailed analysis reports with face images, metrics, and recommendations
 - **JWT Authentication** — Secure login/register with profile management
-- **SQLite Database** — Persistent scan history and user data
+- **SQLite Database** — Persistent scan history, chat history, and user data
 
 ## Tech Stack
 
@@ -178,6 +180,10 @@ skinAnalysis/
 | GET | `/scans` | Get scan history |
 | GET | `/scans/{id}` | Get single scan details |
 | GET | `/scans/history/progress` | Get progress chart data |
+| POST | `/ai-doctor/sessions` | Create a new AI Doctor chat session |
+| GET | `/ai-doctor/sessions` | Get all AI chat sessions |
+| GET | `/ai-doctor/sessions/{id}/messages` | Get messages for a session |
+| POST | `/ai-doctor/sessions/{id}/chat` | Stream AI Doctor chat response |
 | GET | `/model/status` | Check model status |
 | GET | `/health` | Health check |
 
@@ -201,6 +207,7 @@ BACKEND_PORT=8000
 SKINAI_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 SKINAI_JWT_SECRET=your-secret-key
 SKINAI_DB_PATH=skinai.db
+GROQ_API_KEY=your-groq-api-key
 ```
 
 ### Frontend (`frontend/.env`)
