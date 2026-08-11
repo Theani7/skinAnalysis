@@ -64,7 +64,7 @@ function MetricCard({
         <span className="text-2xl font-display font-bold t-text">{score}</span>
         <span className="text-xs t-text-muted">{maxLabel}</span>
       </div>
-      <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden mb-2">
+      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mb-2">
         <div className={`h-full rounded-full transition-all duration-700 ${bar}`} style={{ width: `${barWidth}%` }} />
       </div>
       <span className={`text-xs font-medium ${textColor}`}>{value}</span>
@@ -276,7 +276,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
           </div>
           {totalTypes > 0 ? (
             <div className="space-y-4">
-              <div className="w-full h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden flex">
+              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden flex">
                 {Object.entries(typeDist).map(([type, count]) => (
                   <div
                     key={type}
@@ -401,7 +401,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold t-text text-sm">{rec.title}</h4>
                       {rec.category === 'skincare' && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/30 rounded">Shop</span>
+                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-teal-500/20 text-teal-600 border border-teal-500/30 rounded">Shop</span>
                       )}
                     </div>
                     <p className="text-xs t-text-secondary leading-relaxed mt-0.5">{rec.description}</p>
@@ -428,7 +428,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
                         rel="noopener noreferrer"
                         className="flex items-center gap-3 p-2.5 t-card hover:t-bg-hover hover:border-teal-500/50 transition-all group rounded-xl"
                       >
-                        <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-800 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-lg bg-gray-200 flex-shrink-0 overflow-hidden flex items-center justify-center">
                           {product.image ? (
                             <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                           ) : (
@@ -442,7 +442,7 @@ export default function ReportView({ result, onBack }: ReportViewProps) {
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-sm font-bold t-text">{product.price_show}</span>
                             {product.discount && (
-                              <span className="text-[10px] font-medium text-teal-600 dark:text-teal-400 bg-teal-500/20 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-medium text-teal-600 bg-teal-500/20 px-1.5 py-0.5 rounded">
                                 {product.discount}
                               </span>
                             )}

@@ -4,7 +4,6 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { ProgressRing } from '../components/ui/ProgressRing';
 import { AuthUser } from '../services/auth';
 import { getProgressData, ProgressDataPoint, RecentScanItem } from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface DashboardHomeProps {
   onStartScan: () => void;
@@ -25,7 +24,6 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
   const [latestStats, setLatestStats] = useState<{ acne_count: number; severity: string; confidence: number } | null>(null);
   const [modelOnline, setModelOnline] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const { isDark } = useTheme();
 
   useEffect(() => {
     let cancelled = false;
@@ -204,7 +202,7 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
                     dataKey="score"
                     stroke="#06b6d4"
                     strokeWidth={2}
-                    dot={{ fill: '#06b6d4', strokeWidth: 2, r: 3, stroke: isDark ? '#0f1424' : '#ffffff' }}
+                    dot={{ fill: '#06b6d4', strokeWidth: 2, r: 3, stroke: '#ffffff' }}
                     activeDot={{ r: 5, strokeWidth: 0, fill: '#06b6d4' }}
                   />
                 </LineChart>

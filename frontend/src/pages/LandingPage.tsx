@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Camera, ScanFace, Activity, FileText, Droplets, Sun, Moon, Sparkles, ChevronRight, Zap, Shield, Clock } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { Camera, ScanFace, Activity, FileText, Droplets, Sun, Sparkles, ChevronRight, Zap, Shield, Clock } from 'lucide-react';
 
 export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => void }) {
   const [scrolled, setScrolled] = useState(false);
-  const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,8 +15,8 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
   return (
     <div className="min-h-screen t-bg t-text font-sans overflow-hidden relative transition-colors duration-300">
       {/* Background gradient orbs */}
-      <div className="fixed top-[-15%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[150px] pointer-events-none animate-pulse" style={{ background: isDark ? 'rgba(136, 13, 30, 0.15)' : 'rgba(113, 127, 145, 0.08)', animationDuration: '8s' }} />
-      <div className="fixed bottom-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ background: isDark ? 'rgba(214, 51, 90, 0.1)' : 'rgba(148, 163, 184, 0.07)', animationDuration: '10s', animationDelay: '2s' }} />
+      <div className="fixed top-[-15%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[150px] pointer-events-none animate-pulse" style={{ background: 'rgba(113, 127, 145, 0.08)', animationDuration: '8s' }} />
+      <div className="fixed bottom-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ background: 'rgba(148, 163, 184, 0.07)', animationDuration: '10s', animationDelay: '2s' }} />
 
       {/* Navbar */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 't-bg/80 backdrop-blur-xl border-b t-divider py-4' : 'bg-transparent py-6'}`}>
@@ -30,13 +28,6 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
             <span className="text-xl font-bold tracking-tight t-text">SkinAI</span>
           </div>
           <div className="flex gap-3 items-center">
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 rounded-xl t-text-secondary hover:t-text t-bg-raised border t-divider transition-all hover:scale-105"
-              aria-label="Toggle Theme"
-            >
-              {isDark ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
-            </button>
             <button
               onClick={onLogin}
               className="px-5 py-2.5 text-sm font-medium t-text-secondary hover:t-text transition-colors"
@@ -57,7 +48,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
       <section className="relative pt-36 pb-24 px-6 max-w-7xl mx-auto">
         <div className="flex flex-col items-center text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-primary-700/10 border border-gray-200 dark:border-primary-700/20 text-primary-700 dark:text-primary-300 text-sm font-medium mb-8 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 text-primary-700 text-sm font-medium mb-8 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
             <span>AI-powered dermatology in seconds</span>
           </div>
@@ -88,7 +79,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
 
             <button
               onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-4 rounded-2xl bg-white dark:bg-white/5 border border-gray-300 dark:border-white/15 t-text font-semibold text-lg hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-400 transition-all flex items-center justify-center gap-2"
+              className="px-8 py-4 rounded-2xl bg-white border border-gray-300 t-text font-semibold text-lg hover:bg-gray-50 hover:border-gray-400 transition-all flex items-center justify-center gap-2"
             >
               See how it works
             </button>
@@ -97,15 +88,15 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
           {/* Trust indicators */}
           <div className="flex items-center gap-6 mt-12 text-sm t-text-muted">
             <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-trust-600 dark:text-trust-300" />
+              <Shield className="w-4 h-4 text-trust-600" />
               <span>Private &amp; secure</span>
             </div>
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-trust-600 dark:text-trust-300" />
+              <Clock className="w-4 h-4 text-trust-600" />
               <span>Results in &lt;2s</span>
             </div>
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-trust-600 dark:text-trust-300" />
+              <Zap className="w-4 h-4 text-trust-600" />
               <span>No credit card</span>
             </div>
           </div>
@@ -147,8 +138,8 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
               <div className="absolute top-4 right-4 text-6xl font-bold text-primary-700/[0.07] group-hover:text-primary-700/[0.12] transition-colors pointer-events-none">
                 0{i + 1}
               </div>
-              <div className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-all">
-                <step.icon className="w-7 h-7 text-primary-700 dark:text-primary-400" />
+              <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center mb-6 group-hover:scale-110 transition-all">
+                <step.icon className="w-7 h-7 text-primary-700" />
               </div>
               <h3 className="text-xl font-semibold t-text mb-3">{step.title}</h3>
               <p className="t-text-secondary leading-relaxed text-[0.925rem]">{step.desc}</p>
@@ -182,8 +173,8 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
                 { icon: Shield, title: 'Smart Recommendations', desc: 'Receive tailored product suggestions and care routines.' }
               ].map((feat, i) => (
                 <div key={i} className="p-7 rounded-3xl t-card hover:border-primary-700/30 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-5 group-hover:bg-gray-200 dark:group-hover:bg-white/10 transition-colors">
-                    <feat.icon className="w-6 h-6 text-primary-700 dark:text-primary-400" />
+                  <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-5 group-hover:bg-gray-200 transition-colors">
+                    <feat.icon className="w-6 h-6 text-primary-700" />
                   </div>
                   <h3 className="text-lg font-semibold t-text mb-2">{feat.title}</h3>
                   <p className="t-text-secondary text-sm leading-relaxed">{feat.desc}</p>

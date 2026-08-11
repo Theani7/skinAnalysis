@@ -3,7 +3,6 @@ import { QRCodeSVG } from 'qrcode.react';
 import { v4 as uuidv4 } from 'uuid';
 import { ArrowLeft, Smartphone, Loader2, CheckCircle2 } from 'lucide-react';
 import { analyzeImage, AnalysisResponse } from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 
 const host = window.location.hostname;
 const API_URL = import.meta.env.VITE_API_URL || `http://${host}:8000`;
@@ -14,7 +13,6 @@ interface RemoteScanViewProps {
 }
 
 export default function RemoteScanView({ onComplete, onBack }: RemoteScanViewProps) {
-  const { isDark } = useTheme();
   const [sessionId] = useState<string>(uuidv4());
   const [status, setStatus] = useState<'waiting' | 'downloading' | 'analyzing' | 'error'>('waiting');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -108,8 +106,8 @@ export default function RemoteScanView({ onComplete, onBack }: RemoteScanViewPro
               Point your phone's camera at this QR code. It will open a secure link where you can take a photo of your skin, which will instantly appear here for analysis.
             </p>
             
-            <div className={`p-4 rounded-2xl shadow-lg inline-block ${isDark ? 'bg-white' : 't-bg-raised border t-divider'}`}>
-              <QRCodeSVG value={mobileUrl} size={200} level="H" includeMargin={false} bgColor={isDark ? "#ffffff" : "transparent"} fgColor={isDark ? "#000000" : "var(--text-primary)"} />
+            <div className="p-4 rounded-2xl shadow-lg inline-block t-bg-raised border t-divider">
+              <QRCodeSVG value={mobileUrl} size={200} level="H" includeMargin={false} bgColor="transparent" fgColor="var(--text-primary)" />
             </div>
             
             <div className="flex items-center gap-3 text-sm t-text-muted pt-4">

@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { LayoutDashboard, ScanLine, History, LogOut, Menu, X, Camera, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, ScanLine, History, LogOut, Menu, X, Camera } from 'lucide-react';
 import { PageRoute } from '../../App';
 import { AuthUser } from '../../services/auth';
 import ConfirmDialog from '../ui/ConfirmDialog';
-import { useTheme } from '../../contexts/ThemeContext';
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -19,7 +18,6 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLElement>(null);
-  const { isDark, toggleTheme } = useTheme();
 
   const userInitials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -136,31 +134,6 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
           <div className={`space-y-1 ${expanded ? '' : 'flex flex-col items-center'}`}>
             <div className="relative">
               <button
-                onClick={toggleTheme}
-                onMouseEnter={() => setHoveredItem('theme')}
-                onMouseLeave={() => setHoveredItem(null)}
-                className={`
-                  flex items-center gap-2.5 rounded-xl transition-all duration-200 t-text-secondary hover:t-text hover:t-bg-hover
-                  ${expanded ? 'w-full px-3 py-2.5' : 'justify-center py-2.5'}
-                `}
-                title={!expanded ? "Toggle Theme" : undefined}
-              >
-                {isDark ? <Sun className="w-5 h-5 flex-shrink-0" /> : <Moon className="w-5 h-5 flex-shrink-0" />}
-                {expanded && (
-                  <span className="text-sm font-medium">Toggle Theme</span>
-                )}
-              </button>
-              {!expanded && hoveredItem === 'theme' && (
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-                  <div className="t-card t-text text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
-                    Toggle Theme
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button
                 onClick={handleProfileClick}
                 onMouseEnter={() => setHoveredItem('profile')}
                 onMouseLeave={() => setHoveredItem(null)}
@@ -263,13 +236,6 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
             <div className="mx-4 border-t t-divider" />
 
             <div className="p-3 space-y-1">
-              <button
-                onClick={toggleTheme}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:t-bg-hover transition-all duration-200 t-text-secondary hover:t-text"
-              >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                <span className="text-sm font-medium">Toggle Theme</span>
-              </button>
               <button
                 onClick={handleProfileClick}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:t-bg-hover transition-all duration-200"
