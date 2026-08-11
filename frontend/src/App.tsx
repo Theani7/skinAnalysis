@@ -9,8 +9,9 @@ import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
 import RemoteScanView from './pages/RemoteScanView';
 import MobileCaptureView from './pages/MobileCaptureView';
+import OnboardingModal from './components/OnboardingModal';
 import { AnalysisResponse } from './services/api';
-import { AuthUser, getStoredUser, isAuthenticated, clearAuth } from './services/auth';
+import { AuthUser, getStoredUser, isAuthenticated, clearAuth, storeAuth } from './services/auth';
 
 export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile' | 'remote-scan' | 'mobile-capture';
 
@@ -121,15 +122,27 @@ export default function App() {
     return <MobileCaptureView />;
   }
 
+  const hasCompletedOnboarding = authUser?.profile_data && Object.keys(authUser.profile_data).length > 0;
+  const showOnboarding = isAuthenticated() && authUser && !hasCompletedOnboarding;
+
+  const handleOnboardingComplete = (updatedUser: AuthUser) => {
+    setAuthUser(updatedUser);
+    const token = localStorage.getItem('skinai_token'); // Or getStoredToken if we exported it
+    if (token) storeAuth(token, updatedUser);
+  };
+
   // Authenticated Dashboard Layout
   return (
-    <DashboardLayout currentRoute={currentPage} onNavigate={navigate} user={authUser}>
-      {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onStartRemoteScan={() => navigate('remote-scan')} onViewHistory={() => navigate('history')} user={authUser} />}
-      {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} onStartRemoteScan={() => navigate('remote-scan')} />}
-      {currentPage === 'remote-scan' && <RemoteScanView onComplete={handleAnalysisComplete} onBack={() => navigate('dashboard')} />}
-      {currentPage === 'report' && <ReportView result={analysisResult} onBack={() => navigate('dashboard')} />}
-      {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}
-      {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} onLogout={handleLogout} />}
-    </DashboardLayout>
+    <>
+      <DashboardLayout currentRoute={currentPage} onNavigate={navigate} user={authUser}>
+        {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onStartRemoteScan={() => navigate('remote-scan')} onViewHistory={() => navigate('history')} user={authUser} />}
+        {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} onStartRemoteScan={() => navigate('remote-scan')} />}
+        {currentPage === 'remote-scan' && <RemoteScanView onComplete={handleAnalysisComplete} onBack={() => navigate('dashboard')} />}
+        {currentPage === 'report' && <ReportView result={analysisResult} onBack={() => navigate('dashboard')} />}
+        {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}
+        {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} onLogout={handleLogout} />}
+      </DashboardLayout>
+      {showOnboarding && <OnboardingModal user={authUser} onComplete={handleOnboardingComplete} onSkip={() => handleOnboardingComplete(authUser)} />}
+    </>
   );
 }
