@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, User, Mail, Calendar, Loader2, CheckCircle2, AlertCircle, LogOut, ChevronDown } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Loader2, CheckCircle2, AlertCircle, LogOut, ChevronDown, Info } from 'lucide-react';
 import { AuthUser, updateProfile, storeAuth, getStoredToken } from '../services/auth';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
@@ -10,6 +10,7 @@ interface ProfilePageProps {
   onLogout: () => void;
 }
 
+const BIOLOGICAL_SEX = ['Female', 'Male', 'Prefer not to say'];
 const SKIN_TYPES = ['Normal', 'Dry', 'Oily', 'Combination', 'Sensitive'];
 const AGE_GROUPS = ['Under 20', '20-29', '30-39', '40-49', '50+'];
 const FITZPATRICK_TONES = [
@@ -28,9 +29,12 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
   
   // Personalization states
   const profileData = user?.profile_data || {};
-  const [skinType, setSkinType] = useState(profileData.skinType || '');
+  const [biologicalSex, setBiologicalSex] = useState(profileData.biologicalSex || '');
   const [ageGroup, setAgeGroup] = useState(profileData.ageGroup || '');
+  
+  const [skinType, setSkinType] = useState(profileData.skinType || '');
   const [skinTone, setSkinTone] = useState(profileData.skinTone || '');
+  
   const [concerns, setConcerns] = useState<string[]>(profileData.concerns || []);
   const [routine, setRoutine] = useState(profileData.routine || '');
   const [sensitivities, setSensitivities] = useState(profileData.sensitivities || '');
@@ -74,8 +78,9 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
     }
 
     const newProfileData = {
-      skinType,
+      biologicalSex,
       ageGroup,
+      skinType,
       skinTone,
       concerns,
       routine,
@@ -147,6 +152,7 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
             </div>
           )}
 
+          {/* Group 1: Basic Information */}
           <div className="space-y-5">
             <h3 className="text-lg font-display font-bold text-gray-900">Basic Information</h3>
             <div>
@@ -186,20 +192,22 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
 
           <hr className="border-gray-100" />
 
-          <div className="space-y-6">
-            <h3 className="text-lg font-display font-bold text-gray-900">Skin Personalization</h3>
+          {/* Group 2: Demographics */}
+          <div className="space-y-5">
+            <h3 className="text-lg font-display font-bold text-gray-900">Demographics</h3>
+            <p className="text-sm text-gray-500 -mt-3">Hormones and age greatly influence skin behavior.</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Skin Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Biological Sex</label>
                 <div className="relative">
                   <select
-                    value={skinType}
-                    onChange={(e) => setSkinType(e.target.value)}
+                    value={biologicalSex}
+                    onChange={(e) => setBiologicalSex(e.target.value)}
                     className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none appearance-none"
                   >
-                    <option value="">Select skin type</option>
-                    {SKIN_TYPES.map(st => <option key={st} value={st}>{st}</option>)}
+                    <option value="">Select</option>
+                    {BIOLOGICAL_SEX.map(bs => <option key={bs} value={bs}>{bs}</option>)}
                   </select>
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
@@ -219,9 +227,55 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </div>
+            </div>
+          </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Fitzpatrick Skin Tone</label>
+          <hr className="border-gray-100" />
+
+          {/* Group 3: Skin Characteristics */}
+          <div className="space-y-5">
+            <h3 className="text-lg font-display font-bold text-gray-900">Skin Characteristics</h3>
+            
+            <div className="grid grid-cols-1 gap-5">
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                  Skin Type
+                  <a 
+                    href="https://www.healthline.com/health/beauty-skin-care/skin-type-test" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary-500 hover:text-primary-600 transition-colors"
+                    title="How to find your skin type"
+                  >
+                    <Info className="w-4 h-4" />
+                  </a>
+                </label>
+                <div className="relative">
+                  <select
+                    value={skinType}
+                    onChange={(e) => setSkinType(e.target.value)}
+                    className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none appearance-none"
+                  >
+                    <option value="">Select skin type</option>
+                    {SKIN_TYPES.map(st => <option key={st} value={st}>{st}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                  Fitzpatrick Skin Tone
+                  <a 
+                    href="https://www.healthline.com/health/beauty-skin-care/fitzpatrick-skin-types" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary-500 hover:text-primary-600 transition-colors"
+                    title="How to find your Fitzpatrick type"
+                  >
+                    <Info className="w-4 h-4" />
+                  </a>
+                </label>
                 <div className="relative">
                   <select
                     value={skinTone}
@@ -235,7 +289,14 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
                 </div>
               </div>
             </div>
+          </div>
 
+          <hr className="border-gray-100" />
+
+          {/* Group 4: Concerns & Routine */}
+          <div className="space-y-5">
+            <h3 className="text-lg font-display font-bold text-gray-900">Concerns & Sensitivities</h3>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Primary Concerns (Max 3)
