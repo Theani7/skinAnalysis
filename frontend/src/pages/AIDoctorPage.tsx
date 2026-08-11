@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 import { useChat } from '../contexts/ChatContext';
 
 export default function AIDoctorPage() {
-  const { messages, setMessages, isLoading, setIsLoading, sessions, activeSessionId, createNewChat, selectSession } = useChat();
+  const { messages, setMessages, isLoading, setIsLoading, sessions, activeSessionId, createNewChat, selectSession, refreshSessions } = useChat();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -51,11 +51,16 @@ export default function AIDoctorPage() {
           const updated = [...prev];
           const lastMsg = updated[updated.length - 1];
           if (lastMsg && lastMsg.role === 'assistant') {
+            // MUST clone the message to avoid StrictMode double-mutation
             updated[updated.length - 1] = { ...lastMsg, content: lastMsg.content + chunk };
           }
           return updated;
         });
       });
+      
+      if (messages.length <= 1) {
+        await refreshSessions();
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       setMessages(prev => {

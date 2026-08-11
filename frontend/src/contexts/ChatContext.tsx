@@ -10,6 +10,7 @@ interface ChatContextType {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   createNewChat: () => Promise<void>;
   selectSession: (id: string) => Promise<void>;
+  refreshSessions: () => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -22,6 +23,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     content: 'Hello! I am your SkinAI Assistant. How can I help you today with your skin concerns?'
   }]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const refreshSessions = async () => {
+    try {
+      const fetchedSessions = await getChatSessions();
+      setSessions(fetchedSessions);
+    } catch (err) {
+      console.error('Failed to refresh sessions:', err);
+    }
+  };
 
   useEffect(() => {
     const initSessions = async () => {
@@ -86,7 +96,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       isLoading, 
       setIsLoading, 
       createNewChat, 
-      selectSession 
+      selectSession,
+      refreshSessions
     }}>
       {children}
     </ChatContext.Provider>

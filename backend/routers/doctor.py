@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from groq import AsyncGroq
 from pydantic import BaseModel
@@ -84,10 +84,32 @@ async def list_messages(
     )
     return list(result.scalars().all())
 
+async def generate_title_background(session_id: str, content: str, api_key: str):
+    try:
+        async_client = AsyncGroq(api_key=api_key)
+        response = await async_client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "You are a title generator. Generate a concise 2-4 word title summarizing the user's message. Do NOT use quotes. Just the title."},
+                {"role": "user", "content": content}
+            ],
+            model="llama-3.1-8b-instant",
+            max_tokens=15
+        )
+        title = response.choices[0].message.content.strip().replace('"', '')
+        async with async_session() as local_db:
+            sess = await local_db.get(ChatSession, session_id)
+            if sess:
+                sess.title = title
+                local_db.add(sess)
+                await local_db.commit()
+    except Exception:
+        pass
+
 @router.post("/sessions/{session_id}/chat")
 async def chat(
     session_id: str,
     request: ChatMessageInput,
+    background_tasks: BackgroundTasks,
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -111,12 +133,8 @@ async def chat(
     previous_messages = msg_result.scalars().all()
 
     if not previous_messages:
-        words = request.content.split()
-        new_title = " ".join(words[:5])
-        if len(words) > 5:
-            new_title += "..."
-        session_obj.title = new_title
-        db.add(session_obj)
+        # Generate title in the background
+        background_tasks.add_task(generate_title_background, session_id, request.content, api_key)
 
     user_message = ChatMessage(
         session_id=session_id,
