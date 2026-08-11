@@ -629,12 +629,34 @@ async def get_progress_data(
         if not scans:
             return {"progress": [], "recent_scans": [], "latest_stats": None}
 
+        import json
         severity_scores = {"Clear": 100, "Mild": 75, "Moderate": 50, "Severe": 25}
         progress = []
         for s in scans:
+            health_score = 50
+            if s.pigmentation_data and s.dryness_data:
+                try:
+                    p_data = json.loads(s.pigmentation_data) if isinstance(s.pigmentation_data, str) else s.pigmentation_data
+                    d_data = json.loads(s.dryness_data) if isinstance(s.dryness_data, str) else s.dryness_data
+                    
+                    clarity = p_data.get("clarity_score", 100) if p_data else 100
+                    hydration = d_data.get("hydration_score", 100) if d_data else 100
+                    roughness = d_data.get("roughness_score", 0) if d_data else 0
+                    
+                    score = 100.0
+                    score -= min(30, s.acne_count * 2)
+                    score -= max(0, 100 - clarity) * 0.3
+                    score -= max(0, 100 - hydration) * 0.2
+                    score -= min(20, roughness * 2)
+                    health_score = max(0, int(round(score)))
+                except Exception:
+                    health_score = severity_scores.get(s.severity, 50)
+            else:
+                health_score = severity_scores.get(s.severity, 50)
+
             progress.append({
                 "date": s.created_at.strftime("%b %d"),
-                "score": severity_scores.get(s.severity, 50),
+                "score": health_score,
                 "acne_count": s.acne_count,
                 "severity": s.severity,
                 "id": s.id,

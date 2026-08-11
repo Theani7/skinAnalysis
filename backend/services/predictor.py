@@ -1242,11 +1242,29 @@ class AcnePredictor:
 
             recommendation_data = _generate_recommendations(acne_count, severity, pigmentation_data, dryness_data, spot_types)
 
+            # --- Health Score Algorithm ---
+            clarity = pigmentation_data.get("clarity_score", 100) if pigmentation_data else 100
+            hydration = dryness_data.get("hydration_score", 100) if dryness_data else 100
+            roughness = dryness_data.get("roughness_score", 0) if dryness_data else 0
+
+            score = 100.0
+            # Acne penalty: up to 30 points (2 points per spot)
+            score -= min(30, acne_count * 2)
+            # Pigmentation penalty: up to 30 points
+            score -= max(0, 100 - clarity) * 0.3
+            # Hydration penalty: up to 20 points
+            score -= max(0, 100 - hydration) * 0.2
+            # Texture penalty: up to 20 points
+            score -= min(20, roughness * 2)
+            
+            health_score = max(0, int(round(score)))
+
             return {
                 "status": "success",
                 "acne_count": acne_count,
                 "severity": severity,
                 "confidence": round(avg_conf, 4),
+                "health_score": health_score,
                 "detections": all_detections,
                 "result_image": result_filename,
                 "result_path": result_path,
@@ -1268,6 +1286,7 @@ class AcnePredictor:
                 "acne_count": 0,
                 "severity": "Unknown",
                 "confidence": 0.0,
+                "health_score": 0,
                 "detections": [],
                 "result_image": None,
                 "recommendations": [],

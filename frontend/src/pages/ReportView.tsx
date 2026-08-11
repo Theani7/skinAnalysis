@@ -135,7 +135,7 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
     );
   }
 
-  const overallScore = Math.round(result.confidence * 100);
+  const overallScore = result.health_score ?? Math.round(result.confidence * 100);
   const clarity = result.pigmentation_data?.clarity_score ?? 100;
   const hydration = result.dryness_data?.hydration_score ?? 100;
   const roughness = result.dryness_data?.roughness_score ?? 0;

@@ -118,6 +118,7 @@ export interface AnalysisResponse {
   acne_count: number;
   severity: 'Clear' | 'Mild' | 'Moderate' | 'Severe';
   confidence: number;
+  health_score: number;
   result_image: string;
   original_path: string;
   result_path: string;
