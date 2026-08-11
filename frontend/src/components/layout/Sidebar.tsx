@@ -69,12 +69,11 @@ export default function Sidebar({
         {/* Brand */}
         <div className={`h-20 flex items-center border-b border-gray-100 relative ${isCollapsed ? 'justify-center px-0 lg:px-0' : 'justify-between px-6 lg:justify-start'}`}>
           <div className="flex items-center gap-2.5">
-            <div className={`w-8 h-8 rounded-lg bg-primary-700 flex items-center justify-center shadow-sm shrink-0 ${isCollapsed ? 'lg:ml-0' : ''}`}>
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            {(!isCollapsed || sidebarOpen) && (
-              <span className="text-xl font-display font-bold tracking-tight text-gray-900 lg:block lg:whitespace-nowrap overflow-hidden transition-opacity duration-300">
-                SkinAI
+            {isCollapsed && !sidebarOpen ? (
+              <span className="text-xl font-bold tracking-tight text-primary-700">S</span>
+            ) : (
+              <span className="text-xl font-bold tracking-tight text-gray-900 lg:whitespace-nowrap overflow-hidden transition-opacity duration-300">
+                Skin<span className="text-primary-700">AI</span>
               </span>
             )}
           </div>

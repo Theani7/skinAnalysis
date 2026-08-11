@@ -126,8 +126,8 @@ export default function LoginPage({ open, initialMode = 'login', onLogin, onClos
 
         {/* Header */}
         <div className="px-8 pt-10 pb-6 text-center">
-          <div className="w-12 h-12 rounded-xl bg-primary-700 flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-5.5 h-5.5 text-white" />
+          <div className="mb-4">
+            <span className="text-2xl font-bold tracking-tight text-gray-900">Skin<span className="text-primary-700">AI</span></span>
           </div>
           <h2 className="font-sans text-2xl font-bold tracking-tight t-text">
             {isLogin ? 'Welcome back' : 'Create account'}

@@ -163,10 +163,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
       <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary-700 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-base font-semibold tracking-tight text-gray-900">SkinAI</span>
+            <span className="text-xl font-bold tracking-tight text-gray-900">Skin<span className="text-primary-700">AI</span></span>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={onLogin} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
@@ -369,10 +366,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-primary-700 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-lg font-semibold tracking-tight text-gray-900">SkinAI</span>
+                <span className="text-xl font-bold tracking-tight text-gray-900">Skin<span className="text-primary-700">AI</span></span>
               </div>
               <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
                 Advanced AI-powered dermatology, making clinical-grade skin analysis accessible to everyone. Your journey to healthier skin starts here.
