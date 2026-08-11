@@ -470,55 +470,61 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
 
               {/* Daraz products */}
               {rec.products && rec.products.length > 0 && (
-                <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <ShoppingBag className="w-3 h-3 text-primary-500" />
-                    <span className="text-[10px] font-medium text-primary-600 uppercase tracking-wider">Available on Daraz</span>
+                <div className="border-t border-gray-100 bg-gray-50/50 px-5 py-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4 text-primary-500" />
+                      <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Recommended Products</span>
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Daraz</span>
                   </div>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {rec.products.map((product: any, idx: number) => (
                       <a
                         key={idx}
                         href={product.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-2.5 bg-white border border-gray-100 hover:bg-gray-50 hover:border-primary-200 transition-all group rounded-xl shadow-sm"
+                        className="flex flex-col p-3 bg-white border border-gray-100 hover:border-primary-300 hover:shadow-md transition-all group rounded-2xl shadow-sm relative overflow-hidden"
                       >
-                        <div className="w-12 h-12 rounded-lg bg-gray-200 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                        <div className="w-full aspect-square rounded-xl bg-gray-50 overflow-hidden mb-3 relative flex items-center justify-center">
                           {product.image ? (
-                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                            <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />
                           ) : (
-                            <ShoppingBag className="w-5 h-5 text-gray-400" />
+                            <ShoppingBag className="w-8 h-8 text-gray-300" />
                           )}
+                          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                            <ExternalLink className="w-3.5 h-3.5 text-gray-700" />
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-600 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                        <div className="flex-1 flex flex-col">
+                          <p className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors flex-1 mb-3">
                             {product.name}
                           </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm font-bold text-gray-900">{product.price_show}</span>
-                            {product.discount && (
-                              <span className="text-[10px] font-medium text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded">
-                                {product.discount}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            {product.rating > 0 && (
-                              <div className="flex items-center gap-0.5">
-                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                                <span className="text-[10px] text-gray-500">{product.rating}</span>
+                          <div className="flex items-end justify-between mt-auto pt-2 border-t border-gray-50">
+                            <div className="flex flex-col">
+                              <span className="text-lg font-display font-bold text-gray-900 tracking-tight leading-none">{product.price_show}</span>
+                              {product.discount && (
+                                <span className="text-[10px] font-semibold text-primary-600 mt-1">
+                                  {product.discount} OFF
+                               </span>
+                              )}
+                            </div>
+                            {(product.rating > 0 || product.sold) && (
+                              <div className="flex flex-col items-end gap-1">
+                                {product.rating > 0 && (
+                                  <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded text-amber-700">
+                                    <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                    <span className="text-xs font-bold">{product.rating}</span>
+                                  </div>
+                                )}
+                                {product.sold && (
+                                  <span className="text-[10px] text-gray-400 font-medium">{product.sold.replace(' sold', '')} sold</span>
+                                )}
                               </div>
-                            )}
-                            {product.reviews > 0 && (
-                              <span className="text-[10px] text-gray-500">({product.reviews})</span>
-                            )}
-                            {product.sold && (
-                              <span className="text-[10px] text-gray-500">{product.sold}</span>
                             )}
                           </div>
                         </div>
-                        <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-primary-500 flex-shrink-0 transition-colors" />
                       </a>
                     ))}
                   </div>
