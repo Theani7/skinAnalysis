@@ -123,13 +123,13 @@ export default function App() {
 
   // Authenticated Dashboard Layout
   return (
-    <DashboardLayout currentRoute={currentPage} onNavigate={navigate} onLogout={handleLogout} user={authUser}>
+    <DashboardLayout currentRoute={currentPage} onNavigate={navigate} user={authUser}>
       {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onStartRemoteScan={() => navigate('remote-scan')} onViewHistory={() => navigate('history')} user={authUser} />}
       {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} onStartRemoteScan={() => navigate('remote-scan')} />}
       {currentPage === 'remote-scan' && <RemoteScanView onComplete={handleAnalysisComplete} onBack={() => navigate('dashboard')} />}
       {currentPage === 'report' && <ReportView result={analysisResult} onBack={() => navigate('dashboard')} />}
       {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}
-      {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} />}
+      {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} onLogout={handleLogout} />}
     </DashboardLayout>
   );
 }

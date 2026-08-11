@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { PageRoute } from '../../App';
 import { AuthUser } from '../../services/auth';
-import ConfirmDialog from '../ui/ConfirmDialog';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
@@ -9,23 +8,12 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
   currentRoute: PageRoute;
   onNavigate: (route: PageRoute) => void;
-  onLogout: () => void;
   user?: AuthUser | null;
 }
 
-export default function DashboardLayout({ children, currentRoute, onNavigate, onLogout, user }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, currentRoute, onNavigate, user }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-  const handleLogoutClick = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const handleConfirmLogout = () => {
-    setShowLogoutConfirm(false);
-    onLogout();
-  };
 
   return (
     <div className="flex h-screen bg-gray-50 text-gray-900 font-sans overflow-hidden">
@@ -36,7 +24,6 @@ export default function DashboardLayout({ children, currentRoute, onNavigate, on
         setIsCollapsed={setIsCollapsed}
         currentRoute={currentRoute}
         onNavigate={onNavigate}
-        onLogoutClick={handleLogoutClick}
         user={user}
       />
 
@@ -49,17 +36,6 @@ export default function DashboardLayout({ children, currentRoute, onNavigate, on
           </div>
         </main>
       </div>
-
-      <ConfirmDialog
-        open={showLogoutConfirm}
-        title="Sign Out"
-        message="Are you sure you want to sign out? You'll need to log in again to access your dashboard."
-        confirmLabel="Sign Out"
-        cancelLabel="Cancel"
-        danger
-        onConfirm={handleConfirmLogout}
-        onCancel={() => setShowLogoutConfirm(false)}
-      />
     </div>
   );
 }

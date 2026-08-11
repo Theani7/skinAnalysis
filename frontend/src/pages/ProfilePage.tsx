@@ -1,18 +1,21 @@
 import { useState } from 'react';
-import { ArrowLeft, User, Mail, Calendar, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Loader2, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 import { AuthUser, updateProfile, storeAuth, getStoredToken } from '../services/auth';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 interface ProfilePageProps {
   user: AuthUser | null;
   onBack: () => void;
   onUserUpdate: (user: AuthUser) => void;
+  onLogout: () => void;
 }
 
-export default function ProfilePage({ user, onBack, onUserUpdate }: ProfilePageProps) {
+export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: ProfilePageProps) {
   const [name, setName] = useState(user?.name || '');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   if (!user) return null;
 
@@ -157,7 +160,33 @@ export default function ProfilePage({ user, onBack, onUserUpdate }: ProfilePageP
             </button>
           </div>
         </form>
+
+        {/* Account Actions Section */}
+        <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Account Actions</h3>
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2.5 rounded-xl transition-colors w-full sm:w-auto justify-center"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </button>
+        </div>
       </div>
+
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        title="Sign Out"
+        message="Are you sure you want to sign out? You'll need to log in again to access your dashboard."
+        confirmLabel="Sign Out"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={() => {
+          setShowLogoutConfirm(false);
+          onLogout();
+        }}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   );
 }

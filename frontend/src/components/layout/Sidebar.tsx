@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, ScanLine, History, LogOut, X, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, ScanLine, History, X, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PageRoute } from '../../App';
 import { AuthUser } from '../../services/auth';
 
@@ -10,7 +10,6 @@ interface SidebarProps {
   setIsCollapsed: (collapsed: boolean) => void;
   currentRoute: PageRoute;
   onNavigate: (route: PageRoute) => void;
-  onLogoutClick: () => void;
   user?: AuthUser | null;
 }
 
@@ -21,7 +20,6 @@ export default function Sidebar({
   setIsCollapsed,
   currentRoute,
   onNavigate,
-  onLogoutClick,
   user
 }: SidebarProps) {
   const userInitials = user?.name
@@ -149,23 +147,6 @@ export default function Sidebar({
               <div className="hidden lg:group-hover:block absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 pointer-events-none">
                 <div className="bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
                   Profile
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <div className="relative group mt-2">
-            <button
-              onClick={onLogoutClick}
-              className={`w-full flex items-center rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors font-medium text-sm ${isCollapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2.5'}`}
-            >
-              <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors shrink-0" />
-              {(!isCollapsed || sidebarOpen) && <span>Sign Out</span>}
-            </button>
-            {isCollapsed && (
-              <div className="hidden lg:group-hover:block absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 pointer-events-none">
-                <div className="bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
-                  Sign Out
                 </div>
               </div>
             )}
