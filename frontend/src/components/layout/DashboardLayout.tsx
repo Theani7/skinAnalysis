@@ -4,6 +4,7 @@ import { AuthUser } from '../../services/auth';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import OnboardingModal from '../onboarding/OnboardingModal';
+import FloatingAssistant from '../ui/FloatingAssistant';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -45,6 +46,8 @@ export default function DashboardLayout({ children, currentRoute, onNavigate, us
         </main>
       </div>
       
+      <FloatingAssistant />
+
       {showOnboarding && user && (
         <OnboardingModal 
           userName={user.name} 
