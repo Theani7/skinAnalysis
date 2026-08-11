@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Sparkles, ChevronRight, Shield, Clock, Zap, SunMoon, Camera, ScanFace, Activity, FileText, Check, Sun, Moon, Droplets } from 'lucide-react';
-import { ProgressRing } from '../components/ui/ProgressRing';
+import { Sparkles, ChevronRight, Shield, Clock, SunMoon, Camera, ScanFace, Activity, FileText, Sun, Moon } from 'lucide-react';
 
 const DELAY = (i: number) => ({ ['--reveal-delay' as string]: `${i * 60}ms` });
 
@@ -59,11 +58,6 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
     { slug: 'analyze', icon: ScanFace, title: 'Analyze', desc: 'Computer-vision models map lesions, tone, and texture in under two seconds.' },
     { slug: 'score', icon: Activity, title: 'Score', desc: 'Acne, pigmentation, and hydration are scored against a clinical severity scale.' },
     { slug: 'report', icon: FileText, title: 'Report', desc: 'Get an AM/PM skincare routine with product matches tailored to your skin type.' },
-  ];
-
-  const routine = [
-    { time: 'AM', label: 'Gentle cleanser, azelaic acid, SPF 50+' },
-    { time: 'PM', label: 'Salicylic acid 2% spot treatment, ceramide moisturizer' },
   ];
 
   return (
@@ -253,158 +247,6 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
         </div>
       </section>
 
-      {/* Capabilities */}
-      <section className="px-6 max-w-7xl mx-auto pb-24 md:pb-28">
-        <div className="max-w-2xl">
-          <h2 className="font-sans text-3xl md:text-4xl font-bold tracking-tight text-gray-900">Everything a skin exam measures</h2>
-          <p className="mt-4 text-lg leading-relaxed text-gray-600">
-            The same indicators a dermatologist checks, quantified by computer vision.
-          </p>
-        </div>
-
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Acne detection */}
-          <div className="lg:col-span-7 t-scroll-reveal rounded-xl border border-gray-200 bg-white overflow-hidden">
-            <div className="aspect-[4/3] bg-gray-100">
-              <img
-                src="/cap-detection.jpg"
-                alt="Acne lesion detection with bounding-box markers"
-                className="w-full h-full object-cover"
-                loading="lazy"
-                width={836}
-                height={627}
-              />
-            </div>
-            <div className="p-7 md:p-8">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
-                  <ScanFace className="w-4.5 h-4.5 text-primary-700" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Acne detection</h3>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600 max-w-lg">
-                Identifies papules, pustules, blackheads, and comedones with bounding-box precision on a clinical severity scale.
-              </p>
-            </div>
-          </div>
-
-          {/* Severity scoring */}
-          <div className="lg:col-span-5 t-scroll-reveal rounded-xl border border-gray-200 bg-white p-7 md:p-8 flex flex-col">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
-                <Activity className="w-4.5 h-4.5 text-primary-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Severity scoring</h3>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-gray-600">
-              Lesion counts and types aggregate into a mild-to-severe score you can track between scans.
-            </p>
-            <div className="mt-auto pt-6 flex items-center gap-6">
-              <div className="w-28 h-28">
-                <ProgressRing value={62} size={110} strokeWidth={8} color="#880d1e" bgColor="rgba(136,13,30,0.12)" label="Moderate" />
-              </div>
-              <div className="space-y-2.5 text-sm">
-                <div className="flex items-center justify-between gap-8">
-                  <span className="text-gray-600">Active lesions</span>
-                  <span className="font-semibold text-gray-900 tabular-nums">12</span>
-                </div>
-                <div className="flex items-center justify-between gap-8">
-                  <span className="text-gray-600">Zones affected</span>
-                  <span className="font-semibold text-gray-900 tabular-nums">3</span>
-                </div>
-                <div className="flex items-center justify-between gap-8">
-                  <span className="text-gray-600">Trend vs last scan</span>
-                  <span className="font-semibold text-gray-900 tabular-nums">-18%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Texture & hydration */}
-          <div className="lg:col-span-5 t-scroll-reveal rounded-xl border border-gray-200 bg-white overflow-hidden">
-            <div className="aspect-[4/3] bg-gray-100">
-              <img
-                src="/cap-texture.png"
-                alt="Macro view of skin texture and hydration"
-                className="w-full h-full object-cover"
-                loading="lazy"
-                width={900}
-                height={675}
-              />
-            </div>
-            <div className="p-7 md:p-8">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
-                  <Droplets className="w-4.5 h-4.5 text-primary-700" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Texture &amp; hydration</h3>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                Surface roughness and barrier health estimated from texture gradients across your skin map.
-              </p>
-            </div>
-          </div>
-
-          {/* Personalized routine */}
-          <div className="lg:col-span-7 t-scroll-reveal rounded-xl border border-gray-200 bg-white overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-2">
-              <div className="aspect-[4/3] md:aspect-auto md:h-full bg-gray-100">
-                <img
-                  src="/cap-routine.png"
-                  alt="Skincare products flat lay"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  width={900}
-                  height={675}
-                />
-              </div>
-              <div className="p-7 md:p-8 bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
-                    <Sparkles className="w-4.5 h-4.5 text-primary-700" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Personalized routine</h3>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                  Recommendations adapt to your scan history and severity trend, with product matches for your skin type. Example:
-                </p>
-                <div className="mt-5 flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-medium text-gray-500">Skin type:</span>
-                  {['Dry', 'Oily', 'Combination', 'Sensitive'].map((t) => (
-                    <span
-                      key={t}
-                      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-                        t === 'Oily'
-                          ? 'bg-white border-primary-700/25 text-primary-700'
-                          : 'bg-white border-gray-200 text-gray-500'
-                      }`}
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-4 space-y-2.5">
-                  {routine.map((r) => (
-                    <div key={r.time} className="flex items-center gap-3.5 rounded-lg bg-white border border-gray-200 px-4 py-3">
-                      {r.time === 'AM' ? <Sun className="w-4 h-4 text-gray-400 shrink-0" /> : <Moon className="w-4 h-4 text-gray-400 shrink-0" />}
-                      <span className="font-mono text-xs text-gray-500 w-7 shrink-0">{r.time}</span>
-                      <span className="text-sm text-gray-700">{r.label}</span>
-                      <Check className="w-4 h-4 text-primary-700 ml-auto shrink-0" />
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-3.5 rounded-lg bg-white border border-gray-200 px-4 py-3">
-                    <Sparkles className="w-4 h-4 text-primary-700 shrink-0" />
-                    <span className="text-sm text-gray-700">
-                      Recommended for <span className="font-medium text-gray-900">oily, acne-prone skin</span>:
-                      niacinamide serum, salicylic acid cleanser
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA */}
       <section className="px-6 max-w-7xl mx-auto pb-24 md:pb-28">
