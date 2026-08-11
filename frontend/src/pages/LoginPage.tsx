@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { X, Loader2, Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { loginUser, registerUser, storeAuth, AuthUser } from '../services/auth';
 
 interface LoginPageProps {

@@ -33,7 +33,7 @@ const RoutineReminders: React.FC<RoutineRemindersProps> = ({ onClose }) => {
         console.error("Failed to parse reminders", e);
       }
     }
-  }, []);
+  }, [remindersKey]);
 
   const handleSave = () => {
     localStorage.setItem(remindersKey, JSON.stringify(settings));

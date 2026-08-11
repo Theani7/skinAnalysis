@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Search, ShoppingBag, ExternalLink, Loader2, GripVertical, X } from 'lucide-react';
+import { Check, Search, ShoppingBag, Loader2, GripVertical, X } from 'lucide-react';
 import { searchDarazProducts, DarazProduct } from '../../services/api';
 
 export interface RoutineStep {

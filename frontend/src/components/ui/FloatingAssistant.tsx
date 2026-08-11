@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, User, Send, Loader2, X, Sparkles, Plus } from 'lucide-react';
+import { Bot, Send, Loader2, X, Plus } from 'lucide-react';
 import { streamSessionMessage, ChatMessage } from '../../services/api';
-import { getStoredUser } from '../../services/auth';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useChat } from '../../contexts/ChatContext';

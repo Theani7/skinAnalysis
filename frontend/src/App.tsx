@@ -15,7 +15,7 @@ import AIDoctorPage from './pages/AIDoctorPage';
 import LifestylePage from './pages/LifestylePage';
 import NotFoundPage from './pages/NotFoundPage';
 import { AnalysisResponse } from './services/api';
-import { AuthUser, getStoredUser, isAuthenticated, clearAuth, storeAuth } from './services/auth';
+import { AuthUser, getStoredUser, isAuthenticated, clearAuth } from './services/auth';
 import { ChatProvider } from './contexts/ChatContext';
 
 export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile' | 'remote-scan' | 'mobile-capture' | 'saved-products' | 'routine' | 'lifestyle' | 'doctor' | 'not-found';

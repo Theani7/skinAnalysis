@@ -91,27 +91,6 @@ export class ApiError extends Error {
   }
 }
 
-export interface ProcessResponse {
-  status: 'success' | 'error';
-  original_image: string;
-  processed_image: string;
-  original_path: string;
-  processed_path: string;
-  dimensions: {
-    width: number;
-    height: number;
-  };
-  normalized: boolean;
-}
-
-export interface UploadResponse {
-  status: 'success' | 'error';
-  message: string;
-  filename: string;
-  path: string;
-  size: number;
-}
-
 export interface AnalysisResponse {
   status: 'success' | 'error';
   original_image: string;
@@ -196,22 +175,6 @@ export function validateFile(file: File): void {
     throw new ApiError('File is empty. Please select a valid image.', 400);
   }
 }
-
-export const processImage = async (file: File): Promise<ProcessResponse> => {
-  validateFile(file);
-  const formData = new FormData();
-  formData.append('file', file);
-  const response = await api.post<ProcessResponse>('/process', formData);
-  return response.data;
-};
-
-export const uploadImage = async (file: File): Promise<UploadResponse> => {
-  validateFile(file);
-  const formData = new FormData();
-  formData.append('file', file);
-  const response = await api.post<UploadResponse>('/upload', formData);
-  return response.data;
-};
 
 export const analyzeImage = async (file: File): Promise<AnalysisResponse> => {
   validateFile(file);
@@ -300,16 +263,6 @@ export const getScanHistory = async (limit = 20, offset = 0): Promise<ScanListRe
 
 export const getScanDetail = async (scanId: string): Promise<ScanDetailResponse> => {
   const response = await api.get(`/scans/${scanId}`);
-  return response.data;
-};
-
-export const deleteAccount = async () => {
-  const response = await api.delete('/auth/account');
-  return response.data;
-};
-
-export const changePassword = async (data: any) => {
-  const response = await api.put('/auth/password', data);
   return response.data;
 };
 

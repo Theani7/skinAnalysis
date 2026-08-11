@@ -93,4 +93,4 @@ export async function deleteAccount(): Promise<void> {
   await api.delete('/auth/account');
 }
 
-export { api as authApi, ApiError, API_BASE_URL };
+export { ApiError, API_BASE_URL };

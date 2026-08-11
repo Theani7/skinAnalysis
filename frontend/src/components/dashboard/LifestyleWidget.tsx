@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Droplets, Moon, Wind, Plus, Minus } from 'lucide-react';
+import { Droplets, Wind, Plus, Minus } from 'lucide-react';
 
 export default function LifestyleWidget() {
   const [water, setWater] = useState(0);

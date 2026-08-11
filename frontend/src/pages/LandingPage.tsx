@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Sparkles, ChevronRight, Shield, Clock, SunMoon, Camera, ScanFace, Activity, FileText, Sun, Moon, Check, Zap, Eye, TrendingUp } from 'lucide-react';
+import { ChevronRight, Camera, ScanFace, Activity, FileText, Sun, Moon, Check } from 'lucide-react';
 
 /* ── Animated counter ──────────────────────────────────────────────── */
 function CountUp({ target, suffix = '' }: { target: number | string; suffix?: string }) {

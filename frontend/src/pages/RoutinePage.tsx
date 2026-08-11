@@ -70,7 +70,7 @@ export default function RoutinePage({ onStartScan }: RoutinePageProps) {
       }
     }
     fetchRoutine();
-  }, [todayKey]);
+  }, [todayKey, customRoutineKey]);
 
   const toggleStep = (stepId: string) => {
     if (isEditMode) return;

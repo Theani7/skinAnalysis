@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronRight, ArrowRight, ArrowLeft, Droplets, Sun, Sparkles, Activity, ShieldCheck, HeartPulse, User, Calendar, Target, Palette } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Droplets, Sun, Sparkles, Activity, ShieldCheck, HeartPulse, User, Calendar, Target, Palette } from 'lucide-react';
 import api from '../../services/api';
 
 interface OnboardingModalProps {
@@ -27,7 +27,7 @@ export default function OnboardingModal({ userName, onComplete }: OnboardingModa
     try {
       const finalData = { ...profileData, onboarding_completed: true };
       
-      const res = await api.put('/auth/profile', {
+      await api.put('/auth/profile', {
         name: userName,
         profile_data: finalData
       });

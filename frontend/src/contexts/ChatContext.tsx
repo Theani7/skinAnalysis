@@ -97,15 +97,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const deleteChat = async (id: string) => {
     try {
       await import('../services/api').then(m => m.deleteChatSession(id));
-      setSessions(prev => prev.filter(s => s.id !== id));
-      if (activeSessionId === id) {
-        const remaining = sessions.filter(s => s.id !== id);
-        if (remaining.length > 0) {
-          await selectSession(remaining[0].id);
-        } else {
-          await createNewChat();
+      setSessions(prev => {
+        const remaining = prev.filter(s => s.id !== id);
+        if (activeSessionId === id) {
+          if (remaining.length > 0) {
+            selectSession(remaining[0].id);
+          } else {
+            createNewChat();
+          }
         }
-      }
+        return remaining;
+      });
     } catch (err) {
       console.error('Failed to delete chat:', err);
     }
@@ -129,6 +131,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useChat() {
   const context = useContext(ChatContext);
   if (context === undefined) {

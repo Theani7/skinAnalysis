@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, User, Send, Loader2, Info, Plus, MessageSquare, Trash2 } from 'lucide-react';
+import { Bot, Send, Loader2, Info, Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { streamSessionMessage, ChatMessage } from '../services/api';
-import { getStoredUser } from '../services/auth';
+
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useChat } from '../contexts/ChatContext';
@@ -11,7 +11,6 @@ export default function AIDoctorPage() {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const userName = getStoredUser()?.name?.split(' ')[0] || 'You';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -70,7 +69,7 @@ export default function AIDoctorPage() {
         const updated = [...prev];
         const lastMsg = updated[updated.length - 1];
         if (lastMsg && lastMsg.role === 'assistant' && lastMsg.content === '') {
-          lastMsg.content = 'Sorry, I encountered an error while processing your request.';
+          updated[updated.length - 1] = { ...lastMsg, content: 'Sorry, I encountered an error while processing your request.' };
         }
         return updated;
       });

@@ -173,50 +173,6 @@ def _assess_face_quality(image: np.ndarray, face_box: Tuple[int, int, int, int])
     }
 
 
-def _get_face_landmarks_region(image: np.ndarray, face_box: Tuple[int, int, int, int]) -> Dict[str, Tuple[int, int, int, int]]:
-    """Estimate facial regions (forehead, T-zone, cheeks, chin) from face bounding box."""
-    x1, y1, x2, y2 = face_box
-    fw = x2 - x1
-    fh = y2 - y1
-    img_h, img_w = image.shape[:2]
-
-    # Define proportional regions within the face box
-    regions = {
-        "forehead": (
-            max(0, x1 + int(fw * 0.15)),
-            max(0, y1),
-            min(img_w, x2 - int(fw * 0.15)),
-            min(img_h, y1 + int(fh * 0.3))
-        ),
-        "t_zone": (
-            max(0, x1 + int(fw * 0.3)),
-            max(0, y1 + int(fh * 0.2)),
-            min(img_w, x2 - int(fw * 0.3)),
-            min(img_h, y1 + int(fh * 0.65))
-        ),
-        "left_cheek": (
-            max(0, x1),
-            max(0, y1 + int(fh * 0.3)),
-            min(img_w, x1 + int(fw * 0.4)),
-            min(img_h, y1 + int(fh * 0.7))
-        ),
-        "right_cheek": (
-            max(0, x2 - int(fw * 0.4)),
-            max(0, y1 + int(fh * 0.3)),
-            min(img_w, x2),
-            min(img_h, y1 + int(fh * 0.7))
-        ),
-        "chin": (
-            max(0, x1 + int(fw * 0.2)),
-            max(0, y1 + int(fh * 0.7)),
-            min(img_w, x2 - int(fw * 0.2)),
-            min(img_h, y2)
-        ),
-    }
-
-    return regions
-
-
 def _create_skin_mask(image: np.ndarray) -> np.ndarray:
     """Create a mask of skin-colored regions using multi-range detection."""
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)

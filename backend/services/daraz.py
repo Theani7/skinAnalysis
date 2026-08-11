@@ -9,7 +9,7 @@ Results are cached to avoid redundant requests.
 import asyncio
 import logging
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import httpx
 
@@ -203,6 +203,4 @@ async def search_products_for_recommendations(
     return product_map
 
 
-def get_search_query(recommendation_id: str) -> Optional[str]:
-    """Get the Daraz search query for a recommendation ID."""
-    return RECOMMENDATION_SEARCH_QUERIES.get(recommendation_id)
+

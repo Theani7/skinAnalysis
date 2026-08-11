@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Calendar, Inbox, ArrowLeft, TrendingUp, Clock, Loader2, AlertCircle } from 'lucide-react';
+import { Calendar, ArrowLeft, TrendingUp, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { getScanHistory, ScanListItem } from '../services/api';
 
 interface HistoryPageProps {

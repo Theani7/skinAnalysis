@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Sun, CloudRain, Thermometer, Droplets, MapPin, Loader2, AlertCircle } from 'lucide-react';
+import { Cloud, Sun, CloudRain, Droplets, MapPin, Loader2 } from 'lucide-react';
 
 interface WeatherData {
   temperature: number;
@@ -12,7 +12,7 @@ export default function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [locationName, setLocationName] = useState<string>('Local Weather');
+  const [locationName] = useState<string>('Local Weather');
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -49,7 +49,7 @@ export default function WeatherWidget() {
           setLoading(false);
         }
       },
-      (err) => {
+      () => {
         setError('Location access denied');
         setLoading(false);
       },

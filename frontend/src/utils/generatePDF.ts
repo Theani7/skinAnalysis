@@ -39,7 +39,7 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
   const muted   = [100, 116, 139];
   const ghost   = [148, 163, 184];
   const silver  = [226, 232, 240];
-  const cloud   = [241, 245, 249];
+
   const snow    = [248, 250, 252];
   const white   = [255, 255, 255];
   const navy    = [15,  23,  42];
@@ -212,7 +212,6 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
   // ── Severity badge on light background ──
   y = 116;
   const sevColor = result.severity === 'Severe' ? rose : result.severity === 'Moderate' ? amber : emerald;
-  const sevBg    = result.severity === 'Severe' ? roseLight : result.severity === 'Moderate' ? amberLight : emeraldLight;
 
   fillRect(margin, y, contentWidth, 20, snow, 3);
   strokeRect(margin, y, contentWidth, 20, silver, 3);

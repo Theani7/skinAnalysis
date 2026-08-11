@@ -19,6 +19,7 @@ def _cleanup_rate_limit():
         del RATE_LIMITS[k]
 
 def _check_rate_limit(key: str, max_requests: int = RATE_LIMIT_MAX_REQUESTS) -> bool:
+    _cleanup_rate_limit()
     current = time.time()
     if key not in RATE_LIMITS:
         RATE_LIMITS[key] = {"count": 1, "reset_time": current + RATE_LIMIT_WINDOW}
@@ -40,11 +41,11 @@ def validate_image(file: UploadFile) -> bool:
     if not file.filename:
         return False
     ext = file.filename.split('.')[-1].lower()
-    if ext not in {'jpg', 'jpeg', 'png'}:
-        return False
-    if not file.content_type or not file.content_type.startswith('image/'):
-        return False
-    return True
+    if file.content_type and file.content_type.startswith('image/'):
+        return True
+    if ext in {'jpg', 'jpeg', 'png'}:
+        return True
+    return False
 
 def save_uploaded_file(file: UploadFile, contents: bytes, directory: str) -> str:
     if not os.path.exists(directory):
@@ -56,9 +57,4 @@ def save_uploaded_file(file: UploadFile, contents: bytes, directory: str) -> str
         f.write(contents)
     return safe_name
 
-def _clean_up_file(file_path: str):
-    try:
-        if file_path and os.path.exists(file_path):
-            os.remove(file_path)
-    except Exception as e:
-        logger.error(f"Failed to clean up file {file_path}: {e}")
+

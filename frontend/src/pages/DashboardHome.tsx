@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, ScanLine, TrendingUp, Calendar, Clock, ChevronRight, Lightbulb, Heart, AlertCircle, Sparkles, Plus } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart } from 'recharts';
+import { Activity, ScanLine, TrendingUp, Calendar, Clock, Lightbulb, Heart, AlertCircle, Sparkles } from 'lucide-react';
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart } from 'recharts';
 import { ProgressRing } from '../components/ui/ProgressRing';
 import WeatherWidget from '../components/dashboard/WeatherWidget';
 import LifestyleWidget from '../components/dashboard/LifestyleWidget';
@@ -22,7 +22,7 @@ const quickTips = [
 export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHistory, user }: DashboardHomeProps) {
   const [progress, setProgress] = useState<ProgressDataPoint[]>([]);
   const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
-  const [latestStats, setLatestStats] = useState<{ acne_count: number; severity: string; confidence: number } | null>(null);
+
   const [modelOnline, setModelOnline] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [lifestyle, setLifestyle] = useState<{ water: number; sleep: number; stress?: string } | null>(null);
@@ -34,7 +34,6 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
         if (cancelled) return;
         setProgress(data.progress);
         setRecentScans(data.recent_scans);
-        setLatestStats(data.latest_stats);
       })
       .catch(() => {
         if (!cancelled) setLoadError('Failed to load dashboard data.');
@@ -181,7 +180,7 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
           </div>
           
           <div className="space-y-3 mt-auto">
-            {dynamicTips.slice(0, 2).map((tip, idx) => (
+            {dynamicTips.slice(0, 2).map((tip) => (
               <div key={tip.id} className="flex items-start gap-3 p-4 bg-white/10 border border-white/20 rounded-2xl backdrop-blur-md">
                 <tip.icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${tip.id < 0 ? 'text-red-200' : 'text-amber-100'}`} />
                 <p className="text-sm leading-relaxed font-medium text-white shadow-sm">{tip.text}</p>

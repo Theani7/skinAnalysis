@@ -270,10 +270,6 @@ async def analyze_image(
         await db.flush()
         logger.info(f"Scan saved: {scan.id} (user: {user['email']})")
 
-        # Clean up uploaded file (stored in DB, no longer needed on disk)
-        if file_path and os.path.exists(file_path):
-            os.remove(file_path)
-
         # Enrich recommendations with Daraz products
         recommendations = result.get("recommendations", [])
         skincare_ids = [r["id"] for r in recommendations if r.get("category") == "skincare"]

@@ -6,20 +6,16 @@ Provides endpoints for image upload, processing, and AI analysis.
 JWT-based authentication for all clinical endpoints.
 """
 
-import asyncio
 import logging
 import os
-import re
-import time
 import uuid
 from contextlib import asynccontextmanager
-from datetime import datetime
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Request, UploadFile
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -30,58 +26,7 @@ from services.predictor import predictor
 setup_logging(os.getenv("SKINAI_ENV", "development"))
 logger = logging.getLogger(__name__)
 
-# ── Remote Capture Sessions ──
-REMOTE_SESSIONS: dict[str, str] = {}  # session_id -> filename
 
-# ── Rate limiting ──
-
-_rate_limit_store: dict[str, list[float]] = {}
-RATE_LIMIT_WINDOW = 60  # seconds
-RATE_LIMIT_MAX_REQUESTS = 30
-_RATE_LIMIT_LAST_CLEANUP = time.time()
-_RATE_LIMIT_CLEANUP_INTERVAL = 300  # 5 minutes
-_RATE_LIMIT_MAX_KEYS = 100_000
-_rate_limit_lock = asyncio.Lock()
-
-
-def _cleanup_rate_limit():
-    """Remove stale keys to prevent memory leaks."""
-    global _RATE_LIMIT_LAST_CLEANUP
-    now = time.time()
-    if now - _RATE_LIMIT_LAST_CLEANUP < _RATE_LIMIT_CLEANUP_INTERVAL:
-        return
-    _RATE_LIMIT_LAST_CLEANUP = now
-    cutoff = now - RATE_LIMIT_WINDOW
-    stale_keys = [k for k, v in _rate_limit_store.items() if not v or v[-1] < cutoff]
-    for k in stale_keys:
-        del _rate_limit_store[k]
-
-
-def _check_rate_limit(key: str, max_requests: int = RATE_LIMIT_MAX_REQUESTS) -> bool:
-    _cleanup_rate_limit()
-    now = time.time()
-    if key not in _rate_limit_store:
-        if len(_rate_limit_store) >= _RATE_LIMIT_MAX_KEYS:
-            _rate_limit_store.clear()
-        _rate_limit_store[key] = []
-    _rate_limit_store[key] = [t for t in _rate_limit_store[key] if now - t < RATE_LIMIT_WINDOW]
-    if len(_rate_limit_store[key]) >= max_requests:
-        return False
-    _rate_limit_store[key].append(now)
-    return True
-
-
-# ── Filename validation ──
-
-SAFE_FILENAME_RE = re.compile(r"^[a-zA-Z0-9_\-\.]+$")
-
-
-def _safe_filename(filename: str) -> str:
-    """Sanitize filename to prevent path traversal."""
-    name = os.path.basename(filename)
-    if not SAFE_FILENAME_RE.match(name):
-        raise HTTPException(status_code=400, detail="Invalid filename.")
-    return name
 
 
 @asynccontextmanager
@@ -159,42 +104,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(PROCESSED_DIR, exist_ok=True)
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
-MAX_FILE_SIZE = 10 * 1024 * 1024
 
-
-def validate_image(file: UploadFile) -> bool:
-    """Validate image file type and content."""
-    if file.content_type and file.content_type.startswith("image/"):
-        return True
-    if file.filename:
-        extension = file.filename.split(".")[-1].lower()
-        return extension in ALLOWED_EXTENSIONS
-    return False
-
-
-def save_uploaded_file(file: UploadFile, contents: bytes, directory: str) -> str:
-    """Save uploaded file to specified directory."""
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="Missing filename.")
-    extension = file.filename.split(".")[-1].lower()
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    unique_filename = f"{timestamp}_{uuid.uuid4().hex}.{extension}"
-    file_path = os.path.join(directory, unique_filename)
-
-    with open(file_path, "wb") as f:
-        f.write(contents)
-
-    return unique_filename
-
-
-def _clean_up_file(file_path: str):
-    """Remove file if it exists, ignore errors."""
-    try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-    except OSError:
-        pass
 
 
 @app.get("/")

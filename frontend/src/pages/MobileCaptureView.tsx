@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Camera, UploadCloud, CheckCircle2, SwitchCamera, Loader2 } from 'lucide-react';
+import { CheckCircle2, SwitchCamera, Loader2 } from 'lucide-react';
 import { useCamera } from '../hooks/useCamera';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -29,6 +29,7 @@ export default function MobileCaptureView() {
     return () => {
       stopCamera();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facingMode]); // Re-run startCamera if facingMode changes
 
   const toggleCamera = () => {

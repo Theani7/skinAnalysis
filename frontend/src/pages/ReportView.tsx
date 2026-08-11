@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
-  Download, ArrowLeft, AlertTriangle, ImageOff, ExternalLink, Star, ShoppingBag, Heart,
-  FileText, Activity, Droplets, ShieldAlert, Maximize, Sun, Moon, CheckCircle
+  Download, ArrowLeft, AlertTriangle, ImageOff, Star, ShoppingBag, Heart,
+  FileText, Sun, Moon
 } from 'lucide-react';
 import { AnalysisResponse, getResultImageUrl, getScanHistory, getScanDetail, saveProduct, removeSavedProduct, getSavedProducts } from '../services/api';
 import { getStoredUser } from '../services/auth';
