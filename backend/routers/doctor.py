@@ -49,7 +49,7 @@ Severity: {latest_scan.severity}
 Acne Count: {latest_scan.acne_count}
 Spot Types: {latest_scan.spot_types}
 Recommendations: {latest_scan.recommendations}
-Routine: {latest_scan.routine}
+Suggested Routine: {latest_scan.routine}
 """
 
     system_prompt = f"""You are an expert AI Dermatologist. Your goal is to help the user understand their skin health and provide actionable advice.
@@ -60,7 +60,8 @@ Profile Data: {json.dumps(profile_data)}
 
 {scan_info}
 
-Please provide professional, empathetic, and expert advice. Do not provide definitive medical diagnoses, but give general dermatological guidance based on the scan data and profile.
+Please provide professional, empathetic, and expert advice. Do not provide definitive medical diagnoses, but give general dermatological guidance based on the scan data and profile. 
+If the user asks about their routine or products, reference the 'Suggested Routine' and 'Recommendations' provided in their scan results. Explain the purpose of those specific steps if needed.
 """
 
     messages = [{"role": "system", "content": system_prompt}]
