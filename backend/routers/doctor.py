@@ -1,5 +1,7 @@
 import json
 import os
+from datetime import datetime, timezone
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -9,21 +11,83 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.auth import get_current_user
-from services.database import get_db
-from services.models import Scan
+from services.database import async_session, get_db
+from services.models import ChatMessage, ChatSession, Scan
 
 router = APIRouter(prefix="/ai-doctor", tags=["ai-doctor"])
 
-class Message(BaseModel):
-    role: str
+class ChatMessageInput(BaseModel):
     content: str
 
-class ChatRequest(BaseModel):
-    messages: list[Message]
+class ChatSessionResponse(BaseModel):
+    id: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
 
-@router.post("/chat")
+    class Config:
+        from_attributes = True
+
+class ChatMessageResponse(BaseModel):
+    id: str
+    role: str
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+@router.post("/sessions", response_model=ChatSessionResponse)
+async def create_session(
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    new_session = ChatSession(
+        user_id=user["id"],
+        title="New Chat"
+    )
+    db.add(new_session)
+    await db.commit()
+    await db.refresh(new_session)
+    return new_session
+
+@router.get("/sessions", response_model=list[ChatSessionResponse])
+async def list_sessions(
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(ChatSession)
+        .where(ChatSession.user_id == user["id"])
+        .order_by(ChatSession.updated_at.desc())
+    )
+    return list(result.scalars().all())
+
+@router.get("/sessions/{session_id}/messages", response_model=list[ChatMessageResponse])
+async def list_messages(
+    session_id: str,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    session_result = await db.execute(
+        select(ChatSession)
+        .where(ChatSession.id == session_id, ChatSession.user_id == user["id"])
+    )
+    session = session_result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    result = await db.execute(
+        select(ChatMessage)
+        .where(ChatMessage.session_id == session_id)
+        .order_by(ChatMessage.created_at.asc())
+    )
+    return list(result.scalars().all())
+
+@router.post("/sessions/{session_id}/chat")
 async def chat(
-    request: ChatRequest,
+    session_id: str,
+    request: ChatMessageInput,
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -31,7 +95,37 @@ async def chat(
     if not api_key:
         return {"response": "The SkinAI Assistant is currently offline for maintenance. Please try again later."}
 
-    # Fetch latest scan
+    session_result = await db.execute(
+        select(ChatSession)
+        .where(ChatSession.id == session_id, ChatSession.user_id == user["id"])
+    )
+    session_obj = session_result.scalar_one_or_none()
+    if not session_obj:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    msg_result = await db.execute(
+        select(ChatMessage)
+        .where(ChatMessage.session_id == session_id)
+        .order_by(ChatMessage.created_at.asc())
+    )
+    previous_messages = msg_result.scalars().all()
+
+    if not previous_messages:
+        words = request.content.split()
+        new_title = " ".join(words[:5])
+        if len(words) > 5:
+            new_title += "..."
+        session_obj.title = new_title
+        db.add(session_obj)
+
+    user_message = ChatMessage(
+        session_id=session_id,
+        role="user",
+        content=request.content
+    )
+    db.add(user_message)
+    await db.commit()
+
     result = await db.execute(
         select(Scan)
         .where(Scan.user_id == user["id"])
@@ -67,9 +161,10 @@ If the user asks about their routine or products, reference the 'Suggested Routi
 CRITICAL RULE: You are strictly a Skincare and Dermatological assistant. If the user asks you to write code, solve math problems, write essays, translate text, or answer questions unrelated to skin health, skincare routines, or related health topics, you MUST politely refuse. Reply with a variation of: "I am a specialized SkinAI Assistant. I can only answer questions related to your skin health, skincare routine, and dermatological concerns." Do NOT under any circumstances fulfill out-of-scope requests.
 """
 
-    messages = [{"role": "system", "content": system_prompt}]
-    for msg in request.messages:
+    messages: list[Any] = [{"role": "system", "content": system_prompt}]
+    for msg in previous_messages:
         messages.append({"role": msg.role, "content": msg.content})
+    messages.append({"role": "user", "content": request.content})
 
     try:
         async_client = AsyncGroq(api_key=api_key)
@@ -80,9 +175,26 @@ CRITICAL RULE: You are strictly a Skincare and Dermatological assistant. If the 
         )
 
         async def generator():
+            assistant_response = ""
             async for chunk in chat_completion:
                 if chunk.choices[0].delta.content is not None:
-                    yield f"data: {json.dumps({'content': chunk.choices[0].delta.content})}\n\n"
+                    delta = chunk.choices[0].delta.content
+                    assistant_response += delta
+                    yield f"data: {json.dumps({'content': delta})}\n\n"
+
+            async with async_session() as local_db:
+                sess = await local_db.get(ChatSession, session_id)
+                if sess:
+                    sess.updated_at = datetime.now(timezone.utc)
+                    local_db.add(sess)
+
+                new_msg = ChatMessage(
+                    session_id=session_id,
+                    role="assistant",
+                    content=assistant_response
+                )
+                local_db.add(new_msg)
+                await local_db.commit()
 
         return StreamingResponse(generator(), media_type="text/event-stream")
     except Exception as e:

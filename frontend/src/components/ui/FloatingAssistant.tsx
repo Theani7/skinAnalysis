@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, User, Send, Loader2, X, Sparkles } from 'lucide-react';
-import { sendDoctorMessage, streamDoctorMessage, ChatMessage } from '../../services/api';
+import { Bot, User, Send, Loader2, X, Sparkles, Plus } from 'lucide-react';
+import { streamSessionMessage, ChatMessage } from '../../services/api';
 import { getStoredUser } from '../../services/auth';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useChat } from '../../contexts/ChatContext';
 
 export default function FloatingAssistant() {
-  const { messages, setMessages, isLoading, setIsLoading } = useChat();
+  const { messages, setMessages, isLoading, setIsLoading, activeSessionId, createNewChat } = useChat();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -26,9 +26,10 @@ export default function FloatingAssistant() {
 
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !activeSessionId) return;
 
-    const userMessage: ChatMessage = { role: 'user', content: input.trim() };
+    const userContent = input.trim();
+    const userMessage: ChatMessage = { role: 'user', content: userContent };
     const newMessages = [...messages, userMessage];
     
     const initialAssistantMessage: ChatMessage = { role: 'assistant', content: '' };
@@ -38,12 +39,11 @@ export default function FloatingAssistant() {
     setIsLoading(true);
 
     try {
-      await streamDoctorMessage(newMessages, (chunk) => {
+      await streamSessionMessage(activeSessionId, userContent, (chunk) => {
         setMessages(prev => {
           const updated = [...prev];
           const lastMsg = updated[updated.length - 1];
           if (lastMsg && lastMsg.role === 'assistant') {
-            // MUST clone the message to avoid StrictMode double-mutation
             updated[updated.length - 1] = { ...lastMsg, content: lastMsg.content + chunk };
           }
           return updated;
@@ -64,8 +64,6 @@ export default function FloatingAssistant() {
     }
   };
 
-
-
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       {/* Chat Window */}
@@ -82,12 +80,22 @@ export default function FloatingAssistant() {
                 <p className="text-[10px] text-primary-100 opacity-90">Powered by AI</p>
               </div>
             </div>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={createNewChat}
+                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                title="New Chat"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Messages Area */}
@@ -146,7 +154,7 @@ export default function FloatingAssistant() {
               />
               <button
                 type="submit"
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || !activeSessionId}
                 className="absolute right-1.5 p-1.5 rounded-full text-white bg-primary-700 hover:bg-primary-800 disabled:opacity-50 disabled:bg-gray-300 disabled:text-gray-500 transition-all flex items-center justify-center"
               >
                 <Send className="w-3.5 h-3.5 ml-0.5" />

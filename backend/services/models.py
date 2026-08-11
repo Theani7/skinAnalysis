@@ -32,6 +32,7 @@ class User(Base):
 
     scans: Mapped[list["Scan"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     saved_products: Mapped[list["SavedProduct"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    chat_sessions: Mapped[list["ChatSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Scan(Base):
@@ -77,3 +78,28 @@ class SavedProduct(Base):
     sold: Mapped[str] = mapped_column(String(50), nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="saved_products")
+
+
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(255), default="New Chat")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
+
+    user: Mapped["User"] = relationship(back_populates="chat_sessions")
+    messages: Mapped[list["ChatMessage"]] = relationship(back_populates="session", cascade="all, delete-orphan")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    session_id: Mapped[str] = mapped_column(String(36), ForeignKey("chat_sessions.id"), nullable=False, index=True)
+    role: Mapped[str] = mapped_column(String(50), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+    session: Mapped["ChatSession"] = relationship(back_populates="messages")

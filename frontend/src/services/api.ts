@@ -365,20 +365,36 @@ export interface ChatMessage {
   content: string;
 }
 
-export const sendDoctorMessage = async (messages: ChatMessage[]): Promise<{ reply: string }> => {
-  const response = await api.post('/ai-doctor/chat', { messages });
-  return { reply: response.data.response || response.data.reply || 'No response received' };
+export interface ChatSession {
+  id: string;
+  title: string;
+  updated_at: string;
+}
+
+export const getChatSessions = async (): Promise<ChatSession[]> => {
+  const response = await api.get('/ai-doctor/sessions');
+  return response.data;
 };
 
-export const streamDoctorMessage = async (messages: ChatMessage[], onChunk: (text: string) => void): Promise<void> => {
+export const createChatSession = async (): Promise<ChatSession> => {
+  const response = await api.post('/ai-doctor/sessions');
+  return response.data;
+};
+
+export const getChatMessages = async (sessionId: string): Promise<ChatMessage[]> => {
+  const response = await api.get(`/ai-doctor/sessions/${sessionId}/messages`);
+  return response.data;
+};
+
+export const streamSessionMessage = async (sessionId: string, content: string, onChunk: (text: string) => void): Promise<void> => {
   const token = getStoredToken();
-  const response = await fetch(`${API_BASE_URL}/ai-doctor/chat`, {
+  const response = await fetch(`${API_BASE_URL}/ai-doctor/sessions/${sessionId}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     },
-    body: JSON.stringify({ messages })
+    body: JSON.stringify({ content })
   });
 
   if (!response.ok) {
