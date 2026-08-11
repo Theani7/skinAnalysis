@@ -40,39 +40,39 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen t-bg flex items-center justify-center p-4 sm:p-6">
-          <div className="max-w-md w-full t-card p-5 sm:p-8 text-center space-y-5 sm:space-y-6">
-            <div className="w-16 h-16 t-tint-danger rounded-2xl flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-8 h-8 text-red-500" style={{ color: 'var(--text-danger)' }} />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 p-8 sm:p-12 max-w-lg w-full text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="w-24 h-24 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-red-100">
+              <AlertTriangle className="w-12 h-12" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold t-text mb-2">Something went wrong</h2>
-              <p className="text-sm t-text-secondary">
-                An unexpected error occurred. This has been logged for investigation.
-              </p>
-            </div>
-            {this.state.error && (
-              <div className="t-bg-raised rounded-xl p-4 text-left border t-divider">
-                <p className="text-xs font-mono t-text-muted break-all">
-                  {this.state.error.message}
-                </p>
-              </div>
-            )}
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={this.handleReset}
-                className="px-5 py-2.5 t-btn-secondary rounded-xl font-bold text-sm flex items-center gap-2"
-              >
-                <RefreshCcw className="w-4 h-4" />
-                Try Again
-              </button>
+            
+            <h1 className="text-3xl font-display font-bold text-gray-900 mb-3 tracking-tight">Oops! Something went wrong</h1>
+            <p className="text-gray-500 mb-10 leading-relaxed text-base">
+              An unexpected error occurred in the application. Don't worry, we've logged it for investigation.
+            </p>
+            
+            <div className="flex flex-col gap-3">
               <button
                 onClick={this.handleReload}
-                className="px-5 py-2.5 btn-premium rounded-xl font-bold text-sm"
+                className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl text-base font-semibold transition-all shadow-lg shadow-gray-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
               >
-                Reload Page
+                <RefreshCcw className="w-5 h-5" />
+                Reload Application
+              </button>
+              
+              <button
+                onClick={this.handleReset}
+                className="w-full py-4 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 rounded-2xl text-base font-medium transition-all active:bg-gray-100"
+              >
+                Try Again
               </button>
             </div>
+            
+            {import.meta.env.DEV && this.state.error && (
+              <div className="mt-8 p-4 bg-red-50 border border-red-100 rounded-xl text-left overflow-x-auto text-sm text-red-900 font-mono shadow-sm">
+                {this.state.error.message}
+              </div>
+            )}
           </div>
         </div>
       );

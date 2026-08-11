@@ -11,10 +11,11 @@ import RemoteScanView from './pages/RemoteScanView';
 import MobileCaptureView from './pages/MobileCaptureView';
 import SavedProductsPage from './pages/SavedProductsPage';
 import RoutinePage from './pages/RoutinePage';
+import NotFoundPage from './pages/NotFoundPage';
 import { AnalysisResponse } from './services/api';
 import { AuthUser, getStoredUser, isAuthenticated, clearAuth, storeAuth } from './services/auth';
 
-export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile' | 'remote-scan' | 'mobile-capture' | 'saved-products' | 'routine';
+export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile' | 'remote-scan' | 'mobile-capture' | 'saved-products' | 'routine' | 'not-found';
 
 const RESULT_STORAGE_KEY = 'skinai_last_result';
 
@@ -45,7 +46,7 @@ function getInitialRoute(): PageRoute {
   if (path === '/remote-scan') return 'remote-scan';
   if (path === '/mobile-capture') return 'mobile-capture';
   if (path === '/dashboard' || path === '/') return isAuthenticated() ? 'dashboard' : 'landing';
-  return isAuthenticated() ? 'dashboard' : 'landing';
+  return 'not-found';
 }
 
 export default function App() {
@@ -69,6 +70,7 @@ export default function App() {
       'routine': '/routine',
       'remote-scan': '/remote-scan',
       'mobile-capture': '/mobile-capture',
+      'not-found': window.location.pathname, // Keep current path for 404
     };
     window.history.pushState({}, '', paths[page] || '/');
   }, []);
@@ -120,6 +122,11 @@ export default function App() {
         <LoginPage open={showLogin} initialMode={loginMode} onLogin={handleLogin} onClose={() => setShowLogin(false)} />
       </>
     );
+  }
+
+  // Not Found View (handles both authenticated and unauthenticated invalid routes)
+  if (currentPage === 'not-found') {
+    return <NotFoundPage onNavigate={navigate} />;
   }
 
   // Mobile Capture View (Unauthenticated access allowed)
