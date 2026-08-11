@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, User, Send, Loader2, X, Sparkles } from 'lucide-react';
-import { sendDoctorMessage, ChatMessage } from '../../services/api';
+import { sendDoctorMessage, streamDoctorMessage, ChatMessage } from '../../services/api';
 import { getStoredUser } from '../../services/auth';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useChat } from '../../contexts/ChatContext';
 
 export default function FloatingAssistant() {
@@ -29,38 +31,39 @@ export default function FloatingAssistant() {
     const userMessage: ChatMessage = { role: 'user', content: input.trim() };
     const newMessages = [...messages, userMessage];
     
-    setMessages(newMessages);
+    const initialAssistantMessage: ChatMessage = { role: 'assistant', content: '' };
+    setMessages([...newMessages, initialAssistantMessage]);
+    
     setInput('');
     setIsLoading(true);
 
     try {
-      const response = await sendDoctorMessage(newMessages);
-      setMessages([...newMessages, { role: 'assistant', content: response.reply }]);
+      await streamDoctorMessage(newMessages, (chunk) => {
+        setMessages(prev => {
+          const updated = [...prev];
+          const lastMsg = updated[updated.length - 1];
+          if (lastMsg && lastMsg.role === 'assistant') {
+            lastMsg.content += chunk;
+          }
+          return updated;
+        });
+      });
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages([...newMessages, { role: 'assistant', content: 'Sorry, I encountered an error.' }]);
+      setMessages(prev => {
+        const updated = [...prev];
+        const lastMsg = updated[updated.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.content === '') {
+          lastMsg.content = 'Sorry, I encountered an error.';
+        }
+        return updated;
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const formatText = (text: string) => {
-    if (!text) return null;
-    return text.split('\n').map((paragraph, idx) => {
-      if (!paragraph.trim()) return <br key={idx} />;
-      const parts = paragraph.split(/(\*\*.*?\*\*)/g);
-      return (
-        <p key={idx} className="mb-2 leading-relaxed last:mb-0">
-          {parts.map((part, i) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-              return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>;
-            }
-            return <span key={i}>{part}</span>;
-          })}
-        </p>
-      );
-    });
-  };
+
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
@@ -97,8 +100,10 @@ export default function FloatingAssistant() {
                         <Bot className="w-3.5 h-3.5 text-primary-700" />
                       </div>
                     </div>
-                    <div className="text-[13px] text-gray-700 pt-0.5 bg-white border border-gray-100 p-3 rounded-2xl rounded-tl-sm shadow-sm">
-                      {formatText(msg.content)}
+                    <div className="text-[13px] text-gray-700 pt-0.5 bg-white border border-gray-100 p-3 rounded-2xl rounded-tl-sm shadow-sm w-full overflow-hidden prose prose-sm prose-primary max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 ) : (

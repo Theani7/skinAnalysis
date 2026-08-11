@@ -370,4 +370,51 @@ export const sendDoctorMessage = async (messages: ChatMessage[]): Promise<{ repl
   return { reply: response.data.response || response.data.reply || 'No response received' };
 };
 
+export const streamDoctorMessage = async (messages: ChatMessage[], onChunk: (text: string) => void): Promise<void> => {
+  const token = getStoredToken();
+  const response = await fetch(`${API_BASE_URL}/ai-doctor/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify({ messages })
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  if (!response.body) {
+    throw new Error('Response body is null');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let done = false;
+
+  while (!done) {
+    const { value, done: doneReading } = await reader.read();
+    done = doneReading;
+    if (value) {
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const dataStr = line.slice(6);
+          if (dataStr === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(dataStr);
+            if (parsed.content) {
+              onChunk(parsed.content);
+            }
+          } catch (e) {
+            console.error('Error parsing chunk:', e);
+          }
+        }
+      }
+    }
+  }
+};
+
 export default api;

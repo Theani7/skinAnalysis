@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, User, Send, Loader2, Info } from 'lucide-react';
-import { sendDoctorMessage, ChatMessage } from '../services/api';
+import { sendDoctorMessage, streamDoctorMessage, ChatMessage } from '../services/api';
 import { getStoredUser } from '../services/auth';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useChat } from '../contexts/ChatContext';
 
 export default function AIDoctorPage() {
@@ -35,16 +37,34 @@ export default function AIDoctorPage() {
     const userMessage: ChatMessage = { role: 'user', content: input.trim() };
     const newMessages = [...messages, userMessage];
     
-    setMessages(newMessages);
+    // Add an empty assistant message to stream into
+    const initialAssistantMessage: ChatMessage = { role: 'assistant', content: '' };
+    setMessages([...newMessages, initialAssistantMessage]);
+    
     setInput('');
     setIsLoading(true);
 
     try {
-      const response = await sendDoctorMessage(newMessages);
-      setMessages([...newMessages, { role: 'assistant', content: response.reply }]);
+      await streamDoctorMessage(newMessages, (chunk) => {
+        setMessages(prev => {
+          const updated = [...prev];
+          const lastMsg = updated[updated.length - 1];
+          if (lastMsg && lastMsg.role === 'assistant') {
+            lastMsg.content += chunk;
+          }
+          return updated;
+        });
+      });
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages([...newMessages, { role: 'assistant', content: 'Sorry, I encountered an error while processing your request.' }]);
+      setMessages(prev => {
+        const updated = [...prev];
+        const lastMsg = updated[updated.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.content === '') {
+          lastMsg.content = 'Sorry, I encountered an error while processing your request.';
+        }
+        return updated;
+      });
     } finally {
       setIsLoading(false);
     }
@@ -57,25 +77,7 @@ export default function AIDoctorPage() {
     }
   };
 
-  // Simple markdown-like formatter for bold and paragraphs
-  const formatText = (text: string) => {
-    if (!text) return null;
-    return text.split('\n').map((paragraph, idx) => {
-      if (!paragraph.trim()) return <br key={idx} />;
-      
-      const parts = paragraph.split(/(\*\*.*?\*\*)/g);
-      return (
-        <p key={idx} className="mb-3 leading-relaxed last:mb-0">
-          {parts.map((part, i) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-              return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>;
-            }
-            return <span key={i}>{part}</span>;
-          })}
-        </p>
-      );
-    });
-  };
+
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] lg:h-screen relative bg-white">
@@ -109,8 +111,10 @@ export default function AIDoctorPage() {
                         <Bot className="w-4.5 h-4.5 text-primary-700" />
                       </div>
                     </div>
-                    <div className="text-[15px] text-gray-700 pt-1.5">
-                      {formatText(msg.content)}
+                    <div className="text-[15px] text-gray-700 pt-1.5 w-full overflow-hidden prose prose-sm prose-primary max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 ) : (
