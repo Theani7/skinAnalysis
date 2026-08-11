@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Clock, Save, BellRing, X } from 'lucide-react';
 
 interface ReminderSettings {
@@ -36,8 +37,8 @@ const RoutineReminders: React.FC<RoutineRemindersProps> = ({ onClose }) => {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 w-full max-w-md animate-in zoom-in-95 duration-200">
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -112,7 +113,8 @@ const RoutineReminders: React.FC<RoutineRemindersProps> = ({ onClose }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
