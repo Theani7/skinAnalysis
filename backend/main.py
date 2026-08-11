@@ -361,15 +361,17 @@ async def upload_image(
 # SAVED PRODUCTS
 # ═══════════════════════════════════════════
 
+from typing import Optional
+
 class SaveProductRequest(BaseModel):
     name: str
     price_show: str
     url: str
-    discount: str | None = None
-    image: str | None = None
+    discount: Optional[str] = None
+    image: Optional[str] = None
     rating: float = 0.0
     reviews: int = 0
-    sold: str | None = None
+    sold: Optional[str] = None
 
 @app.post("/products/save")
 async def save_product(
