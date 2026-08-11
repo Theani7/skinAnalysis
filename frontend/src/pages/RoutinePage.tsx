@@ -123,17 +123,15 @@ export default function RoutinePage({ onStartScan }: RoutinePageProps) {
 
   if (!routine || (routine.morning.length === 0 && routine.evening.length === 0)) {
     return (
-      <div className="w-full max-w-3xl mx-auto p-4 md:p-8 flex flex-col items-center text-center mt-12">
-        <div className="w-20 h-20 bg-primary-50 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-primary-100">
-          <ListChecks className="w-10 h-10 text-primary-500" />
+      <div className="flex flex-col items-center justify-center py-16 text-center mt-8">
+        <div className="w-20 h-20 bg-gray-50 border border-gray-100 rounded-3xl flex items-center justify-center mb-6 shadow-sm">
+          <ListChecks className="w-10 h-10 text-gray-400" />
         </div>
-        <h2 className="text-2xl font-display font-bold text-gray-900 mb-3">No Routine Found</h2>
-        <p className="text-gray-500 mb-8 max-w-md leading-relaxed">
-          Run a skin analysis scan to generate a personalized morning and evening skincare routine tailored specifically to your skin type.
-        </p>
+        <h3 className="text-xl font-display font-bold text-gray-900 mb-2">No Routine Found</h3>
+        <p className="text-sm text-gray-500 max-w-sm mb-8 leading-relaxed">Run a skin analysis scan to generate a personalized morning and evening skincare routine tailored to your skin type.</p>
         <button
           onClick={onStartScan}
-          className="flex items-center gap-2 bg-primary-600 text-white px-8 py-3.5 rounded-xl font-medium hover:bg-primary-700 transition-all shadow-sm hover:shadow active:scale-95"
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all shadow-sm active:scale-95"
         >
           Start New Scan
           <ArrowRight className="w-4 h-4" />

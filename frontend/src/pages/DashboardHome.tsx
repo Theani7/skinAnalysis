@@ -222,8 +222,12 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
           </div>
           <div className="space-y-2 flex-1 overflow-y-auto">
             {recentScans.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 text-sm bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-                No scans yet.
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <div className="w-16 h-16 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                  <ScanLine className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-display font-bold text-gray-900 mb-1">No Scans Yet</h3>
+                <p className="text-sm text-gray-500 max-w-[200px] leading-relaxed">Start your first analysis to track your progress.</p>
               </div>
             ) : (
               recentScans.map((scan) => (

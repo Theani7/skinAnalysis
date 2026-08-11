@@ -47,15 +47,15 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
 
   if (scans.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-16 h-16 bg-gray-50 border border-gray-200 border-dashed rounded-2xl flex items-center justify-center mb-6">
-          <Inbox className="w-8 h-8 text-gray-400" />
+      <div className="flex flex-col items-center justify-center py-16 text-center mt-8">
+        <div className="w-20 h-20 bg-gray-50 border border-gray-100 rounded-3xl flex items-center justify-center mb-6 shadow-sm">
+          <Calendar className="w-10 h-10 text-gray-400" />
         </div>
-        <h3 className="text-lg font-display font-semibold text-gray-900 mb-2">No scans yet</h3>
-        <p className="text-sm text-gray-500 max-w-sm mb-6">Start your first analysis to see your progress over time.</p>
+        <h3 className="text-xl font-display font-bold text-gray-900 mb-2">No History Yet</h3>
+        <p className="text-sm text-gray-500 max-w-sm mb-8 leading-relaxed">Start your first analysis to see your progress and track your skin journey over time.</p>
         {onBack && (
-          <button onClick={onBack} className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
-            Go to Dashboard
+          <button onClick={onBack} className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all shadow-sm active:scale-95">
+            Start New Scan
           </button>
         )}
       </div>

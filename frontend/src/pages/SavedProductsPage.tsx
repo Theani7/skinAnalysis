@@ -72,12 +72,12 @@ export default function SavedProductsPage() {
             <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="min-h-[40vh] flex flex-col items-center justify-center text-center max-w-md mx-auto py-12">
-            <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
-              <ShoppingBag className="w-8 h-8" />
+          <div className="flex flex-col items-center justify-center py-16 text-center mt-8">
+            <div className="w-20 h-20 bg-gray-50 border border-gray-100 rounded-3xl flex items-center justify-center mb-6 shadow-sm">
+              <ShoppingBag className="w-10 h-10 text-gray-400" />
             </div>
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-2">No products found</h3>
-            <p className="text-sm text-gray-500">
+            <h3 className="text-xl font-display font-bold text-gray-900 mb-2">No Products Found</h3>
+            <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
               {searchQuery ? "We couldn't find any saved products matching your search." : "You haven't saved any products yet. Save items from your analysis reports to see them here."}
             </p>
           </div>

@@ -122,20 +122,20 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
 
   if (!result) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center max-w-md mx-auto">
-        <div className="w-20 h-20 bg-primary-50 text-primary-600 rounded-full flex items-center justify-center mb-6">
-          <Sparkles className="w-10 h-10" />
+      <div className="flex flex-col items-center justify-center py-16 text-center mt-8">
+        <div className="w-20 h-20 bg-gray-50 border border-gray-100 rounded-3xl flex items-center justify-center mb-6 shadow-sm">
+          <Sparkles className="w-10 h-10 text-gray-400" />
         </div>
-        <h2 className="text-2xl font-display font-bold text-gray-900 mb-3">No Analysis Yet</h2>
-        <p className="text-gray-500 mb-8">
+        <h3 className="text-xl font-display font-bold text-gray-900 mb-2">No Analysis Yet</h3>
+        <p className="text-sm text-gray-500 max-w-sm mb-8 leading-relaxed">
           You haven't performed a skin analysis yet. Scan your face now to get personalized insights and recommendations.
         </p>
         {onScanNow && (
           <button
             onClick={onScanNow}
-            className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3.5 rounded-xl font-semibold shadow-sm shadow-primary-500/30 transition-all flex items-center gap-2"
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all shadow-sm active:scale-95"
           >
-            <Sparkles className="w-5 h-5" />
+            <Sparkles className="w-4 h-4" />
             Scan Now
           </button>
         )}
