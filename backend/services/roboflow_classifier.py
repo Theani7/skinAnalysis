@@ -92,6 +92,10 @@ class RoboflowClassifier:
 
             predictions = result["predictions"]
 
+            if not predictions:
+                logger.warning("Roboflow returned empty predictions list")
+                return default_result
+
             # Binary classification: acne or no_acne
             # predictions is a list of class predictions with confidence
             top_prediction = max(predictions, key=lambda p: p.get("confidence", 0))
