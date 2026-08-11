@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Sparkles, ChevronRight, Shield, Clock, Zap, Camera, ScanFace, Activity, FileText, Check, Sun, Moon, Droplets } from 'lucide-react';
+import { Sparkles, ChevronRight, Shield, Clock, Zap, SunMoon, Camera, ScanFace, Activity, FileText, Check, Sun, Moon, Droplets } from 'lucide-react';
 import { ProgressRing } from '../components/ui/ProgressRing';
 
 const DELAY = (i: number) => ({ ['--reveal-delay' as string]: `${i * 60}ms` });
@@ -107,7 +107,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
     { icon: Camera, title: 'Upload', desc: 'Take or upload a clear, well-lit photo of your face or affected area.' },
     { icon: ScanFace, title: 'Analyze', desc: 'Computer-vision models map lesions, tone, and texture in under two seconds.' },
     { icon: Activity, title: 'Score', desc: 'Acne, pigmentation, and hydration are scored against a clinical severity scale.' },
-    { icon: FileText, title: 'Report', desc: 'Get a detailed breakdown with actionable, personalized skincare recommendations.' },
+    { icon: FileText, title: 'Report', desc: 'Get an AM/PM skincare routine with product matches tailored to your skin type.' },
   ];
 
   const routine = [
@@ -203,8 +203,8 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
           <span>Results in &lt;2s</span>
         </div>
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-primary-700" />
-          <span>No credit card</span>
+          <SunMoon className="w-4 h-4 text-primary-700" />
+          <span>AM &amp; PM routines</span>
         </div>
       </section>
 
@@ -347,9 +347,24 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
               <h3 className="text-lg font-semibold text-gray-900">Personalized routine</h3>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-gray-600 max-w-md">
-              Recommendations adapt to your scan history, skin type, and severity trend. Example:
+              Recommendations adapt to your scan history and severity trend, with product matches for your skin type. Example:
             </p>
-            <div className="mt-6 space-y-2.5">
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-gray-500">Skin type:</span>
+              {['Dry', 'Oily', 'Combination', 'Sensitive'].map((t) => (
+                <span
+                  key={t}
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
+                    t === 'Oily'
+                      ? 'bg-primary-700/[0.06] border-primary-700/15 text-primary-700'
+                      : 'bg-white border-gray-200 text-gray-500'
+                  }`}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 space-y-2.5">
               {routine.map((r) => (
                 <div key={r.time} className="flex items-center gap-3.5 rounded-lg bg-white border border-gray-200 px-4 py-3">
                   {r.time === 'AM' ? <Sun className="w-4 h-4 text-gray-400 shrink-0" /> : <Moon className="w-4 h-4 text-gray-400 shrink-0" />}
@@ -358,6 +373,14 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
                   <Check className="w-4 h-4 text-primary-700 ml-auto shrink-0" />
                 </div>
               ))}
+              <div className="flex items-center gap-3.5 rounded-lg bg-white border border-gray-200 px-4 py-3">
+                <Sparkles className="w-4 h-4 text-primary-700 shrink-0" />
+                <span className="text-sm text-gray-700">
+                  Recommended for <span className="font-medium text-gray-900">oily, acne-prone skin</span>:
+                  niacinamide serum, salicylic acid cleanser
+                </span>
+                <Check className="w-4 h-4 text-primary-700 ml-auto shrink-0" />
+              </div>
             </div>
           </div>
         </div>
@@ -377,7 +400,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
             Start free analysis
             <ChevronRight className="w-4.5 h-4.5" />
           </button>
-          <p className="mt-5 text-sm text-white/60">Free to start · No credit card required</p>
+          <p className="mt-5 text-sm text-white/60">Free to use · No subscriptions, no fees</p>
         </div>
       </section>
 
