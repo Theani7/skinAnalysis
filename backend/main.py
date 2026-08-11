@@ -436,16 +436,16 @@ async def get_saved_products(
         logger.error(f"Error fetching saved products: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to load saved products")
 
-@app.delete("/products/save")
+@app.delete("/products/saved/{product_id}")
 async def remove_saved_product(
-    url: str,
+    product_id: str,
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     try:
         result = await db.execute(
             select(SavedProduct)
-            .where(SavedProduct.user_id == user["id"], SavedProduct.url == url)
+            .where(SavedProduct.user_id == user["id"], SavedProduct.id == product_id)
         )
         prod = result.scalar_one_or_none()
         if not prod:
@@ -456,6 +456,31 @@ async def remove_saved_product(
         return {"status": "success"}
     except Exception as e:
         logger.error(f"Error removing saved product: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to remove product")
+
+class UnsaveProductRequest(BaseModel):
+    url: str
+
+@app.post("/products/unsave")
+async def unsave_product_by_url(
+    req: UnsaveProductRequest,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        result = await db.execute(
+            select(SavedProduct)
+            .where(SavedProduct.user_id == user["id"], SavedProduct.url == req.url)
+        )
+        prod = result.scalar_one_or_none()
+        if not prod:
+            return {"status": "success", "message": "Product not found or already removed"}
+        
+        await db.delete(prod)
+        await db.commit()
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Error removing saved product by url: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to remove product")
 
 

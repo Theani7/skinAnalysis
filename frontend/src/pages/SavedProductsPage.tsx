@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ShoppingBag, ExternalLink, Trash2, Search, Filter } from 'lucide-react';
-import { getSavedProducts, removeSavedProduct, SavedProduct } from '../services/api';
+import { getSavedProducts, removeSavedProductById, SavedProduct } from '../services/api';
 
 export default function SavedProductsPage() {
   const [products, setProducts] = useState<SavedProduct[]>([]);
@@ -23,12 +23,12 @@ export default function SavedProductsPage() {
     }
   };
 
-  const handleRemove = async (e: React.MouseEvent, url: string) => {
+  const handleRemove = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      await removeSavedProduct(url);
-      setProducts(prev => prev.filter(p => p.url !== url));
+      await removeSavedProductById(id);
+      setProducts(prev => prev.filter(p => p.id !== id));
     } catch (err) {
       console.error('Failed to remove product', err);
     }
@@ -99,7 +99,7 @@ export default function SavedProductsPage() {
                   )}
                   <div className="absolute top-2 right-2 flex flex-col gap-2">
                     <button
-                      onClick={(e) => handleRemove(e, product.url)}
+                      onClick={(e) => handleRemove(e, product.id)}
                       className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-red-50 hover:text-red-500 text-gray-400 transition-colors"
                       title="Remove from saved"
                     >

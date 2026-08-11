@@ -322,7 +322,12 @@ export const saveProduct = async (product: Omit<SavedProduct, 'id' | 'created_at
 };
 
 export const removeSavedProduct = async (url: string) => {
-  const response = await api.delete(`/products/save`, { params: { url } });
+  const response = await api.post(`/products/unsave`, { url });
+  return response.data;
+};
+
+export const removeSavedProductById = async (id: string) => {
+  const response = await api.delete(`/products/saved/${id}`);
   return response.data;
 };
 
