@@ -59,6 +59,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const createNewChat = async () => {
     try {
+      const existingNewChat = sessions.find(s => s.title === 'New Chat');
+      if (existingNewChat) {
+        await selectSession(existingNewChat.id);
+        return;
+      }
+
       const newSession = await createChatSession();
       setSessions(prev => [newSession, ...prev]);
       setActiveSessionId(newSession.id);
