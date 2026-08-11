@@ -720,6 +720,20 @@ async def get_scan(
             except (json.JSONDecodeError, TypeError):
                 return default
 
+        p_data = _safe_json(scan.pigmentation_data, None)
+        d_data = _safe_json(scan.dryness_data, None)
+
+        clarity = p_data.get("clarity_score", 100) if p_data else 100
+        hydration = d_data.get("hydration_score", 100) if d_data else 100
+        roughness = d_data.get("roughness_score", 0) if d_data else 0
+
+        score = 100.0
+        score -= min(30, scan.acne_count * 2)
+        score -= max(0, 100 - clarity) * 0.3
+        score -= max(0, 100 - hydration) * 0.2
+        score -= min(20, roughness * 2)
+        health_score = max(0, int(round(score)))
+
         return {
             "id": scan.id,
             "created_at": scan.created_at.isoformat(),
@@ -728,9 +742,10 @@ async def get_scan(
             "acne_count": scan.acne_count,
             "severity": scan.severity,
             "confidence": scan.confidence,
+            "health_score": health_score,
             "spot_types": _safe_json(scan.spot_types, {}),
-            "pigmentation_data": _safe_json(scan.pigmentation_data, None),
-            "dryness_data": _safe_json(scan.dryness_data, None),
+            "pigmentation_data": p_data,
+            "dryness_data": d_data,
             "recommendations": _safe_json(scan.recommendations, []),
             "conflicts": _safe_json(scan.conflicts, []),
             "routine": _safe_json(scan.routine, {"morning": [], "evening": [], "tips": []}),
