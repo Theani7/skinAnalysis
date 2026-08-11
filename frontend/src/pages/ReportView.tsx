@@ -424,18 +424,15 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
                   </div>
                   <span className="text-sm font-semibold text-gray-900">Morning</span>
                 </div>
-                <div className="space-y-0">
-                  {result.routine.morning.map((step: any, idx: number, arr: any[]) => (
-                    <div key={step.id} className="flex gap-3">
-                      <div className="flex flex-col items-center">
-                        <div className="w-7 h-7 bg-primary-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 z-10 shadow-sm">
-                          {step.step}
-                        </div>
-                        {idx < arr.length - 1 && <div className="w-px flex-1 bg-gray-200 border-r border-gray-200 my-1" />}
+                <div className="space-y-4">
+                  {result.routine.morning.map((step: any, idx: number) => (
+                    <div key={step.id || idx} className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex gap-4 items-start transition-all hover:bg-white hover:shadow-md hover:border-gray-200 group">
+                      <div className="w-8 h-8 bg-white border border-gray-200 text-gray-900 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm group-hover:bg-primary-600 group-hover:text-white group-hover:border-primary-600 transition-colors">
+                        {step.step}
                       </div>
-                      <div className="flex-1 pb-5">
-                        <h4 className="font-semibold text-gray-900 text-sm">{step.product}</h4>
-                        <p className="text-xs text-gray-500 mt-0.5">{step.action}</p>
+                      <div className="flex-1 pt-1">
+                        <h4 className="font-semibold text-gray-900">{step.product}</h4>
+                        <p className="text-sm text-gray-500 mt-1 leading-relaxed">{step.action}</p>
                       </div>
                     </div>
                   ))}
@@ -449,18 +446,15 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
                   </div>
                   <span className="text-sm font-semibold text-gray-900">Evening</span>
                 </div>
-                <div className="space-y-0">
-                  {result.routine.evening.map((step: any, idx: number, arr: any[]) => (
-                    <div key={step.id} className="flex gap-3">
-                      <div className="flex flex-col items-center">
-                        <div className="w-7 h-7 bg-primary-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 z-10 shadow-sm">
-                          {step.step}
-                        </div>
-                        {idx < arr.length - 1 && <div className="w-px flex-1 bg-gray-200 border-r border-gray-200 my-1" />}
+                <div className="space-y-4">
+                  {result.routine.evening.map((step: any, idx: number) => (
+                    <div key={step.id || idx} className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex gap-4 items-start transition-all hover:bg-white hover:shadow-md hover:border-gray-200 group">
+                      <div className="w-8 h-8 bg-white border border-gray-200 text-gray-900 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm group-hover:bg-primary-600 group-hover:text-white group-hover:border-primary-600 transition-colors">
+                        {step.step}
                       </div>
-                      <div className="flex-1 pb-5">
-                        <h4 className="font-semibold text-gray-900 text-sm">{step.product}</h4>
-                        <p className="text-xs text-gray-500 mt-0.5">{step.action}</p>
+                      <div className="flex-1 pt-1">
+                        <h4 className="font-semibold text-gray-900">{step.product}</h4>
+                        <p className="text-sm text-gray-500 mt-1 leading-relaxed">{step.action}</p>
                       </div>
                     </div>
                   ))}

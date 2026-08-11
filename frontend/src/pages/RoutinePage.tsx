@@ -89,16 +89,13 @@ export default function RoutinePage({ onStartScan }: RoutinePageProps) {
                 </div>
                 <h4 className="text-lg font-bold text-gray-900 font-display">Morning</h4>
               </div>
-              <div className="space-y-0 relative before:absolute before:inset-0 before:ml-[1.125rem] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-                {routine.morning.map((step: any, idx: number, arr: any[]) => (
-                  <div key={step.id || idx} className="flex gap-4 relative">
-                    <div className="flex flex-col items-center">
-                      <div className="w-9 h-9 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 z-10 shadow-md ring-4 ring-white">
-                        {step.step}
-                      </div>
-                      {idx < arr.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 my-1" />}
+              <div className="space-y-4">
+                {routine.morning.map((step: any, idx: number) => (
+                  <div key={step.id || idx} className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex gap-4 items-start transition-all hover:bg-white hover:shadow-md hover:border-gray-200 group">
+                    <div className="w-8 h-8 bg-white border border-gray-200 text-gray-900 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm group-hover:bg-primary-600 group-hover:text-white group-hover:border-primary-600 transition-colors">
+                      {step.step}
                     </div>
-                    <div className="flex-1 pb-8 pt-1">
+                    <div className="flex-1 pt-1">
                       <h4 className="font-semibold text-gray-900">{step.product}</h4>
                       <p className="text-sm text-gray-500 mt-1 leading-relaxed">{step.action}</p>
                     </div>
@@ -115,16 +112,13 @@ export default function RoutinePage({ onStartScan }: RoutinePageProps) {
                 </div>
                 <h4 className="text-lg font-bold text-gray-900 font-display">Evening</h4>
               </div>
-              <div className="space-y-0 relative before:absolute before:inset-0 before:ml-[1.125rem] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-                {routine.evening.map((step: any, idx: number, arr: any[]) => (
-                  <div key={step.id || idx} className="flex gap-4 relative">
-                    <div className="flex flex-col items-center">
-                      <div className="w-9 h-9 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 z-10 shadow-md ring-4 ring-white">
-                        {step.step}
-                      </div>
-                      {idx < arr.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 my-1" />}
+              <div className="space-y-4">
+                {routine.evening.map((step: any, idx: number) => (
+                  <div key={step.id || idx} className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex gap-4 items-start transition-all hover:bg-white hover:shadow-md hover:border-gray-200 group">
+                    <div className="w-8 h-8 bg-white border border-gray-200 text-gray-900 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm group-hover:bg-primary-600 group-hover:text-white group-hover:border-primary-600 transition-colors">
+                      {step.step}
                     </div>
-                    <div className="flex-1 pb-8 pt-1">
+                    <div className="flex-1 pt-1">
                       <h4 className="font-semibold text-gray-900">{step.product}</h4>
                       <p className="text-sm text-gray-500 mt-1 leading-relaxed">{step.action}</p>
                     </div>
