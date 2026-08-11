@@ -30,6 +30,7 @@ export default function Sidebar({
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'report', label: 'Recent Analysis', icon: Sparkles },
     { id: 'scan', label: 'New Scan', icon: ScanLine },
     { id: 'history', label: 'History', icon: History },
   ];
