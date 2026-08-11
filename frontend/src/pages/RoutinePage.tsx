@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Sun, Moon, Lightbulb, ListChecks, ArrowRight, Loader2, Edit3, Settings, Save, Plus } from 'lucide-react';
 import * as api from '../services/api';
+import { getStoredUser } from '../services/auth';
 import RoutineStepCard, { RoutineStep } from '../components/routine/RoutineStepCard';
 import RoutineProgress from '../components/routine/RoutineProgress';
 import RoutineReminders from '../components/routine/RoutineReminders';
@@ -15,8 +16,12 @@ export default function RoutinePage({ onStartScan }: RoutinePageProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showReminders, setShowReminders] = useState(false);
   
+  const user = getStoredUser();
+  const userId = user?.id || 'anon';
+  
   // Checklist State
-  const todayKey = `routine_log_${new Date().toISOString().split('T')[0]}`;
+  const todayKey = `${userId}_routine_log_${new Date().toISOString().split('T')[0]}`;
+  const customRoutineKey = `${userId}_custom_routine`;
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
   useEffect(() => {
@@ -29,7 +34,7 @@ export default function RoutinePage({ onStartScan }: RoutinePageProps) {
     async function fetchRoutine() {
       try {
         // Check for custom routine first
-        const customRoutineStr = localStorage.getItem('custom_routine');
+        const customRoutineStr = localStorage.getItem(customRoutineKey);
         if (customRoutineStr) {
           setRoutine(JSON.parse(customRoutineStr));
           setLoading(false);
@@ -75,7 +80,7 @@ export default function RoutinePage({ onStartScan }: RoutinePageProps) {
   };
 
   const saveCustomRoutine = () => {
-    localStorage.setItem('custom_routine', JSON.stringify(routine));
+    localStorage.setItem(customRoutineKey, JSON.stringify(routine));
     setIsEditMode(false);
   };
 
@@ -196,10 +201,10 @@ export default function RoutinePage({ onStartScan }: RoutinePageProps) {
             </div>
             
             {/* Quick reset/clear custom */}
-            {isEditMode && localStorage.getItem('custom_routine') && (
-              <button 
+            {isEditMode && localStorage.getItem(customRoutineKey) && (
+              <button
                 onClick={() => {
-                  localStorage.removeItem('custom_routine');
+                  localStorage.removeItem(customRoutineKey);
                   window.location.reload();
                 }}
                 className="text-xs text-red-500 hover:text-red-700 underline font-medium"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
+import { getStoredUser } from '../../services/auth';
 
 interface DayProgress {
   date: string;
@@ -11,6 +12,8 @@ const RoutineProgress: React.FC = () => {
   const [progress, setProgress] = useState<DayProgress[]>([]);
 
   useEffect(() => {
+    const user = getStoredUser();
+    const userId = user?.id || 'anon';
     const today = new Date();
     const last7Days: DayProgress[] = [];
     
@@ -20,7 +23,7 @@ const RoutineProgress: React.FC = () => {
       const dateStr = d.toISOString().split('T')[0];
       const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
       
-      const saved = localStorage.getItem(`routine_log_${dateStr}`);
+      const saved = localStorage.getItem(`${userId}_routine_log_${dateStr}`);
       const completedIds = saved ? JSON.parse(saved) : [];
       
       last7Days.push({

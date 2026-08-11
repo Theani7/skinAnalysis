@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Clock, Save, BellRing, X } from 'lucide-react';
+import { getStoredUser } from '../../services/auth';
 
 interface ReminderSettings {
   morning: string;
@@ -18,10 +19,13 @@ const RoutineReminders: React.FC<RoutineRemindersProps> = ({ onClose }) => {
     evening: '21:00',
     enabled: true
   });
+  const user = getStoredUser();
+  const userId = user?.id || 'anon';
+  const remindersKey = `${userId}_routine_reminders`;
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('routine_reminders');
+    const stored = localStorage.getItem(remindersKey);
     if (stored) {
       try {
         setSettings(JSON.parse(stored));
@@ -32,7 +36,7 @@ const RoutineReminders: React.FC<RoutineRemindersProps> = ({ onClose }) => {
   }, []);
 
   const handleSave = () => {
-    localStorage.setItem('routine_reminders', JSON.stringify(settings));
+    localStorage.setItem(remindersKey, JSON.stringify(settings));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
