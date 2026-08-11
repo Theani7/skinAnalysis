@@ -367,7 +367,7 @@ export interface ChatMessage {
 
 export const sendDoctorMessage = async (messages: ChatMessage[]): Promise<{ reply: string }> => {
   const response = await api.post('/ai-doctor/chat', { messages });
-  return response.data;
+  return { reply: response.data.response || response.data.reply || 'No response received' };
 };
 
 export default api;

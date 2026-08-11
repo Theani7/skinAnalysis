@@ -62,6 +62,7 @@ export default function AIDoctorPage() {
 
   // Simple markdown-like formatter for bold and paragraphs
   const formatText = (text: string) => {
+    if (!text) return null;
     return text.split('\n').map((paragraph, idx) => {
       if (!paragraph.trim()) return <br key={idx} />;
       
