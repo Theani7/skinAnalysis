@@ -31,6 +31,7 @@ class User(Base):
     profile_data: Mapped[str] = mapped_column(Text, server_default="{}", default="{}")
 
     scans: Mapped[list["Scan"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    saved_products: Mapped[list["SavedProduct"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Scan(Base):
@@ -57,3 +58,22 @@ class Scan(Base):
     face_quality: Mapped[str] = mapped_column(Text, default="{}")
 
     user: Mapped["User"] = relationship(back_populates="scans")
+
+
+class SavedProduct(Base):
+    __tablename__ = "saved_products"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+    name: Mapped[str] = mapped_column(String(255))
+    price_show: Mapped[str] = mapped_column(String(50))
+    discount: Mapped[str] = mapped_column(String(50), nullable=True)
+    image: Mapped[str] = mapped_column(String(255), nullable=True)
+    url: Mapped[str] = mapped_column(Text)
+    rating: Mapped[float] = mapped_column(Float, default=0.0)
+    reviews: Mapped[int] = mapped_column(Integer, default=0)
+    sold: Mapped[str] = mapped_column(String(50), nullable=True)
+
+    user: Mapped["User"] = relationship(back_populates="saved_products")

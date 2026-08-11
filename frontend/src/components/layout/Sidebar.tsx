@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, ScanLine, History, X, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, ScanLine, History, X, Sparkles, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import { PageRoute } from '../../App';
 import { AuthUser } from '../../services/auth';
 
@@ -33,6 +33,7 @@ export default function Sidebar({
     { id: 'report', label: 'Recent Analysis', icon: Sparkles },
     { id: 'scan', label: 'New Scan', icon: ScanLine },
     { id: 'history', label: 'History', icon: History },
+    { id: 'saved-products', label: 'Saved Products', icon: Heart },
   ];
 
   const handleNav = (route: PageRoute) => {

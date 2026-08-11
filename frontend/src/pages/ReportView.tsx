@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import {
   Download, ArrowLeft, ShieldAlert, Droplets, Activity, Maximize,
   CheckCircle2, AlertTriangle, Sun, Moon, Lightbulb, Clock, Zap,
-  ImageOff, CircleDot, Sparkles, ExternalLink, Star, ShoppingBag,
+  ImageOff, CircleDot, Sparkles, ExternalLink, Star, ShoppingBag, Heart,
 } from 'lucide-react';
-import { AnalysisResponse, getResultImageUrl, getScanHistory, getScanDetail } from '../services/api';
+import { AnalysisResponse, getResultImageUrl, getScanHistory, getScanDetail, saveProduct, removeSavedProduct, getSavedProducts } from '../services/api';
 import { generateClinicalReportPDF } from '../utils/generatePDF';
 
 interface ReportViewProps {
@@ -80,6 +80,14 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
   
   const [result, setResult] = useState<any>(initialResult);
   const [isLoading, setIsLoading] = useState(!initialResult);
+  const [savedProductUrls, setSavedProductUrls] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    // Fetch saved products to know which are already saved
+    getSavedProducts().then(res => {
+      setSavedProductUrls(new Set(res.products.map(p => p.url)));
+    }).catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (!initialResult) {
@@ -213,6 +221,37 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
       case 'high': return 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]';
       case 'medium': return 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]';
       default: return 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]';
+    }
+  };
+
+  const toggleSaveProduct = async (e: React.MouseEvent, product: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const isSaved = savedProductUrls.has(product.url);
+    try {
+      if (isSaved) {
+        await removeSavedProduct(product.url);
+        setSavedProductUrls(prev => {
+          const next = new Set(prev);
+          next.delete(product.url);
+          return next;
+        });
+      } else {
+        await saveProduct({
+          name: product.name,
+          price_show: product.price_show,
+          url: product.url,
+          discount: product.discount || null,
+          image: product.image || null,
+          rating: product.rating || 0,
+          reviews: product.reviews || 0,
+          sold: product.sold || null,
+        });
+        setSavedProductUrls(prev => new Set(prev).add(product.url));
+      }
+    } catch (err) {
+      console.error('Failed to toggle save product', err);
     }
   };
 
@@ -502,8 +541,16 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
                           ) : (
                             <ShoppingBag className="w-8 h-8 text-gray-300" />
                           )}
-                          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                            <ExternalLink className="w-3.5 h-3.5 text-gray-700" />
+                          <div className="absolute top-2 right-2 flex flex-col gap-2">
+                            <button
+                              onClick={(e) => toggleSaveProduct(e, product)}
+                              className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:scale-110 transition-transform"
+                            >
+                              <Heart className={`w-4 h-4 ${savedProductUrls.has(product.url) ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+                            </button>
+                            <div className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center">
+                              <ExternalLink className="w-3.5 h-3.5 text-gray-700" />
+                            </div>
                           </div>
                         </div>
                         <div className="flex-1 flex flex-col">

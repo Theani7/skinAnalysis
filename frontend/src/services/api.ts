@@ -294,6 +294,43 @@ export const getScanDetail = async (scanId: string): Promise<ScanDetailResponse>
   return response.data;
 };
 
+export const deleteAccount = async () => {
+  const response = await api.delete('/users/me');
+  return response.data;
+};
+
+// ==========================================
+// SAVED PRODUCTS
+// ==========================================
+
+export interface SavedProduct {
+  id: string;
+  name: string;
+  price_show: string;
+  discount: string | null;
+  image: string | null;
+  url: string;
+  rating: number;
+  reviews: number;
+  sold: string | null;
+  created_at: string;
+}
+
+export const saveProduct = async (product: Omit<SavedProduct, 'id' | 'created_at'>) => {
+  const response = await api.post('/products/save', product);
+  return response.data;
+};
+
+export const removeSavedProduct = async (url: string) => {
+  const response = await api.delete(`/products/save`, { params: { url } });
+  return response.data;
+};
+
+export const getSavedProducts = async (): Promise<{ status: string; products: SavedProduct[] }> => {
+  const response = await api.get('/products/saved');
+  return response.data;
+};
+
 export const getProgressData = async (): Promise<ProgressResponse> => {
   const response = await api.get('/scans/history/progress');
   return response.data;

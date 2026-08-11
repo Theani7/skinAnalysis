@@ -42,7 +42,8 @@ from services.daraz import search_products, search_products_for_recommendations
 from services.database import get_db, init_db
 from services.image_processor import image_processor
 from services.logging_config import setup_logging
-from services.models import Scan
+from services.models import Scan, SavedProduct
+from pydantic import BaseModel
 from services.predictor import predictor
 
 setup_logging(os.getenv("SKINAI_ENV", "development"))
@@ -354,6 +355,106 @@ async def upload_image(
     except Exception as e:
         logger.error(f"Upload error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error during upload")
+
+
+# ═══════════════════════════════════════════
+# SAVED PRODUCTS
+# ═══════════════════════════════════════════
+
+class SaveProductRequest(BaseModel):
+    name: str
+    price_show: str
+    url: str
+    discount: str | None = None
+    image: str | None = None
+    rating: float = 0.0
+    reviews: int = 0
+    sold: str | None = None
+
+@app.post("/products/save")
+async def save_product(
+    req: SaveProductRequest,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        result = await db.execute(select(SavedProduct).where(SavedProduct.user_id == user["id"], SavedProduct.url == req.url))
+        existing = result.scalar_one_or_none()
+        if existing:
+            return {"status": "success", "message": "Already saved", "id": existing.id}
+        
+        prod = SavedProduct(
+            user_id=user["id"],
+            name=req.name,
+            price_show=req.price_show,
+            discount=req.discount,
+            image=req.image,
+            url=req.url,
+            rating=req.rating,
+            reviews=req.reviews,
+            sold=req.sold
+        )
+        db.add(prod)
+        await db.commit()
+        return {"status": "success", "id": prod.id}
+    except Exception as e:
+        logger.error(f"Error saving product: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to save product")
+
+@app.get("/products/saved")
+async def get_saved_products(
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        result = await db.execute(
+            select(SavedProduct)
+            .where(SavedProduct.user_id == user["id"])
+            .order_by(SavedProduct.created_at.desc())
+        )
+        products = result.scalars().all()
+        return {
+            "status": "success",
+            "products": [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "price_show": p.price_show,
+                    "discount": p.discount,
+                    "image": p.image,
+                    "url": p.url,
+                    "rating": p.rating,
+                    "reviews": p.reviews,
+                    "sold": p.sold,
+                    "created_at": p.created_at.isoformat()
+                } for p in products
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error fetching saved products: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to load saved products")
+
+@app.delete("/products/save")
+async def remove_saved_product(
+    url: str,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        result = await db.execute(
+            select(SavedProduct)
+            .where(SavedProduct.user_id == user["id"], SavedProduct.url == url)
+        )
+        prod = result.scalar_one_or_none()
+        if not prod:
+            return {"status": "success", "message": "Product not found or already removed"}
+        
+        await db.delete(prod)
+        await db.commit()
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Error removing saved product: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to remove product")
 
 
 @app.post("/process")
