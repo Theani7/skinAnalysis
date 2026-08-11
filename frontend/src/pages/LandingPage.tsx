@@ -4,55 +4,6 @@ import { ProgressRing } from '../components/ui/ProgressRing';
 
 const DELAY = (i: number) => ({ ['--reveal-delay' as string]: `${i * 60}ms` });
 
-function FaceMap() {
-  return (
-    <svg viewBox="0 0 420 440" className="w-full h-auto" role="img" aria-label="Example skin scan map showing detected lesions with confidence scores">
-      {/* Head */}
-      <ellipse cx="210" cy="200" rx="120" ry="145" fill="#f6f6f7" stroke="#e4e4e7" strokeWidth="1.5" />
-      <path d="M180 330 h60 v72 a10 10 0 0 1 -10 10 h-40 a10 10 0 0 1 -10 -10 z" fill="#f6f6f7" stroke="#e4e4e7" strokeWidth="1.5" />
-      <ellipse cx="92" cy="195" rx="14" ry="24" fill="#f6f6f7" stroke="#e4e4e7" strokeWidth="1.5" />
-      <ellipse cx="328" cy="195" rx="14" ry="24" fill="#f6f6f7" stroke="#e4e4e7" strokeWidth="1.5" />
-      {/* Features */}
-      <path d="M160 148 Q 175 138 192 146" stroke="#c4c4cc" strokeWidth="5" fill="none" strokeLinecap="round" />
-      <path d="M228 146 Q 245 138 260 148" stroke="#c4c4cc" strokeWidth="5" fill="none" strokeLinecap="round" />
-      <ellipse cx="176" cy="176" rx="13" ry="6.5" fill="none" stroke="#a1a1aa" strokeWidth="3" />
-      <ellipse cx="244" cy="176" rx="13" ry="6.5" fill="none" stroke="#a1a1aa" strokeWidth="3" />
-      <path d="M210 185 L210 226 Q210 236 201 239" stroke="#c4c4cc" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-      <path d="M182 264 Q210 274 238 264" stroke="#c4c4cc" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-      <path d="M182 264 Q210 284 238 264" stroke="#c4c4cc" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-      {/* Detection boxes — example preview data */}
-      <rect x="104" y="130" width="58" height="48" rx="6" fill="rgba(136,13,30,0.07)" stroke="#880d1e" strokeWidth="2" />
-      <circle cx="133" cy="154" r="4" fill="#ad1639" />
-      <path d="M133 126 v6" stroke="#880d1e" strokeWidth="2" />
-      <g transform="translate(104,104)">
-        <rect width="56" height="18" rx="4" fill="#880d1e" />
-        <text x="28" y="13" textAnchor="middle" fontSize="10" fontWeight="600" fill="#ffffff" fontFamily="Inter, sans-serif">94%</text>
-      </g>
-      <rect x="248" y="178" width="62" height="52" rx="6" fill="rgba(136,13,30,0.07)" stroke="#880d1e" strokeWidth="2" />
-      <circle cx="279" cy="204" r="4" fill="#ad1639" />
-      <path d="M279 174 v6" stroke="#880d1e" strokeWidth="2" />
-      <g transform="translate(248,152)">
-        <rect width="54" height="18" rx="4" fill="#880d1e" />
-        <text x="27" y="13" textAnchor="middle" fontSize="10" fontWeight="600" fill="#ffffff" fontFamily="Inter, sans-serif">89%</text>
-      </g>
-      <rect x="158" y="96" width="52" height="44" rx="6" fill="rgba(136,13,30,0.07)" stroke="#880d1e" strokeWidth="2" />
-      <circle cx="184" cy="118" r="4" fill="#ad1639" />
-      <path d="M184 92 v6" stroke="#880d1e" strokeWidth="2" />
-      <g transform="translate(158,70)">
-        <rect width="54" height="18" rx="4" fill="#880d1e" />
-        <text x="27" y="13" textAnchor="middle" fontSize="10" fontWeight="600" fill="#ffffff" fontFamily="Inter, sans-serif">97%</text>
-      </g>
-      <rect x="250" y="238" width="52" height="44" rx="6" fill="rgba(136,13,30,0.07)" stroke="#880d1e" strokeWidth="2" />
-      <circle cx="276" cy="260" r="4" fill="#ad1639" />
-      <path d="M276 234 v6" stroke="#880d1e" strokeWidth="2" />
-      <g transform="translate(250,212)">
-        <rect width="54" height="18" rx="4" fill="#880d1e" />
-        <text x="27" y="13" textAnchor="middle" fontSize="10" fontWeight="600" fill="#ffffff" fontFamily="Inter, sans-serif">91%</text>
-      </g>
-    </svg>
-  );
-}
-
 function ScanPreview() {
   return (
     <div className="relative">
@@ -104,21 +55,15 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
   }, []);
 
   const steps = [
-    { icon: Camera, title: 'Upload', desc: 'Take or upload a clear, well-lit photo of your face or affected area.' },
-    { icon: ScanFace, title: 'Analyze', desc: 'Computer-vision models map lesions, tone, and texture in under two seconds.' },
-    { icon: Activity, title: 'Score', desc: 'Acne, pigmentation, and hydration are scored against a clinical severity scale.' },
-    { icon: FileText, title: 'Report', desc: 'Get an AM/PM skincare routine with product matches tailored to your skin type.' },
+    { slug: 'upload', icon: Camera, title: 'Upload', desc: 'Take or upload a clear, well-lit photo of your face or affected area.' },
+    { slug: 'analyze', icon: ScanFace, title: 'Analyze', desc: 'Computer-vision models map lesions, tone, and texture in under two seconds.' },
+    { slug: 'score', icon: Activity, title: 'Score', desc: 'Acne, pigmentation, and hydration are scored against a clinical severity scale.' },
+    { slug: 'report', icon: FileText, title: 'Report', desc: 'Get an AM/PM skincare routine with product matches tailored to your skin type.' },
   ];
 
   const routine = [
     { time: 'AM', label: 'Gentle cleanser, azelaic acid, SPF 50+' },
     { time: 'PM', label: 'Salicylic acid 2% spot treatment, ceramide moisturizer' },
-  ];
-
-  const metrics = [
-    { value: '72', label: 'Hydration', active: true },
-    { value: '81', label: 'Smoothness', active: false },
-    { value: '46', label: 'Oiliness', active: false },
   ];
 
   return (
@@ -227,31 +172,79 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
 
       {/* How it works */}
       <section id="how-it-works" className="px-6 max-w-7xl mx-auto py-24 md:py-28">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-5">
-            <div className="lg:sticky lg:top-24">
-              <h2 className="font-sans text-3xl md:text-4xl font-bold tracking-tight text-gray-900">How it works</h2>
-              <p className="mt-4 text-lg leading-relaxed text-gray-600 max-w-md">
-                Four steps from photo to plan. No appointment, no waiting room, no guesswork.
-              </p>
-            </div>
-          </div>
-          <div className="lg:col-span-7">
-            {steps.map((step, i) => (
-              <div
-                key={i}
-                className={`flex items-start gap-6 py-7 group rounded-xl -mx-4 px-4 transition-colors hover:bg-white ${i === steps.length - 1 ? '' : 'border-b border-gray-200'}`}
-              >
-                <span className="font-mono text-sm text-primary-700 pt-1 tabular-nums w-9 shrink-0">0{i + 1}</span>
-                <div className="w-11 h-11 shrink-0 rounded-lg border border-gray-200 bg-white flex items-center justify-center">
-                  <step.icon className="w-5 h-5 text-primary-700" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-gray-900">{step.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-gray-600 max-w-xl">{step.desc}</p>
-                </div>
+        <div className="max-w-2xl">
+          <h2 className="font-sans text-3xl md:text-4xl font-bold tracking-tight text-gray-900">From photo to plan in four steps</h2>
+          <p className="mt-4 text-lg leading-relaxed text-gray-600">
+            No appointment, no waiting room, no guesswork.
+          </p>
+        </div>
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {steps.map((step, i) => (
+            <div key={i} className="t-scroll-reveal rounded-xl border border-gray-200 bg-white overflow-hidden transition-shadow hover:shadow-[0_8px_24px_-8px_rgb(0_0_0/0.12)]">
+              <div className="aspect-square bg-gray-100">
+                <img
+                  src={`/step-${step.slug}.png`}
+                  alt={`${step.title} step illustration`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  width={1254}
+                  height={1254}
+                />
               </div>
-            ))}
+              <div className="p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <step.icon className="w-4.5 h-4.5 text-primary-700" />
+                    <h3 className="text-base font-semibold text-gray-900">{step.title}</h3>
+                  </div>
+                  <span className="font-mono text-xs text-primary-700 tabular-nums" aria-hidden="true">0{i + 1}</span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-gray-600">{step.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* AM/PM routine */}
+      <section className="px-6 max-w-7xl mx-auto pb-24 md:pb-28">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="t-scroll-reveal rounded-xl border border-gray-200 overflow-hidden">
+            <img
+              src="/lifestyle-ampm.png"
+              alt="Skincare routine in soft morning light"
+              className="w-full h-full object-cover"
+              loading="lazy"
+              width={1672}
+              height={941}
+            />
+          </div>
+          <div className="t-scroll-reveal">
+            <span className="text-xs font-semibold tracking-widest uppercase text-primary-700">AM &amp; PM routines</span>
+            <h2 className="mt-3 font-sans text-3xl md:text-4xl font-bold tracking-tight text-gray-900">
+              Recommendations that fit how you live
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-gray-600">
+              Every scan produces a morning and night routine, with product matches chosen for your skin type — not a one-size-fits-all list.
+            </p>
+            <div className="mt-7 space-y-3">
+              <div className="flex items-center gap-3.5 rounded-lg border border-gray-200 bg-white px-4 py-3.5">
+                <div className="w-9 h-9 rounded-lg bg-primary-700/[0.06] flex items-center justify-center">
+                  <Sun className="w-4.5 h-4.5 text-primary-700" />
+                </div>
+                <span className="text-sm text-gray-700">
+                  <span className="font-semibold text-gray-900">Morning:</span> cleanse, actives, SPF — matched to your skin type
+                </span>
+              </div>
+              <div className="flex items-center gap-3.5 rounded-lg border border-gray-200 bg-white px-4 py-3.5">
+                <div className="w-9 h-9 rounded-lg bg-primary-700/[0.06] flex items-center justify-center">
+                  <Moon className="w-4.5 h-4.5 text-primary-700" />
+                </div>
+                <span className="text-sm text-gray-700">
+                  <span className="font-semibold text-gray-900">Night:</span> repair, spot treatment, moisturizer — based on scan severity
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -267,18 +260,27 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
 
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Acne detection */}
-          <div className="lg:col-span-7 t-scroll-reveal rounded-xl border border-gray-200 bg-white p-7 md:p-8">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
-                <ScanFace className="w-4.5 h-4.5 text-primary-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Acne detection</h3>
+          <div className="lg:col-span-7 t-scroll-reveal rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="aspect-[4/3] bg-gray-100">
+              <img
+                src="/cap-detection.jpg"
+                alt="Acne lesion detection with bounding-box markers"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                width={836}
+                height={627}
+              />
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-gray-600 max-w-md">
-              Identifies papules, pustules, blackheads, and comedones with bounding-box precision on a clinical severity scale.
-            </p>
-            <div className="mt-6 rounded-lg border border-gray-100 bg-gray-50/60 px-4 pt-2">
-              <FaceMap />
+            <div className="p-7 md:p-8">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <ScanFace className="w-4.5 h-4.5 text-primary-700" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Acne detection</h3>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-gray-600 max-w-lg">
+                Identifies papules, pustules, blackheads, and comedones with bounding-box precision on a clinical severity scale.
+              </p>
             </div>
           </div>
 
@@ -315,71 +317,85 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
           </div>
 
           {/* Texture & hydration */}
-          <div className="lg:col-span-5 t-scroll-reveal rounded-xl border border-gray-200 bg-white p-7 md:p-8">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
-                <Droplets className="w-4.5 h-4.5 text-primary-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Texture &amp; hydration</h3>
+          <div className="lg:col-span-5 t-scroll-reveal rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="aspect-[4/3] bg-gray-100">
+              <img
+                src="/cap-texture.png"
+                alt="Macro view of skin texture and hydration"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                width={900}
+                height={675}
+              />
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-gray-600">
-              Surface roughness and barrier health estimated from texture gradients. Example metrics:
-            </p>
-            <div className="mt-8 flex items-end gap-10">
-              {metrics.map((m) => (
-                <div key={m.label} className="flex flex-col items-center gap-3">
-                  <span className="font-mono text-xs text-gray-600 tabular-nums">{m.value}%</span>
-                  <div className="w-10 h-24 rounded-md bg-gray-100 flex items-end overflow-hidden">
-                    <div className={`w-full rounded-md ${m.active ? 'bg-primary-700' : 'bg-gray-300'}`} style={{ height: `${m.value}%` }} />
-                  </div>
-                  <span className="text-[11px] text-gray-500">{m.label}</span>
+            <div className="p-7 md:p-8">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <Droplets className="w-4.5 h-4.5 text-primary-700" />
                 </div>
-              ))}
+                <h3 className="text-lg font-semibold text-gray-900">Texture &amp; hydration</h3>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-gray-600">
+                Surface roughness and barrier health estimated from texture gradients across your skin map.
+              </p>
             </div>
           </div>
 
           {/* Personalized routine */}
-          <div className="lg:col-span-7 t-scroll-reveal rounded-xl border border-gray-200 bg-gray-50 p-7 md:p-8">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
-                <Sparkles className="w-4.5 h-4.5 text-primary-700" />
+          <div className="lg:col-span-7 t-scroll-reveal rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="aspect-[4/3] md:aspect-auto md:h-full bg-gray-100">
+                <img
+                  src="/cap-routine.png"
+                  alt="Skincare products flat lay"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  width={900}
+                  height={675}
+                />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Personalized routine</h3>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-gray-600 max-w-md">
-              Recommendations adapt to your scan history and severity trend, with product matches for your skin type. Example:
-            </p>
-            <div className="mt-5 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-gray-500">Skin type:</span>
-              {['Dry', 'Oily', 'Combination', 'Sensitive'].map((t) => (
-                <span
-                  key={t}
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-                    t === 'Oily'
-                      ? 'bg-primary-700/[0.06] border-primary-700/15 text-primary-700'
-                      : 'bg-white border-gray-200 text-gray-500'
-                  }`}
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-            <div className="mt-4 space-y-2.5">
-              {routine.map((r) => (
-                <div key={r.time} className="flex items-center gap-3.5 rounded-lg bg-white border border-gray-200 px-4 py-3">
-                  {r.time === 'AM' ? <Sun className="w-4 h-4 text-gray-400 shrink-0" /> : <Moon className="w-4 h-4 text-gray-400 shrink-0" />}
-                  <span className="font-mono text-xs text-gray-500 w-7 shrink-0">{r.time}</span>
-                  <span className="text-sm text-gray-700">{r.label}</span>
-                  <Check className="w-4 h-4 text-primary-700 ml-auto shrink-0" />
+              <div className="p-7 md:p-8 bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
+                    <Sparkles className="w-4.5 h-4.5 text-primary-700" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Personalized routine</h3>
                 </div>
-              ))}
-              <div className="flex items-center gap-3.5 rounded-lg bg-white border border-gray-200 px-4 py-3">
-                <Sparkles className="w-4 h-4 text-primary-700 shrink-0" />
-                <span className="text-sm text-gray-700">
-                  Recommended for <span className="font-medium text-gray-900">oily, acne-prone skin</span>:
-                  niacinamide serum, salicylic acid cleanser
-                </span>
-                <Check className="w-4 h-4 text-primary-700 ml-auto shrink-0" />
+                <p className="mt-3 text-sm leading-relaxed text-gray-600">
+                  Recommendations adapt to your scan history and severity trend, with product matches for your skin type. Example:
+                </p>
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-gray-500">Skin type:</span>
+                  {['Dry', 'Oily', 'Combination', 'Sensitive'].map((t) => (
+                    <span
+                      key={t}
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
+                        t === 'Oily'
+                          ? 'bg-white border-primary-700/25 text-primary-700'
+                          : 'bg-white border-gray-200 text-gray-500'
+                      }`}
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-4 space-y-2.5">
+                  {routine.map((r) => (
+                    <div key={r.time} className="flex items-center gap-3.5 rounded-lg bg-white border border-gray-200 px-4 py-3">
+                      {r.time === 'AM' ? <Sun className="w-4 h-4 text-gray-400 shrink-0" /> : <Moon className="w-4 h-4 text-gray-400 shrink-0" />}
+                      <span className="font-mono text-xs text-gray-500 w-7 shrink-0">{r.time}</span>
+                      <span className="text-sm text-gray-700">{r.label}</span>
+                      <Check className="w-4 h-4 text-primary-700 ml-auto shrink-0" />
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-3.5 rounded-lg bg-white border border-gray-200 px-4 py-3">
+                    <Sparkles className="w-4 h-4 text-primary-700 shrink-0" />
+                    <span className="text-sm text-gray-700">
+                      Recommended for <span className="font-medium text-gray-900">oily, acne-prone skin</span>:
+                      niacinamide serum, salicylic acid cleanser
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
