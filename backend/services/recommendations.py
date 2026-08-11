@@ -12,7 +12,7 @@ Multi-signal acne detection combining:
 
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 
 
 
-def _generate_recommendations(acne_count: int, severity: str, pigment_data: Dict, dryness_data: Dict, spot_types: Dict = None) -> Dict:
+def _generate_recommendations(acne_count: int, severity: str, pigment_data: Dict, dryness_data: Dict, spot_types: Optional[Dict] = None) -> Dict:
     """
     Generate personalized skincare, lifestyle, and medical recommendations.
     Returns both a flat list and a structured AM/PM routine.

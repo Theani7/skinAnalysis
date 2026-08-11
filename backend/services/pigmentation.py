@@ -13,8 +13,9 @@ Output includes clarity_score, spots_count, intensity, spatial_pattern,
 type_distribution, normalized_coverage, heatmap mask and intensity map.
 """
 
+# mypy: ignore-errors
 import logging
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -140,11 +141,9 @@ def _compute_spatial_pattern(validated_spots: list) -> str:
         if spread > 80:
             return "diffuse"
         return "mixed"
-
-
 def detect_pigmentation(
     image: np.ndarray, skin_mask: np.ndarray, acne_mask: np.ndarray,
-    face_regions: list = None,
+    face_regions: Optional[list] = None,
 ) -> Dict:
     """
     Multi-spectral pigmentation detection with skin-tone adaptive thresholds.

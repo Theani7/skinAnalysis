@@ -97,7 +97,7 @@ async def generate_title_background(session_id: str, content: str, api_key: str)
             model="llama-3.1-8b-instant",
             max_tokens=15
         )
-        title = response.choices[0].message.content.strip().replace('"', '')
+        title = (response.choices[0].message.content or "New Chat").strip().replace('"', '')
         async with async_session() as local_db:
             sess = await local_db.get(ChatSession, session_id)
             if sess:

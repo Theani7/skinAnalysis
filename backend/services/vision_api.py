@@ -1,13 +1,13 @@
 import json
 import logging
 import os
-
+from typing import Optional, Any
 import cv2
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
-def analyze_skin_with_gemini(image: np.ndarray) -> dict:
+def analyze_skin_with_gemini(image: np.ndarray) -> Optional[dict[str, Any]]:
     """
     Uses the free Gemini Vision API to analyze skin for dryness and pigmentation.
     Requires GEMINI_API_KEY to be set in the environment.

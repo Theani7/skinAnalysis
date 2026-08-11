@@ -312,7 +312,7 @@ class AcnePredictor:
             result_path = os.path.join(RESULTS_DIR, result_filename)
             cv2.imwrite(result_path, result_image)
 
-            spot_types = {}
+            spot_types: dict[str, int] = {}
             for d in all_detections:
                 t = d.get("type", "unknown")
                 spot_types[t] = spot_types.get(t, 0) + 1

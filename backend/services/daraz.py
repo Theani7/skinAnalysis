@@ -193,7 +193,7 @@ async def search_products_for_recommendations(
 
     product_map = {}
     for result in results:
-        if isinstance(result, Exception):
+        if isinstance(result, BaseException):
             logger.warning(f"Batch search error: {result}")
             continue
         rid, products = result

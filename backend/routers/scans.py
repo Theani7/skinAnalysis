@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import Dict
+from typing import Dict, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
@@ -367,7 +367,7 @@ async def get_pigmentation_progress(
 @router.get("/scans/{scan_id}/compare")
 async def compare_scans(
     scan_id: str,
-    compare_to: str = None,
+    compare_to: Optional[str] = None,
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

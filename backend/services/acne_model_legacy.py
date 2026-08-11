@@ -3,7 +3,7 @@ Legacy YOLOv8 inference engine for H5 weights (kept as fallback).
 """
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Any
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ class Yolov8Detector:
     def __init__(self, h5_path: str, conf_threshold: float = 0.5, iou_threshold: float = 0.45):
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
-        self.weights = {}
+        self.weights: dict[str, Any] = {}
         logger.warning("Legacy H5 detector loaded — limited accuracy")
 
     def detect(self, image, input_size: int = 640) -> List[Dict]:

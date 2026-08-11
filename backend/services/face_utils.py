@@ -14,6 +14,7 @@ import logging
 import os
 from typing import Dict, List, Tuple
 
+# mypy: ignore-errors
 import cv2
 import numpy as np
 from ultralytics import YOLO

@@ -23,9 +23,10 @@ from services.models import User
 
 # ── Config ──
 
-SECRET_KEY = os.getenv("SKINAI_JWT_SECRET")
-if not SECRET_KEY:
+_secret = os.getenv("SKINAI_JWT_SECRET")
+if not _secret:
     raise RuntimeError("SKINAI_JWT_SECRET environment variable is required")
+SECRET_KEY: str = _secret
 
 _WEAK_SECRETS = {"secret", "change-me", "change-in-production", "skinai-dev-secret-change-in-production-2024", "your-secret-key", "generate-a-strong-random-secret-here"}
 _env = os.getenv("SKINAI_ENV", "development")

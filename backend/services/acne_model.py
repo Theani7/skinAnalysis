@@ -7,7 +7,7 @@ Detects individual acne spots with bounding boxes.
 
 import logging
 import os
-from typing import Dict
+from typing import Dict, List, Optional, Any
 
 import cv2
 import numpy as np
@@ -26,8 +26,8 @@ class AcneDetector:
     def __init__(self, conf_threshold: float = 0.25, iou_threshold: float = 0.45):
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
-        self.model = None
-        self.model_type = None
+        self.model: Any = None
+        self.model_type: Optional[str] = None
         self._load()
 
     def _load(self):
