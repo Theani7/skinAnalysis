@@ -55,26 +55,36 @@ function FaceMap() {
 
 function ScanPreview() {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04),0_12px_32px_-16px_rgb(0_0_0/0.12)] overflow-hidden">
-      <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary-600" aria-hidden="true" />
-          <span className="text-sm font-medium text-gray-900">Analysis preview</span>
-        </div>
-        <span className="font-mono text-xs text-gray-500">1.4s</span>
+    <div className="relative">
+      <div className="rounded-xl border border-gray-200 overflow-hidden shadow-[0_1px_3px_0_rgb(0_0_0/0.04),0_12px_32px_-16px_rgb(0_0_0/0.12)]">
+        <img
+          src="/hero-scan.png"
+          alt="Skin analysis scan in progress"
+          className="w-full h-auto block"
+          width={1122}
+          height={1402}
+          loading="eager"
+          fetchPriority="high"
+        />
       </div>
-      <div className="px-6 pt-4">
-        <FaceMap />
-      </div>
-      <div className="px-5 py-4 border-t border-gray-100 flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-primary-700/[0.06] border border-primary-700/15 text-primary-700">Acne · 12</span>
-        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-primary-700/[0.06] border border-primary-700/15 text-primary-700">Pigmentation · 3</span>
-        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-600">Texture · Normal</span>
-        <div className="ml-auto flex items-center gap-2.5">
-          <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full w-[62%] rounded-full bg-primary-700" />
+      <div className="absolute bottom-4 left-4 right-4 sm:right-auto rounded-lg border border-gray-200 bg-white/95 backdrop-blur px-4 py-3 shadow-[0_4px_16px_-4px_rgb(0_0_0/0.12)]">
+        <div className="flex items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary-600" aria-hidden="true" />
+            <span className="text-sm font-medium text-gray-900">Analysis preview</span>
           </div>
-          <span className="text-xs font-medium text-gray-600">Moderate</span>
+          <span className="font-mono text-xs text-gray-500">1.4s</span>
+        </div>
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-primary-700/[0.06] border border-primary-700/15 text-primary-700">Acne · 12</span>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-primary-700/[0.06] border border-primary-700/15 text-primary-700">Pigmentation · 3</span>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-600">Texture · Normal</span>
+          <div className="flex items-center gap-2.5 ml-auto">
+            <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full w-[62%] rounded-full bg-primary-700" />
+            </div>
+            <span className="text-xs font-medium text-gray-600">Moderate</span>
+          </div>
         </div>
       </div>
     </div>
