@@ -210,13 +210,17 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
       <section className="px-6 max-w-7xl mx-auto pb-24 md:pb-28">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div className="t-scroll-reveal rounded-xl border border-gray-200 overflow-hidden">
-            <img
-              src="/lifestyle-ampm.png"
-              alt="Skincare routine in soft morning light"
+            <video
+              src="/lifestyle-ampm.mp4"
+              poster="/lifestyle-ampm.png"
               className="w-full h-full object-cover"
-              loading="lazy"
-              width={1672}
-              height={941}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              width={1280}
+              height={720}
             />
           </div>
           <div className="t-scroll-reveal">
