@@ -43,7 +43,8 @@ export default function FloatingAssistant() {
           const updated = [...prev];
           const lastMsg = updated[updated.length - 1];
           if (lastMsg && lastMsg.role === 'assistant') {
-            lastMsg.content += chunk;
+            // MUST clone the message to avoid StrictMode double-mutation
+            updated[updated.length - 1] = { ...lastMsg, content: lastMsg.content + chunk };
           }
           return updated;
         });
