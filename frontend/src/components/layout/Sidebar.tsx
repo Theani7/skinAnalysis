@@ -32,7 +32,7 @@ export default function Sidebar({
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'report', label: 'Recent Analysis', icon: Sparkles },
     { id: 'routine', label: 'My Routine', icon: ListChecks },
-    { id: 'doctor', label: 'AI Doctor', icon: Bot },
+    { id: 'doctor', label: 'SkinAI Assistant', icon: Bot },
     { id: 'history', label: 'History', icon: History },
     { id: 'saved-products', label: 'Saved Products', icon: Heart },
   ];

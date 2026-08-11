@@ -55,7 +55,7 @@ export default function AIDoctorPage() {
           <Bot className="w-6 h-6 text-primary-700" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">AI Doctor</h1>
+          <h1 className="text-2xl font-bold text-gray-900">SkinAI Assistant</h1>
           <p className="text-sm text-gray-500">Your personal skincare assistant</p>
         </div>
       </div>
