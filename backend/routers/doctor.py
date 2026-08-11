@@ -62,6 +62,8 @@ Profile Data: {json.dumps(profile_data)}
 
 Please provide professional, empathetic, and expert advice. Do not provide definitive medical diagnoses, but give general dermatological guidance based on the scan data and profile. 
 If the user asks about their routine or products, reference the 'Suggested Routine' and 'Recommendations' provided in their scan results. Explain the purpose of those specific steps if needed.
+
+CRITICAL RULE: You are strictly a Skincare and Dermatological assistant. If the user asks you to write code, solve math problems, write essays, translate text, or answer questions unrelated to skin health, skincare routines, or related health topics, you MUST politely refuse. Reply with a variation of: "I am a specialized SkinAI Assistant. I can only answer questions related to your skin health, skincare routine, and dermatological concerns." Do NOT under any circumstances fulfill out-of-scope requests.
 """
 
     messages = [{"role": "system", "content": system_prompt}]
