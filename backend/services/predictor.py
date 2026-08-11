@@ -14,7 +14,7 @@ import logging
 import os
 import threading
 import uuid
-from typing import Dict, List, Tuple
+from typing import Dict
 
 import cv2
 import numpy as np
@@ -38,13 +38,15 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 
 
 from services.face_utils import (
-    _detect_faces_yolo, _estimate_face_from_skin, _assess_face_quality,
-    _get_face_landmarks_region, _create_skin_mask, _create_face_mask
+    _assess_face_quality,
+    _create_face_mask,
+    _create_skin_mask,
+    _detect_faces_yolo,
+    _estimate_face_from_skin,
 )
-from services.skin_metrics import (
-    _detect_dryness, _detect_acne_spots, _classify_spot, _nms, _draw_boxes
-)
-from services.recommendations import _generate_recommendations, _build_routine
+from services.recommendations import _generate_recommendations
+from services.skin_metrics import _detect_dryness, _draw_boxes, _nms
+
 
 class AcnePredictor:
     def __init__(self):

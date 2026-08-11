@@ -16,9 +16,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 os.environ["SKINAI_JWT_SECRET"] = "test-secret-key-for-ci-only-32chars!!"
 os.environ["SKINAI_ENV"] = "test"
 
-from utils import RATE_LIMITS
 from main import app
 from services.database import Base, get_db
+from utils import RATE_LIMITS
 
 # ── Database fixtures ──
 

@@ -360,4 +360,14 @@ export const searchDarazProducts = async (query: string, limit = 3): Promise<Dar
   return response.data.products;
 };
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export const sendDoctorMessage = async (messages: ChatMessage[]): Promise<{ reply: string }> => {
+  const response = await api.post('/ai-doctor/chat', { messages });
+  return response.data;
+};
+
 export default api;

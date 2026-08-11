@@ -213,17 +213,17 @@ async def health():
 # AUTH ROUTES
 # ═══════════════════════════════════════════
 
-from routers import auth, media, products, scans, users
+from routers import auth, doctor, media, products, scans, users
 
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(products.router)
 app.include_router(scans.router)
 app.include_router(media.router)
+app.include_router(doctor.router)
 
-from services.predictor import predictor
 from services.daraz import search_products
-from fastapi import HTTPException
+
 
 @app.get("/model/status")
 async def get_model_status():

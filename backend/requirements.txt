@@ -32,3 +32,4 @@ mypy>=1.8.0
 
 # Migrations
 alembic>=1.13.0
+groq>=0.4.0

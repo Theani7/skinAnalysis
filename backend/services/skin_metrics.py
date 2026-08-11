@@ -12,17 +12,10 @@ Multi-signal acne detection combining:
 
 import logging
 import os
-import threading
-import uuid
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import cv2
 import numpy as np
-from ultralytics import YOLO
-
-from services.pigmentation import detect_pigmentation
-from services.roboflow_classifier import classifier
-from services.vision_api import analyze_skin_with_gemini
 
 logger = logging.getLogger(__name__)
 

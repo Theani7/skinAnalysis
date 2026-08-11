@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from services.auth import (
     UserCreate,
     UserLogin,
-    register_user,
     login_user,
+    register_user,
 )
 from services.database import get_db
 from utils import _check_rate_limit
