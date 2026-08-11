@@ -52,7 +52,10 @@ export default function FloatingAssistant() {
       });
       
       if (messages.length <= 1) {
-        await refreshSessions();
+        // Wait for the backend AI title generation background task to finish
+        setTimeout(() => {
+          refreshSessions();
+        }, 2000);
       }
     } catch (error) {
       console.error('Error sending message:', error);
