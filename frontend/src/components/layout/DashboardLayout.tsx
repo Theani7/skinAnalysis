@@ -15,6 +15,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children, currentRoute, onNavigate, onLogout, user }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLogoutClick = () => {
@@ -31,13 +32,15 @@ export default function DashboardLayout({ children, currentRoute, onNavigate, on
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
         currentRoute={currentRoute}
         onNavigate={onNavigate}
         onLogoutClick={handleLogoutClick}
         user={user}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <Header setSidebarOpen={setSidebarOpen} />
 
         <main className="flex-1 overflow-y-auto">
