@@ -5,6 +5,7 @@ export interface AuthUser {
   name: string;
   email: string;
   created_at: string;
+  profile_data?: Record<string, any>;
 }
 
 export interface AuthResponse {
@@ -73,9 +74,14 @@ export async function loginUser(
 }
 
 export async function updateProfile(
-  name: string
+  name: string,
+  profile_data?: Record<string, any>
 ): Promise<AuthUser> {
-  const response = await api.put<AuthUser>('/auth/profile', { name });
+  const payload: any = { name };
+  if (profile_data !== undefined) {
+    payload.profile_data = profile_data;
+  }
+  const response = await api.put<AuthUser>('/auth/profile', payload);
   return response.data;
 }
 

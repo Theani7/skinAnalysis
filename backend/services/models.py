@@ -28,6 +28,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
+    profile_data: Mapped[str] = mapped_column(Text, server_default="{}", default="{}")
 
     scans: Mapped[list["Scan"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 

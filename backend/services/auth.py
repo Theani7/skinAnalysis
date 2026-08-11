@@ -6,6 +6,8 @@ Uses SQLAlchemy async sessions for user persistence.
 
 import os
 import re
+import json
+from typing import Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -85,6 +87,7 @@ class UserLogin(BaseModel):
 
 class UserUpdate(BaseModel):
     name: str
+    profile_data: Optional[Dict[str, Any]] = None
 
     @field_validator("name")
     @classmethod
@@ -100,6 +103,7 @@ class UserResponse(BaseModel):
     name: str
     email: str
     created_at: str
+    profile_data: Dict[str, Any] = {}
 
 
 class TokenResponse(BaseModel):
@@ -117,11 +121,17 @@ def _create_token(user_id: str) -> str:
 
 
 def _user_response(user: User) -> UserResponse:
+    try:
+        profile_data = json.loads(user.profile_data) if getattr(user, 'profile_data', None) else {}
+    except:
+        profile_data = {}
+        
     return UserResponse(
         id=user.id,
         name=user.name,
         email=user.email,
         created_at=user.created_at.isoformat(),
+        profile_data=profile_data
     )
 
 
@@ -181,7 +191,18 @@ async def get_current_user(
     if not user:
         raise HTTPException(status_code=401, detail="User not found.")
 
-    return {"id": user.id, "name": user.name, "email": user.email, "created_at": user.created_at.isoformat()}
+    try:
+        profile_data = json.loads(user.profile_data) if getattr(user, 'profile_data', None) else {}
+    except:
+        profile_data = {}
+
+    return {
+        "id": user.id, 
+        "name": user.name, 
+        "email": user.email, 
+        "created_at": user.created_at.isoformat(),
+        "profile_data": profile_data
+    }
 
 
 async def update_user_profile(
@@ -194,5 +215,7 @@ async def update_user_profile(
         raise HTTPException(status_code=404, detail="User not found.")
 
     user.name = data.name
+    if data.profile_data is not None:
+        user.profile_data = json.dumps(data.profile_data)
     await db.flush()
     return _user_response(user)

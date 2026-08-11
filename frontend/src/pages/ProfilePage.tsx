@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, User, Mail, Calendar, Loader2, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Loader2, CheckCircle2, AlertCircle, LogOut, ChevronDown } from 'lucide-react';
 import { AuthUser, updateProfile, storeAuth, getStoredToken } from '../services/auth';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
@@ -10,8 +10,31 @@ interface ProfilePageProps {
   onLogout: () => void;
 }
 
+const SKIN_TYPES = ['Normal', 'Dry', 'Oily', 'Combination', 'Sensitive'];
+const AGE_GROUPS = ['Under 20', '20-29', '30-39', '40-49', '50+'];
+const FITZPATRICK_TONES = [
+  { id: 'I', label: 'Type I (Very Fair, always burns)' },
+  { id: 'II', label: 'Type II (Fair, usually burns)' },
+  { id: 'III', label: 'Type III (Medium, sometimes burns)' },
+  { id: 'IV', label: 'Type IV (Olive, rarely burns)' },
+  { id: 'V', label: 'Type V (Brown, very rarely burns)' },
+  { id: 'VI', label: 'Type VI (Dark, never burns)' },
+];
+const SKIN_CONCERNS = ['Acne', 'Hyperpigmentation', 'Wrinkles/Fine Lines', 'Redness', 'Large Pores', 'Dullness', 'Dark Circles'];
+const ROUTINE_COMPLEXITIES = ['Minimal (2-3 steps)', 'Moderate (4-5 steps)', 'Extensive (6+ steps)'];
+
 export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: ProfilePageProps) {
   const [name, setName] = useState(user?.name || '');
+  
+  // Personalization states
+  const profileData = user?.profile_data || {};
+  const [skinType, setSkinType] = useState(profileData.skinType || '');
+  const [ageGroup, setAgeGroup] = useState(profileData.ageGroup || '');
+  const [skinTone, setSkinTone] = useState(profileData.skinTone || '');
+  const [concerns, setConcerns] = useState<string[]>(profileData.concerns || []);
+  const [routine, setRoutine] = useState(profileData.routine || '');
+  const [sensitivities, setSensitivities] = useState(profileData.sensitivities || '');
+
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -29,6 +52,17 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
     day: 'numeric',
   });
 
+  const toggleConcern = (c: string) => {
+    if (concerns.includes(c)) {
+      setConcerns(concerns.filter(x => x !== c));
+    } else if (concerns.length < 3) {
+      setConcerns([...concerns, c]);
+    } else {
+      setError('You can select a maximum of 3 primary concerns.');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -39,14 +73,18 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
       return;
     }
 
-    if (name.trim() === user.name) {
-      setSuccess('Profile is already up to date.');
-      return;
-    }
+    const newProfileData = {
+      skinType,
+      ageGroup,
+      skinTone,
+      concerns,
+      routine,
+      sensitivities
+    };
 
     setIsLoading(true);
     try {
-      const updatedUser = await updateProfile(name.trim());
+      const updatedUser = await updateProfile(name.trim(), newProfileData);
       const token = getStoredToken();
       if (token) {
         storeAuth(token, updatedUser);
@@ -61,7 +99,7 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 pb-12">
       <div className="flex items-center gap-4">
         <button
           onClick={onBack}
@@ -72,7 +110,7 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
         </button>
         <div>
           <h1 className="text-2xl font-display font-bold text-gray-900 tracking-tight">SkinAI Profile</h1>
-          <p className="text-sm text-gray-500">Manage your account settings</p>
+          <p className="text-sm text-gray-500">Manage your account and personalization settings</p>
         </div>
       </div>
 
@@ -95,7 +133,7 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
         </div>
 
         {/* Edit Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 space-y-8">
           {error && (
             <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3">
               <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
@@ -109,45 +147,154 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
             </div>
           )}
 
-          <div>
-            <label htmlFor="profile-name" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Full Name
-            </label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                id="profile-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none"
-                placeholder="Your full name"
-              />
+          <div className="space-y-5">
+            <h3 className="text-lg font-display font-bold text-gray-900">Basic Information</h3>
+            <div>
+              <label htmlFor="profile-name" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  id="profile-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none"
+                  placeholder="Your full name"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="email"
+                  id="profile-email"
+                  value={user.email}
+                  readOnly
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-500 rounded-xl text-sm cursor-not-allowed opacity-70"
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-1.5 ml-1">Email cannot be changed</p>
             </div>
           </div>
 
-          <div>
-            <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Email
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="email"
-                id="profile-email"
-                value={user.email}
-                readOnly
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-500 rounded-xl text-sm cursor-not-allowed opacity-70"
-              />
+          <hr className="border-gray-100" />
+
+          <div className="space-y-6">
+            <h3 className="text-lg font-display font-bold text-gray-900">Skin Personalization</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Skin Type</label>
+                <div className="relative">
+                  <select
+                    value={skinType}
+                    onChange={(e) => setSkinType(e.target.value)}
+                    className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none appearance-none"
+                  >
+                    <option value="">Select skin type</option>
+                    {SKIN_TYPES.map(st => <option key={st} value={st}>{st}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Age Group</label>
+                <div className="relative">
+                  <select
+                    value={ageGroup}
+                    onChange={(e) => setAgeGroup(e.target.value)}
+                    className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none appearance-none"
+                  >
+                    <option value="">Select age group</option>
+                    {AGE_GROUPS.map(ag => <option key={ag} value={ag}>{ag}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Fitzpatrick Skin Tone</label>
+                <div className="relative">
+                  <select
+                    value={skinTone}
+                    onChange={(e) => setSkinTone(e.target.value)}
+                    className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none appearance-none"
+                  >
+                    <option value="">Select skin tone</option>
+                    {FITZPATRICK_TONES.map(ft => <option key={ft.id} value={ft.id}>{ft.label}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-gray-400 mt-1.5 ml-1">Email cannot be changed</p>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Primary Concerns (Max 3)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {SKIN_CONCERNS.map(c => {
+                  const isSelected = concerns.includes(c);
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => toggleConcern(c)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                        isSelected 
+                          ? 'bg-primary-50 text-primary-700 border-primary-200' 
+                          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Routine Complexity</label>
+                <div className="relative">
+                  <select
+                    value={routine}
+                    onChange={(e) => setRoutine(e.target.value)}
+                    className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none appearance-none"
+                  >
+                    <option value="">Select complexity</option>
+                    {ROUTINE_COMPLEXITIES.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Known Sensitivities</label>
+                <input
+                  type="text"
+                  value={sensitivities}
+                  onChange={(e) => setSensitivities(e.target.value)}
+                  placeholder="e.g. Fragrance, Retinol"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-xl text-sm transition-all outline-none"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isLoading || name.trim() === user.name}
-              className="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-sm shadow-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+              className="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-sm shadow-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
