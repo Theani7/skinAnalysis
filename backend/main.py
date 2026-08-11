@@ -221,19 +221,9 @@ app.include_router(products.router)
 app.include_router(scans.router)
 app.include_router(media.router)
 
-async def get_model_status():
-    """Check AI model status."""
-    return {
-        "model_loaded": predictor.model_loaded,
-        "model_type": predictor.acne_detector.model_type if predictor.acne_detector else "none",
-        "input_size": "640x640",
-        "confidence_threshold": 0.25,
-    }
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+from services.predictor import predictor
+from services.daraz import search_products
+from fastapi import HTTPException
 
 @app.get("/model/status")
 async def get_model_status():
@@ -254,3 +244,8 @@ async def search_daraz_products(q: str, limit: int = 3):
         limit = 3
     products = await search_products(q.strip(), limit=limit)
     return {"query": q.strip(), "count": len(products), "products": products}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
