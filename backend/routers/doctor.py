@@ -28,7 +28,7 @@ async def chat(
 ):
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
-        return {"response": "AI Doctor is currently unavailable (missing API key)."}
+        return {"response": "The SkinAI Assistant is currently offline for maintenance. Please try again later."}
 
     # Fetch latest scan
     result = await db.execute(
