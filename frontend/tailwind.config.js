@@ -99,6 +99,7 @@ module.exports = {
         display: ['Outfit', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'Menlo', 'Monaco', 'monospace'],
+        logo: ['Syne', 'Outfit', 'sans-serif'],
       },
       boxShadow: {
         'glow-sm': '0 0 15px -3px rgba(136, 13, 30, 0.25)',

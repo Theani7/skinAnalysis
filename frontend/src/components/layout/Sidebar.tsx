@@ -70,9 +70,9 @@ export default function Sidebar({
         <div className={`h-20 flex items-center border-b border-gray-100 relative ${isCollapsed ? 'justify-center px-0 lg:px-0' : 'justify-between px-6 lg:justify-start'}`}>
           <div className="flex items-center gap-2.5">
             {isCollapsed && !sidebarOpen ? (
-              <span className="text-xl font-bold tracking-tight text-primary-700">S</span>
+              <span className="font-logo text-xl font-bold tracking-tight text-primary-700">S</span>
             ) : (
-              <span className="text-xl font-bold tracking-tight text-gray-900 lg:whitespace-nowrap overflow-hidden transition-opacity duration-300">
+              <span className="font-logo text-xl font-bold tracking-tight text-gray-900 lg:whitespace-nowrap overflow-hidden transition-opacity duration-300">
                 Skin<span className="text-primary-700">AI</span>
               </span>
             )}
