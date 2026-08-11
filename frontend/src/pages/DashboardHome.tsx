@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Activity, ScanLine, TrendingUp, Droplets, Shield, Sun, Calendar, Clock, ChevronRight, Lightbulb, Heart, AlertCircle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ProgressRing } from '../components/ui/ProgressRing';
+import WeatherWidget from '../components/dashboard/WeatherWidget';
 import { AuthUser } from '../services/auth';
 import { getProgressData, ProgressDataPoint, RecentScanItem } from '../services/api';
 
@@ -91,6 +92,8 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
           </button>
         </div>
       </div>
+
+      <WeatherWidget />
 
       {/* Status Bar */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-4">
