@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, ScanLine, History, LogOut, Menu, X, Sparkles } from 'lucide-react';
+import React from 'react';
+import { LayoutDashboard, ScanLine, History, LogOut, X, Sparkles } from 'lucide-react';
 import { PageRoute } from '../../App';
 import { AuthUser } from '../../services/auth';
-import ConfirmDialog from '../ui/ConfirmDialog';
 
-interface DashboardShellProps {
-  children: React.ReactNode;
+interface SidebarProps {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
   currentRoute: PageRoute;
   onNavigate: (route: PageRoute) => void;
-  onLogout: () => void;
+  onLogoutClick: () => void;
   user?: AuthUser | null;
 }
 
-export default function DashboardShell({ children, currentRoute, onNavigate, onLogout, user }: DashboardShellProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
+export default function Sidebar({
+  sidebarOpen,
+  setSidebarOpen,
+  currentRoute,
+  onNavigate,
+  onLogoutClick,
+  user
+}: SidebarProps) {
   const userInitials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U';
@@ -38,17 +42,8 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
     setSidebarOpen(false);
   };
 
-  const handleLogoutClick = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const handleConfirmLogout = () => {
-    setShowLogoutConfirm(false);
-    onLogout();
-  };
-
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900 font-sans overflow-hidden">
+    <>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -124,7 +119,7 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
           </button>
           
           <button
-            onClick={handleLogoutClick}
+            onClick={onLogoutClick}
             className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors font-medium text-sm group"
           >
             <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
@@ -132,42 +127,6 @@ export default function DashboardShell({ children, currentRoute, onNavigate, onL
           </button>
         </div>
       </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
-        {/* Mobile Header */}
-        <header className="lg:hidden h-16 flex items-center justify-between px-4 bg-white border-b border-gray-200 z-20">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary-700 flex items-center justify-center shadow-sm">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-display font-bold text-lg tracking-tight text-gray-900">SkinAI</span>
-          </div>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-        </header>
-
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6 md:p-8 lg:p-10 max-w-7xl mx-auto min-h-full">
-            {children}
-          </div>
-        </main>
-      </div>
-
-      <ConfirmDialog
-        open={showLogoutConfirm}
-        title="Sign Out"
-        message="Are you sure you want to sign out? You'll need to log in again to access your dashboard."
-        confirmLabel="Sign Out"
-        cancelLabel="Cancel"
-        danger
-        onConfirm={handleConfirmLogout}
-        onCancel={() => setShowLogoutConfirm(false)}
-      />
-    </div>
+    </>
   );
 }

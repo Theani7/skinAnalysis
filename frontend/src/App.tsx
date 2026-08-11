@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
-import DashboardShell from './components/layout/DashboardShell';
+import DashboardLayout from './components/layout/DashboardLayout';
 import DashboardHome from './pages/DashboardHome';
 import ScanView from './pages/ScanView';
 import ReportView from './pages/ReportView';
@@ -123,13 +123,13 @@ export default function App() {
 
   // Authenticated Dashboard Layout
   return (
-    <DashboardShell currentRoute={currentPage} onNavigate={navigate} onLogout={handleLogout} user={authUser}>
+    <DashboardLayout currentRoute={currentPage} onNavigate={navigate} onLogout={handleLogout} user={authUser}>
       {currentPage === 'dashboard' && <DashboardHome onStartScan={() => navigate('scan')} onStartRemoteScan={() => navigate('remote-scan')} onViewHistory={() => navigate('history')} user={authUser} />}
       {currentPage === 'scan' && <ScanView onComplete={handleAnalysisComplete} onStartRemoteScan={() => navigate('remote-scan')} />}
       {currentPage === 'remote-scan' && <RemoteScanView onComplete={handleAnalysisComplete} onBack={() => navigate('dashboard')} />}
       {currentPage === 'report' && <ReportView result={analysisResult} onBack={() => navigate('dashboard')} />}
       {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}
       {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} />}
-    </DashboardShell>
+    </DashboardLayout>
   );
 }
