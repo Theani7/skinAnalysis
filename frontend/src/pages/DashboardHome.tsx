@@ -26,6 +26,7 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
   const [latestStats, setLatestStats] = useState<{ acne_count: number; severity: string; confidence: number } | null>(null);
   const [modelOnline, setModelOnline] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [lifestyle, setLifestyle] = useState<{ water: number; sleep: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,6 +46,14 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
       .then((data) => { if (!cancelled) setModelOnline(data.model_loaded); })
       .catch(() => {});
 
+    const rawDate = new Date().toISOString().split('T')[0];
+    const saved = localStorage.getItem(`lifestyle_log_${rawDate}`);
+    if (saved) {
+      try {
+        setLifestyle(JSON.parse(saved));
+      } catch (e) {}
+    }
+
     return () => { cancelled = true; };
   }, []);
 
@@ -59,6 +68,16 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
 
   const acneCount = latestStats?.acne_count ?? 0;
   const severity = latestStats?.severity ?? 'No scans yet';
+
+  const dynamicTips = [...quickTips];
+  if (lifestyle) {
+    if (typeof lifestyle.water === 'number' && lifestyle.water < 4) {
+      dynamicTips.unshift({ id: -1, icon: AlertCircle, text: 'Dehydration Alert: Drink a glass of water right now to maintain skin elasticity.' });
+    }
+    if (typeof lifestyle.sleep === 'number' && lifestyle.sleep < 6) {
+      dynamicTips.unshift({ id: -2, icon: AlertCircle, text: 'Sleep Deficit: Poor sleep affects skin repair. Try to rest earlier tonight.' });
+    }
+  }
 
   return (
     <div className="space-y-8 font-sans">
@@ -316,7 +335,7 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
             <h3 className="font-display font-bold text-gray-900">Daily Tips</h3>
           </div>
           <div className="space-y-3">
-            {quickTips.map((tip) => (
+            {dynamicTips.slice(0, 3).map((tip) => (
               <div key={tip.id} className="flex items-start gap-3 p-4 bg-amber-50/50 border border-amber-100/50 rounded-xl">
                 <tip.icon className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-gray-700 leading-relaxed font-medium">{tip.text}</p>

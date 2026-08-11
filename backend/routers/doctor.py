@@ -19,6 +19,7 @@ router = APIRouter(prefix="/ai-doctor", tags=["ai-doctor"])
 class ChatMessageInput(BaseModel):
     content: str
     weather: Optional[dict] = None
+    lifestyle: Optional[dict] = None
 
 class ChatSessionResponse(BaseModel):
     id: str
@@ -190,6 +191,7 @@ User Profile:
 Name: {user.get("name")}
 Profile Data: {json.dumps(profile_data)}
 Current Weather: {json.dumps(request.weather) if request.weather else "Unknown"}
+Today's Lifestyle Log: {json.dumps(request.lifestyle) if request.lifestyle else "No data logged today"}
 
 {scan_info}
 

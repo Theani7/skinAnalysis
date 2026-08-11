@@ -404,13 +404,17 @@ export const streamSessionMessage = async (sessionId: string, content: string, o
   const weatherStr = localStorage.getItem('skinai_weather');
   const weather = weatherStr ? JSON.parse(weatherStr) : null;
   
+  const rawDate = new Date().toISOString().split('T')[0];
+  const lifestyleStr = localStorage.getItem(`lifestyle_log_${rawDate}`);
+  const lifestyle = lifestyleStr ? JSON.parse(lifestyleStr) : null;
+  
   const response = await fetch(`${API_BASE_URL}/ai-doctor/sessions/${sessionId}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     },
-    body: JSON.stringify({ content, weather })
+    body: JSON.stringify({ content, weather, lifestyle })
   });
 
   if (!response.ok) {
