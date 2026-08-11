@@ -15,8 +15,8 @@ export default function OnboardingModal({ userName, onComplete }: OnboardingModa
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     skinType: '',
-    concern: '',
-    sensitivity: ''
+    concerns: [] as string[],
+    sensitivities: ''
   });
 
   const handleFinish = async () => {
@@ -65,10 +65,10 @@ export default function OnboardingModal({ userName, onComplete }: OnboardingModa
         
         <div className="space-y-3">
           {[
-            { id: 'oily', label: 'Oily', desc: 'Shiny all over, prone to breakouts', icon: Droplets },
-            { id: 'dry', label: 'Dry', desc: 'Feels tight, can be flaky or rough', icon: Sun },
-            { id: 'combination', label: 'Combination', desc: 'Oily T-zone, dry or normal cheeks', icon: Activity },
-            { id: 'normal', label: 'Normal', desc: 'Well-balanced, rarely breaks out', icon: ShieldCheck }
+            { id: 'Oily', label: 'Oily', desc: 'Shiny all over, prone to breakouts', icon: Droplets },
+            { id: 'Dry', label: 'Dry', desc: 'Feels tight, can be flaky or rough', icon: Sun },
+            { id: 'Combination', label: 'Combination', desc: 'Oily T-zone, dry or normal cheeks', icon: Activity },
+            { id: 'Normal', label: 'Normal', desc: 'Well-balanced, rarely breaks out', icon: ShieldCheck }
           ].map((item) => (
             <button
               key={item.id}
@@ -98,16 +98,16 @@ export default function OnboardingModal({ userName, onComplete }: OnboardingModa
         
         <div className="space-y-3">
           {[
-            { id: 'acne', label: 'Clearing Acne & Blemishes' },
-            { id: 'anti-aging', label: 'Anti-aging & Fine Lines' },
-            { id: 'pigmentation', label: 'Fading Dark Spots & Scars' },
-            { id: 'texture', label: 'Improving Skin Texture & Glow' },
-            { id: 'hydration', label: 'Deep Hydration & Barrier Repair' }
+            { id: 'Acne', label: 'Clearing Acne & Blemishes' },
+            { id: 'Wrinkles/Fine Lines', label: 'Anti-aging & Fine Lines' },
+            { id: 'Hyperpigmentation', label: 'Fading Dark Spots & Scars' },
+            { id: 'Dullness', label: 'Improving Skin Texture & Glow' },
+            { id: 'Redness', label: 'Deep Hydration & Barrier Repair' }
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => {
-                setProfileData(prev => ({ ...prev, concern: item.id }));
+                setProfileData(prev => ({ ...prev, concerns: [item.id] }));
                 setTimeout(() => setStep('sensitivity'), 150);
               }}
               className="w-full text-left p-4 rounded-xl border border-gray-100 hover:border-primary-300 hover:bg-primary-50/50 transition-all bg-white font-medium text-gray-700 hover:text-primary-700"
@@ -131,14 +131,14 @@ export default function OnboardingModal({ userName, onComplete }: OnboardingModa
         
         <div className="space-y-3">
           {[
-            { id: 'none', label: 'Not Sensitive', desc: 'Can handle strong actives easily' },
-            { id: 'mild', label: 'Mildly Sensitive', desc: 'Occasional redness with new products' },
-            { id: 'high', label: 'Very Sensitive', desc: 'Reacts to many products, gets red easily', icon: HeartPulse }
+            { id: 'Not Sensitive', label: 'Not Sensitive', desc: 'Can handle strong actives easily' },
+            { id: 'Mildly Sensitive', label: 'Mildly Sensitive', desc: 'Occasional redness with new products' },
+            { id: 'Very Sensitive', label: 'Very Sensitive', desc: 'Reacts to many products, gets red easily', icon: HeartPulse }
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => {
-                setProfileData(prev => ({ ...prev, sensitivity: item.id }));
+                setProfileData(prev => ({ ...prev, sensitivities: item.id }));
                 setTimeout(() => setStep('complete'), 150);
               }}
               className="w-full text-left p-4 rounded-xl border border-gray-100 hover:border-primary-300 hover:bg-primary-50/50 transition-all bg-white"
