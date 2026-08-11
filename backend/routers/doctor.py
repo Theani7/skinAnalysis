@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from groq import AsyncGroq
 from pydantic import BaseModel
@@ -104,6 +104,24 @@ async def generate_title_background(session_id: str, content: str, api_key: str)
                 await local_db.commit()
     except Exception:
         pass
+
+@router.delete("/sessions/{session_id}")
+async def delete_session(
+    session_id: str,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    session_result = await db.execute(
+        select(ChatSession)
+        .where(ChatSession.id == session_id, ChatSession.user_id == user["id"])
+    )
+    session_obj = session_result.scalar_one_or_none()
+    if not session_obj:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    await db.delete(session_obj)
+    await db.commit()
+    return {"status": "success"}
 
 @router.post("/sessions/{session_id}/chat")
 async def chat(

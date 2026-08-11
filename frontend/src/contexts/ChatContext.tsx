@@ -11,6 +11,7 @@ interface ChatContextType {
   createNewChat: () => Promise<void>;
   selectSession: (id: string) => Promise<void>;
   refreshSessions: () => Promise<void>;
+  deleteChat: (id: string) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -87,6 +88,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteChat = async (id: string) => {
+    try {
+      await import('../services/api').then(m => m.deleteChatSession(id));
+      setSessions(prev => prev.filter(s => s.id !== id));
+      if (activeSessionId === id) {
+        const remaining = sessions.filter(s => s.id !== id);
+        if (remaining.length > 0) {
+          await selectSession(remaining[0].id);
+        } else {
+          await createNewChat();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to delete chat:', err);
+    }
+  };
+
   return (
     <ChatContext.Provider value={{ 
       sessions, 
@@ -97,7 +115,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setIsLoading, 
       createNewChat, 
       selectSession,
-      refreshSessions
+      refreshSessions,
+      deleteChat
     }}>
       {children}
     </ChatContext.Provider>

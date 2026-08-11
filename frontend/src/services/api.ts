@@ -386,6 +386,10 @@ export const getChatMessages = async (sessionId: string): Promise<ChatMessage[]>
   return response.data;
 };
 
+export const deleteChatSession = async (sessionId: string): Promise<void> => {
+  await api.delete(`/ai-doctor/sessions/${sessionId}`);
+};
+
 export const streamSessionMessage = async (sessionId: string, content: string, onChunk: (text: string) => void): Promise<void> => {
   const token = getStoredToken();
   const response = await fetch(`${API_BASE_URL}/ai-doctor/sessions/${sessionId}/chat`, {

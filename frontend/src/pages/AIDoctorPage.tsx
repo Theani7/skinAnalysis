@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, User, Send, Loader2, Info, Plus, MessageSquare } from 'lucide-react';
+import { Bot, User, Send, Loader2, Info, Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { streamSessionMessage, ChatMessage } from '../services/api';
 import { getStoredUser } from '../services/auth';
 import ReactMarkdown from 'react-markdown';
@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 import { useChat } from '../contexts/ChatContext';
 
 export default function AIDoctorPage() {
-  const { messages, setMessages, isLoading, setIsLoading, sessions, activeSessionId, createNewChat, selectSession, refreshSessions } = useChat();
+  const { messages, setMessages, isLoading, setIsLoading, sessions, activeSessionId, createNewChat, selectSession, refreshSessions, deleteChat } = useChat();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -99,18 +99,29 @@ export default function AIDoctorPage() {
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {sessions.map((session) => (
-            <button
-              key={session.id}
-              onClick={() => selectSession(session.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg transition-colors text-sm ${
-                activeSessionId === session.id 
-                  ? 'bg-primary-100 text-primary-900 font-medium' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <MessageSquare className={`w-4 h-4 shrink-0 ${activeSessionId === session.id ? 'text-primary-700' : 'text-gray-400'}`} />
-              <span className="truncate">{session.title || 'New Conversation'}</span>
-            </button>
+            <div key={session.id} className="relative group">
+              <button
+                onClick={() => selectSession(session.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg transition-colors text-sm pr-10 ${
+                  activeSessionId === session.id 
+                    ? 'bg-primary-100 text-primary-900 font-medium' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <MessageSquare className={`w-4 h-4 shrink-0 ${activeSessionId === session.id ? 'text-primary-700' : 'text-gray-400'}`} />
+                <span className="truncate">{session.title || 'New Conversation'}</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteChat(session.id);
+                }}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 ${activeSessionId === session.id ? 'opacity-100' : ''}`}
+                title="Delete Chat"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           ))}
         </div>
       </div>
