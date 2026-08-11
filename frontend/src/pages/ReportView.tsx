@@ -135,10 +135,19 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
     );
   }
 
-  const overallScore = result.health_score ?? Math.round(result.confidence * 100);
   const clarity = result.pigmentation_data?.clarity_score ?? 100;
   const hydration = result.dryness_data?.hydration_score ?? 100;
   const roughness = result.dryness_data?.roughness_score ?? 0;
+
+  // Fallback calculation for old cached results that lack health_score
+  let fallbackScore = 100;
+  fallbackScore -= Math.min(30, (result.acne_count || 0) * 2);
+  fallbackScore -= Math.max(0, 100 - clarity) * 0.3;
+  fallbackScore -= Math.max(0, 100 - hydration) * 0.2;
+  fallbackScore -= Math.min(20, roughness * 2);
+  const calculatedFallback = Math.max(0, Math.round(fallbackScore));
+
+  const overallScore = result.health_score ?? calculatedFallback;
 
   const metrics = [
     {
