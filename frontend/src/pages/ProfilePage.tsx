@@ -89,6 +89,7 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
     }
 
     const newProfileData = {
+      ...profileData,
       biologicalSex,
       ageGroup,
       skinType,
