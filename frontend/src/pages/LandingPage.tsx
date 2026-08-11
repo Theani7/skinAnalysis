@@ -138,7 +138,6 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
                 See how it works
               </button>
             </div>
-            <p className="mt-6 text-sm text-gray-500">Free to use · Results in &lt;2s · Private by design</p>
           </div>
 
           <div className="lg:col-span-5 t-scroll-reveal">
@@ -264,7 +263,6 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
             Start free analysis
             <ChevronRight className="w-4.5 h-4.5" />
           </button>
-          <p className="mt-5 text-sm text-white/60">Free to use · No subscriptions, no fees</p>
         </div>
       </section>
 
