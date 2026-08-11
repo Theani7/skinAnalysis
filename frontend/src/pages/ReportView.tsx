@@ -5,6 +5,7 @@ import {
   ImageOff, CircleDot, Sparkles, ExternalLink, Star, ShoppingBag, Heart,
 } from 'lucide-react';
 import { AnalysisResponse, getResultImageUrl, getScanHistory, getScanDetail, saveProduct, removeSavedProduct, getSavedProducts } from '../services/api';
+import { getStoredUser } from '../services/auth';
 import { generateClinicalReportPDF } from '../utils/generatePDF';
 
 interface ReportViewProps {
@@ -208,7 +209,8 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
   const handleDownloadPDF = async () => {
     try {
       setPdfError(null);
-      await generateClinicalReportPDF(result);
+      const user = getStoredUser();
+      await generateClinicalReportPDF(result, { name: user?.name, email: user?.email });
     } catch (err) {
       console.error('PDF generation failed:', err);
       setPdfError('Failed to generate PDF. Please try again.');
