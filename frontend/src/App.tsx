@@ -12,12 +12,13 @@ import MobileCaptureView from './pages/MobileCaptureView';
 import SavedProductsPage from './pages/SavedProductsPage';
 import RoutinePage from './pages/RoutinePage';
 import AIDoctorPage from './pages/AIDoctorPage';
+import LifestylePage from './pages/LifestylePage';
 import NotFoundPage from './pages/NotFoundPage';
 import { AnalysisResponse } from './services/api';
 import { AuthUser, getStoredUser, isAuthenticated, clearAuth, storeAuth } from './services/auth';
 import { ChatProvider } from './contexts/ChatContext';
 
-export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile' | 'remote-scan' | 'mobile-capture' | 'saved-products' | 'routine' | 'doctor' | 'not-found';
+export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile' | 'remote-scan' | 'mobile-capture' | 'saved-products' | 'routine' | 'lifestyle' | 'doctor' | 'not-found';
 
 const RESULT_STORAGE_KEY = 'skinai_last_result';
 
@@ -45,6 +46,7 @@ function getInitialRoute(): PageRoute {
   if (path === '/profile') return 'profile';
   if (path === '/saved-products') return 'saved-products';
   if (path === '/routine') return 'routine';
+  if (path === '/lifestyle') return 'lifestyle';
   if (path === '/doctor') return 'doctor';
   if (path === '/remote-scan') return 'remote-scan';
   if (path === '/mobile-capture') return 'mobile-capture';
@@ -71,6 +73,7 @@ export default function App() {
       profile: '/profile',
       'saved-products': '/saved-products',
       'routine': '/routine',
+      'lifestyle': '/lifestyle',
       'doctor': '/doctor',
       'remote-scan': '/remote-scan',
       'mobile-capture': '/mobile-capture',
@@ -150,6 +153,7 @@ export default function App() {
         {currentPage === 'history' && <HistoryPage onBack={() => navigate('dashboard')} />}
         {currentPage === 'saved-products' && <SavedProductsPage />}
         {currentPage === 'routine' && <RoutinePage onStartScan={() => navigate('scan')} />}
+        {currentPage === 'lifestyle' && <LifestylePage />}
         {currentPage === 'doctor' && <AIDoctorPage />}
         {currentPage === 'profile' && <ProfilePage user={authUser} onBack={() => navigate('dashboard')} onUserUpdate={handleUserUpdate} onLogout={handleLogout} />}
       </DashboardLayout>

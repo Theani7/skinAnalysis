@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, ScanLine, History, X, Sparkles, ChevronLeft, ChevronRight, Heart, ListChecks, Bot } from 'lucide-react';
+import { LayoutDashboard, ScanLine, History, X, Sparkles, ChevronLeft, ChevronRight, Heart, ListChecks, Bot, Droplets } from 'lucide-react';
 import { PageRoute } from '../../App';
 import { AuthUser } from '../../services/auth';
 
@@ -42,6 +42,7 @@ export default function Sidebar({
       items: [
         { id: 'doctor', label: 'SkinAI Assistant', icon: Bot },
         { id: 'routine', label: 'My Routine', icon: ListChecks },
+        { id: 'lifestyle', label: 'Lifestyle Log', icon: Droplets },
         { id: 'saved-products', label: 'Saved Products', icon: Heart },
       ]
     }
