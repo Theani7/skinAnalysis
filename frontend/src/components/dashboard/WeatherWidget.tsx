@@ -34,12 +34,14 @@ export default function WeatherWidget() {
           if (!res.ok) throw new Error('Failed to fetch weather');
           
           const data = await res.json();
-          setWeather({
+          const weatherPayload = {
             temperature: data.current.temperature_2m,
             humidity: data.current.relative_humidity_2m,
             uvIndex: data.current.uv_index,
             weatherCode: data.current.weather_code,
-          });
+          };
+          setWeather(weatherPayload);
+          localStorage.setItem('skinai_weather', JSON.stringify(weatherPayload));
           setError(null);
         } catch (err: any) {
           setError(err.message);

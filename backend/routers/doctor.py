@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -18,6 +18,7 @@ router = APIRouter(prefix="/ai-doctor", tags=["ai-doctor"])
 
 class ChatMessageInput(BaseModel):
     content: str
+    weather: Optional[dict] = None
 
 class ChatSessionResponse(BaseModel):
     id: str
@@ -188,6 +189,7 @@ Suggested Routine: {latest_scan.routine}
 User Profile:
 Name: {user.get("name")}
 Profile Data: {json.dumps(profile_data)}
+Current Weather: {json.dumps(request.weather) if request.weather else "Unknown"}
 
 {scan_info}
 

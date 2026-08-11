@@ -217,7 +217,16 @@ export const analyzeImage = async (file: File): Promise<AnalysisResponse> => {
   validateFile(file);
   const formData = new FormData();
   formData.append('file', file);
-  const response = await api.post<AnalysisResponse>('/analyze', formData);
+  
+  const weatherStr = localStorage.getItem('skinai_weather');
+  if (weatherStr) {
+    formData.append('weather', weatherStr);
+  }
+
+  const response = await api.post('/analyze', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 90000, // 90 second timeout for analysis
+  });
   return response.data;
 };
 
@@ -392,13 +401,16 @@ export const deleteChatSession = async (sessionId: string): Promise<void> => {
 
 export const streamSessionMessage = async (sessionId: string, content: string, onChunk: (text: string) => void): Promise<void> => {
   const token = getStoredToken();
+  const weatherStr = localStorage.getItem('skinai_weather');
+  const weather = weatherStr ? JSON.parse(weatherStr) : null;
+  
   const response = await fetch(`${API_BASE_URL}/ai-doctor/sessions/${sessionId}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     },
-    body: JSON.stringify({ content })
+    body: JSON.stringify({ content, weather })
   });
 
   if (!response.ok) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Calendar, Inbox, ArrowLeft, TrendingUp, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { getScanHistory, ScanListItem } from '../services/api';
 
@@ -64,10 +64,25 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
 
   const severityScores: Record<string, number> = { Clear: 100, Mild: 75, Moderate: 50, Severe: 25 };
 
-  const progressData = scans.map((s) => ({
-    date: new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    score: severityScores[s.severity] ?? 50,
-  })).reverse();
+  const progressData = scans.map((s) => {
+    const rawDate = new Date(s.created_at).toISOString().split('T')[0];
+    const saved = localStorage.getItem(`lifestyle_log_${rawDate}`);
+    let water = null;
+    let sleep = null;
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        if (typeof p.water === 'number') water = p.water * 10; // Scale 0-10 up to 0-100 for visibility
+        if (typeof p.sleep === 'number') sleep = p.sleep * 10; // Scale 0-10 up to 0-100
+      } catch (e) {}
+    }
+    return {
+      date: new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      score: severityScores[s.severity] ?? 50,
+      water,
+      sleep
+    };
+  }).reverse();
 
   const historyList = scans.map((s) => ({
     id: s.id,
@@ -133,13 +148,33 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
                 itemStyle={{ color: '#111827', fontWeight: '600', fontSize: '13px' }}
                 labelStyle={{ color: '#6b7280', fontWeight: '500', marginBottom: '2px', fontSize: '11px' }}
               />
+              <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
               <Line
                 type="monotone"
                 dataKey="score"
                 stroke="#d6335a"
                 strokeWidth={2}
-                dot={{ fill: '#ffffff', strokeWidth: 2, r: 3, stroke: '#d6335a' }}
+                dot={{ fill: '#d6335a', strokeWidth: 2, r: 3, stroke: '#ffffff' }}
                 activeDot={{ r: 5, strokeWidth: 0, fill: '#d6335a' }}
+                name="Clarity Score"
+              />
+              <Line
+                type="monotone"
+                dataKey="water"
+                stroke="#60a5fa"
+                strokeWidth={2}
+                dot={false}
+                strokeDasharray="4 4"
+                name="Water Intake"
+              />
+              <Line
+                type="monotone"
+                dataKey="sleep"
+                stroke="#818cf8"
+                strokeWidth={2}
+                dot={false}
+                strokeDasharray="4 4"
+                name="Sleep Hours"
               />
             </LineChart>
           </ResponsiveContainer>

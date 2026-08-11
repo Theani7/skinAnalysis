@@ -3,6 +3,7 @@ import { Activity, ScanLine, TrendingUp, Droplets, Shield, Sun, Calendar, Clock,
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ProgressRing } from '../components/ui/ProgressRing';
 import WeatherWidget from '../components/dashboard/WeatherWidget';
+import LifestyleWidget from '../components/dashboard/LifestyleWidget';
 import { AuthUser } from '../services/auth';
 import { getProgressData, ProgressDataPoint, RecentScanItem } from '../services/api';
 
@@ -256,8 +257,8 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
         </div>
       </div>
 
-      {/* Quick Actions + Tips */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
+      {/* Quick Actions + Tips + Lifestyle */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6">
           <h3 className="font-display font-bold text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
@@ -323,6 +324,8 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
             ))}
           </div>
         </div>
+
+        <LifestyleWidget />
       </div>
     </div>
   );
