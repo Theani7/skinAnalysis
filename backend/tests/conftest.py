@@ -22,7 +22,7 @@ from utils import RATE_LIMITS
 
 # ── Database fixtures ──
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/skinai_test")
 
 
 @pytest_asyncio.fixture

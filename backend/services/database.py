@@ -11,8 +11,13 @@ from sqlalchemy.orm import DeclarativeBase
 
 logger = logging.getLogger(__name__)
 
-BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATABASE_URL = f"sqlite+aiosqlite:///{os.path.join(BACKEND_DIR, 'skinai.db')}"
+from dotenv import load_dotenv
+load_dotenv()
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", 
+    "postgresql+asyncpg://postgres:password@localhost:5432/skinai"
+)
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -26,8 +31,6 @@ async def init_db():
     """Create all tables on startup. Raises on failure."""
     try:
         async with engine.begin() as conn:
-            # Enable WAL mode for better concurrent read performance
-            await conn.exec_driver_sql("PRAGMA journal_mode=WAL")
             from services.models import Scan, User  # noqa: F401
             await conn.run_sync(Base.metadata.create_all)
     except Exception as e:
