@@ -167,25 +167,29 @@ export default function DashboardHome({ onStartScan, onStartRemoteScan, onViewHi
 
       {/* THREE COLUMN WIDGET GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <WeatherWidget />
-        <LifestyleWidget />
-        
-        {/* Premium Tips Widget */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-400 rounded-3xl shadow-sm p-6 text-white h-full flex flex-col relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="lg:col-span-2">
+          <WeatherWidget />
+        </div>
+        <div className="flex flex-col gap-6">
+          <LifestyleWidget />
           
-          <div className="flex items-center gap-2 mb-6">
-            <Lightbulb className="w-5 h-5 text-amber-100" />
-            <h3 className="font-display font-bold text-lg tracking-tight">Daily Intel</h3>
-          </div>
-          
-          <div className="space-y-3 mt-auto">
-            {dynamicTips.slice(0, 2).map((tip) => (
-              <div key={tip.id} className="flex items-start gap-3 p-4 bg-white/10 border border-white/20 rounded-2xl backdrop-blur-md">
-                <tip.icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${tip.id < 0 ? 'text-red-200' : 'text-amber-100'}`} />
-                <p className="text-sm leading-relaxed font-medium text-white shadow-sm">{tip.text}</p>
-              </div>
-            ))}
+          {/* Premium Tips Widget */}
+          <div className="bg-gradient-to-br from-amber-500 to-orange-400 rounded-3xl shadow-sm p-6 text-white flex-1 flex flex-col relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div className="flex items-center gap-2 mb-6">
+              <Lightbulb className="w-5 h-5 text-amber-100" />
+              <h3 className="font-display font-bold text-lg tracking-tight">Daily Intel</h3>
+            </div>
+            
+            <div className="space-y-3 mt-auto">
+              {dynamicTips.slice(0, 2).map((tip) => (
+                <div key={tip.id} className="flex items-start gap-3 p-4 bg-white/10 border border-white/20 rounded-2xl backdrop-blur-md">
+                  <tip.icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${tip.id < 0 ? 'text-red-200' : 'text-amber-100'}`} />
+                  <p className="text-sm leading-relaxed font-medium text-white shadow-sm">{tip.text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

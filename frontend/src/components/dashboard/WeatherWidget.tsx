@@ -104,53 +104,65 @@ export default function WeatherWidget() {
   const uvInfo = getUvInfo(weather.uvIndex);
 
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-100 rounded-2xl shadow-sm p-5 relative overflow-hidden">
+    <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-100 rounded-3xl shadow-sm p-6 sm:p-8 relative overflow-hidden h-full flex flex-col justify-center">
       {/* Decorative background circle */}
-      <div className={`absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-10 blur-2xl ${uvInfo.bg}`}></div>
+      <div className={`absolute -right-12 -top-12 w-48 h-48 rounded-full opacity-10 blur-3xl ${uvInfo.bg}`}></div>
       
-      <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+      <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center">
         {/* Current Weather Box */}
-        <div className="flex items-center gap-4 pr-6 sm:border-r border-gray-200">
-          {getWeatherIcon(weather.weatherCode)}
-          <div>
-            <div className="flex items-center gap-1.5 text-gray-500 mb-1">
-              <MapPin className="w-3 h-3" />
-              <span className="text-xs font-medium uppercase tracking-wider">{locationName}</span>
+        <div className="flex flex-col items-start gap-2 pr-8 lg:border-r border-gray-200">
+          <div className="flex items-center gap-2 text-gray-500 mb-2">
+            <MapPin className="w-4 h-4" />
+            <span className="text-sm font-bold uppercase tracking-wider">{locationName}</span>
+          </div>
+          <div className="flex items-center gap-5">
+            <div className="scale-125 origin-left">
+              {getWeatherIcon(weather.weatherCode)}
             </div>
-            <div className="text-3xl font-display font-bold text-gray-900 tracking-tight">
-              {Math.round(weather.temperature)}°<span className="text-xl text-gray-400">C</span>
+            <div className="text-6xl font-display font-bold text-gray-900 tracking-tight">
+              {Math.round(weather.temperature)}°<span className="text-3xl text-gray-400 font-medium">C</span>
             </div>
           </div>
         </div>
 
         {/* UV Index & Details */}
         <div className="flex-1 w-full">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 text-sm">
-              <Sun className="w-4 h-4 text-gray-400" />
-              <span className="font-medium text-gray-700">UV Index</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 text-base">
+              <Sun className="w-5 h-5 text-gray-400" />
+              <span className="font-bold text-gray-700">UV Exposure Level</span>
             </div>
-            <span className={`text-sm font-bold ${uvInfo.color}`}>
-              {weather.uvIndex.toFixed(1)} - {uvInfo.label}
+            <span className={`text-sm font-bold ${uvInfo.color} bg-white px-3 py-1.5 rounded-xl shadow-sm border border-gray-100 uppercase tracking-wide`}>
+              Index {weather.uvIndex.toFixed(1)} • {uvInfo.label}
             </span>
           </div>
           
           {/* Progress Bar */}
-          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
+          <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden mb-6">
             <div 
               className={`h-full rounded-full transition-all duration-1000 ${uvInfo.bg}`}
               style={{ width: `${Math.min(100, (weather.uvIndex / 11) * 100)}%` }}
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <p className="text-xs text-gray-600 font-medium">
-              💡 {uvInfo.advice}
-            </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Sun Protection</p>
+              <p className="text-sm font-medium text-gray-900 leading-relaxed">{uvInfo.advice}</p>
+            </div>
             
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-2 py-1 rounded-md shadow-sm border border-gray-100">
-              <Droplets className="w-3 h-3 text-blue-400" />
-              {weather.humidity}% Humidity
+            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-1">
+                <Droplets className="w-4 h-4 text-blue-400" />
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Skin Hydration ({weather.humidity}%)</p>
+              </div>
+              <p className="text-sm font-medium text-gray-900 leading-relaxed">
+                {weather.humidity > 60 
+                  ? 'High humidity: Switch to a lightweight gel moisturizer.' 
+                  : weather.humidity < 30 
+                  ? 'Dry air: Heavy barrier cream moisturizer needed.' 
+                  : 'Balanced air: Standard moisturizer is sufficient.'}
+              </p>
             </div>
           </div>
         </div>
