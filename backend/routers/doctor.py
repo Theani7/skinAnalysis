@@ -226,7 +226,7 @@ If the user asks you to write code, solve math problems, write essays, translate
             async with async_session() as local_db:
                 sess = await local_db.get(ChatSession, session_id)
                 if sess:
-                    sess.updated_at = datetime.now(timezone.utc)
+                    sess.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
                     local_db.add(sess)
 
                 new_msg = ChatMessage(
