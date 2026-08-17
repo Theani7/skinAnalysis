@@ -7,6 +7,21 @@ export default defineConfig({
     port: 3000,
     host: true,
     allowedHosts: true,
+    proxy: {
+      '/auth': 'http://localhost:8000',
+      '/users': 'http://localhost:8000',
+      '/scans': 'http://localhost:8000',
+      '/products': 'http://localhost:8000',
+      '/media': 'http://localhost:8000',
+      '/ai-doctor': 'http://localhost:8000',
+      '/remote': 'http://localhost:8000',
+      '/model': 'http://localhost:8000',
+      '/health': 'http://localhost:8000',
+      '/analyze': 'http://localhost:8000',
+      '/results': 'http://localhost:8000',
+      '/uploads': 'http://localhost:8000',
+      '/processed': 'http://localhost:8000',
+    },
   },
   build: {
     rollupOptions: {

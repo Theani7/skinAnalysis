@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, SwitchCamera, Loader2 } from 'lucide-react';
 import { useCamera } from '../hooks/useCamera';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '../services/api';
 
 export default function MobileCaptureView() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -49,7 +48,7 @@ export default function MobileCaptureView() {
       const formData = new FormData();
       formData.append('file', blob, 'mobile_capture.jpg');
 
-      const response = await fetch(`${API_URL}/remote/upload/${sessionId}`, {
+      const response = await fetch(`${API_BASE_URL}/remote/upload/${sessionId}`, {
         method: 'POST',
         body: formData,
       });

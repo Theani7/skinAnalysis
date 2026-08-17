@@ -141,7 +141,7 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
           <span className="text-xs text-gray-500">{progressData.length} scans</span>
         </div>
         <div className="h-56 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
             <LineChart data={progressData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <XAxis dataKey="date" stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} dy={10} fontWeight={500} />
               <YAxis domain={[0, 100]} stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} fontWeight={500} />

@@ -2,10 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { v4 as uuidv4 } from 'uuid';
 import { ArrowLeft, Smartphone, Loader2, CheckCircle2 } from 'lucide-react';
-import { analyzeImage, AnalysisResponse } from '../services/api';
-
-const host = window.location.hostname;
-const API_URL = import.meta.env.VITE_API_URL || `http://${host}:8000`;
+import { analyzeImage, AnalysisResponse, API_BASE_URL } from '../services/api';
 
 interface RemoteScanViewProps {
   onComplete: (result: AnalysisResponse) => void;
@@ -27,8 +24,10 @@ export default function RemoteScanView({ onComplete, onBack }: RemoteScanViewPro
       if (status !== 'waiting') return; // Stop polling if we've moved on
 
       try {
-        const response = await fetch(`${API_URL}/remote/status/${sessionId}`);
+        const response = await fetch(`${API_BASE_URL}/remote/status/${sessionId}`);
         if (!response.ok) return;
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) return;
         const data = await response.json();
 
         if (data.status === 'ready') {
@@ -37,7 +36,7 @@ export default function RemoteScanView({ onComplete, onBack }: RemoteScanViewPro
           if (pollingRef.current) clearInterval(pollingRef.current);
           
           // Download the image
-          const downloadRes = await fetch(`${API_URL}/remote/download/${sessionId}`);
+          const downloadRes = await fetch(`${API_BASE_URL}/remote/download/${sessionId}`);
           if (!downloadRes.ok) throw new Error('Failed to download image from server');
           
           const blob = await downloadRes.blob();
@@ -54,10 +53,13 @@ export default function RemoteScanView({ onComplete, onBack }: RemoteScanViewPro
           }
         }
       } catch (err: any) {
-        console.error('Remote scan error:', err);
-        setStatus('error');
-        setErrorMsg(err.message || 'An error occurred during remote capture.');
-        if (pollingRef.current) clearInterval(pollingRef.current);
+        // Only set error if not a temporary polling fetch error while waiting
+        if (status !== 'waiting') {
+          console.error('Remote scan error:', err);
+          setStatus('error');
+          setErrorMsg(err.message || 'An error occurred during remote capture.');
+          if (pollingRef.current) clearInterval(pollingRef.current);
+        }
       }
     }, 2000);
 

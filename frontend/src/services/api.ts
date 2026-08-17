@@ -1,8 +1,13 @@
 import axios from 'axios';
 import { getStoredToken, clearAuth } from './auth';
 
-const host = window.location.hostname;
-export const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${host}:8000`;
+const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+const envApiUrl = import.meta.env.VITE_API_URL;
+export const API_BASE_URL = (envApiUrl && envApiUrl.trim() !== '')
+  ? envApiUrl
+  : (host === 'localhost' || host === '127.0.0.1'
+      ? `http://${host}:8000`
+      : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000'));
 
 const api = axios.create({
   baseURL: API_BASE_URL,
