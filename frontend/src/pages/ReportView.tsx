@@ -38,7 +38,7 @@ function MetricCard({
 }
 
 export default function ReportView({ result: initialResult, onBack, onScanNow }: ReportViewProps) {
-  const [activeTab, setActiveTab] = useState<'acne' | 'pigment' | 'moisture'>('acne');
+  const [activeTab, setActiveTab] = useState<'acne' | 'moisture'>('acne');
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   
@@ -148,7 +148,6 @@ export default function ReportView({ result: initialResult, onBack, onScanNow }:
 
   const tabs = [
     { id: 'acne' as const, label: 'Acne Map', img: getResultImageUrl(result.result_image) },
-    { id: 'pigment' as const, label: 'Pigmentation', img: result.pigmentation_data?.heatmap_image ? getResultImageUrl(result.pigmentation_data.heatmap_image) : null },
     { id: 'moisture' as const, label: 'Texture', img: result.dryness_data?.texture_map_image ? getResultImageUrl(result.dryness_data.texture_map_image) : null },
   ];
 
