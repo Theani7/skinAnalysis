@@ -40,9 +40,8 @@ if [ -z "$FRONTEND_URL" ]; then
 fi
 echo "Frontend URL: $FRONTEND_URL"
 
-# Update frontend .env
-echo "VITE_API_URL=$BACKEND_URL" > frontend/.env
-echo "✅ Updated frontend/.env"
+# Vite proxy handles API routing automatically now
+echo "✅ Single-origin proxy enabled"
 
 # Update backend .env CORS
 if grep -q "SKINAI_CORS_ORIGINS" backend/.env; then
