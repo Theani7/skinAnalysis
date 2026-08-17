@@ -8,7 +8,7 @@ echo "Starting backend tunnel..."
 cloudflared tunnel --url http://localhost:8000 > backend-tunnel.log 2>&1 &
 
 echo "Starting frontend tunnel..."
-cloudflared tunnel --url http://localhost:3001 > frontend-tunnel.log 2>&1 &
+cloudflared tunnel --url http://localhost:3000 > frontend-tunnel.log 2>&1 &
 
 # Function to extract URL with retry
 get_tunnel_url() {
