@@ -89,14 +89,23 @@ async def list_messages(
 async def generate_title_background(session_id: str, content: str, api_key: str):
     try:
         async_client = AsyncGroq(api_key=api_key)
-        response = await async_client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": "You are a title generator. Generate a concise 2-4 word title summarizing the user's message. Do NOT use quotes. Just the title."},
-                {"role": "user", "content": content}
-            ],
-            model="llama3-8b-8192",
-            max_tokens=15
-        )
+        models_to_try = ["openai/gpt-oss-120b", "qwen/qwen3.6-27b", "llama3-8b-8192"]
+        response = None
+        for m in models_to_try:
+            try:
+                response = await async_client.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": "You are a title generator. Generate a concise 2-4 word title summarizing the user's message. Do NOT use quotes. Just the title."},
+                        {"role": "user", "content": content}
+                    ],
+                    model=m,
+                    max_tokens=15
+                )
+                break
+            except Exception:
+                continue
+        if not response:
+            return
         title = (response.choices[0].message.content or "New Chat").strip().replace('"', '')
         async with async_session() as local_db:
             sess = await local_db.get(ChatSession, session_id)
@@ -209,11 +218,23 @@ If the user asks you to write code, solve math problems, write essays, translate
 
     try:
         async_client = AsyncGroq(api_key=api_key)
-        chat_completion = await async_client.chat.completions.create(
-            messages=messages,
-            model="llama3-8b-8192",
-            stream=True,
-        )
+        models_to_try = ["openai/gpt-oss-120b", "qwen/qwen3.6-27b", "llama3-8b-8192"]
+        chat_completion = None
+        last_error = None
+        for m in models_to_try:
+            try:
+                chat_completion = await async_client.chat.completions.create(
+                    messages=messages,
+                    model=m,
+                    stream=True,
+                )
+                break
+            except Exception as e:
+                last_error = e
+                continue
+        
+        if not chat_completion:
+            raise last_error
 
         async def generator():
             assistant_response = ""
