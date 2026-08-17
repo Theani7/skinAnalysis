@@ -12,10 +12,11 @@ from sqlalchemy.orm import DeclarativeBase
 logger = logging.getLogger(__name__)
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
+    "DATABASE_URL",
     "postgresql+asyncpg://postgres:password@localhost:5432/skinai"
 )
 

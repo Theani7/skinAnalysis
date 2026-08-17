@@ -177,7 +177,7 @@ async def login_user(data: UserLogin, db: AsyncSession) -> TokenResponse:
     user = result.scalar_one_or_none()
 
     # Always run verify to prevent timing side-channel
-    password_hash = user.password_hash if user else "$2b$12$dummyhashdummyhashdummyhashdummyhashdum"
+    password_hash = user.password_hash if user else "$2b$12$ZBN6tYhhKmAnczhALTqBKOWw4eIDA/d366tek5YaalE..4xqZzAYu"
     if not user or not pwd_context.verify(data.password, password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 

@@ -41,11 +41,11 @@ def validate_image(file: UploadFile) -> bool:
     if not file.filename:
         return False
     ext = file.filename.split('.')[-1].lower()
-    if file.content_type and file.content_type.startswith('image/'):
-        return True
-    if ext in {'jpg', 'jpeg', 'png'}:
-        return True
-    return False
+    if ext not in {'jpg', 'jpeg', 'png'}:
+        return False
+    if file.content_type and not file.content_type.startswith('image/'):
+        return False
+    return True
 
 def save_uploaded_file(file: UploadFile, contents: bytes, directory: str) -> str:
     if not os.path.exists(directory):

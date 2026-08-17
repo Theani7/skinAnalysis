@@ -4,12 +4,11 @@ Supports async SQLAlchemy with aiosqlite.
 """
 
 import asyncio
+import os
 from logging.config import fileConfig
 
-from sqlalchemy import pool
-import os
 from dotenv import load_dotenv
-
+from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
