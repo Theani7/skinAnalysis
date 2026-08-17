@@ -94,7 +94,7 @@ async def generate_title_background(session_id: str, content: str, api_key: str)
                 {"role": "system", "content": "You are a title generator. Generate a concise 2-4 word title summarizing the user's message. Do NOT use quotes. Just the title."},
                 {"role": "user", "content": content}
             ],
-            model="llama-3.1-8b-instant",
+            model="llama3-8b-8192",
             max_tokens=15
         )
         title = (response.choices[0].message.content or "New Chat").strip().replace('"', '')
@@ -211,7 +211,7 @@ If the user asks you to write code, solve math problems, write essays, translate
         async_client = AsyncGroq(api_key=api_key)
         chat_completion = await async_client.chat.completions.create(
             messages=messages,
-            model="llama-3.1-8b-instant",
+            model="llama3-8b-8192",
             stream=True,
         )
 
