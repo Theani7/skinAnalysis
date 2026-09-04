@@ -15,7 +15,7 @@ from services.database import get_db
 from services.models import Scan
 from utils import MAX_FILE_SIZE, save_uploaded_file, validate_image
 
-logger = logging.getLogger("skinai")
+logger = logging.getLogger("skinsense")
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.path.join(BACKEND_DIR, "uploads")
 PROCESSED_DIR = os.path.join(BACKEND_DIR, "processed")

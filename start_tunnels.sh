@@ -44,10 +44,10 @@ echo "Frontend URL: $FRONTEND_URL"
 echo "✅ Single-origin proxy enabled"
 
 # Update backend .env CORS
-if grep -q "SKINAI_CORS_ORIGINS" backend/.env; then
-    sed -i '' -E "s|(SKINAI_CORS_ORIGINS=.*)|\1,$FRONTEND_URL|g" backend/.env
+if grep -q "SKINSENSE_CORS_ORIGINS" backend/.env; then
+    sed -i '' -E "s|(SKINSENSE_CORS_ORIGINS=.*)|\1,$FRONTEND_URL|g" backend/.env
 else
-    echo "SKINAI_CORS_ORIGINS=$FRONTEND_URL" >> backend/.env
+    echo "SKINSENSE_CORS_ORIGINS=$FRONTEND_URL" >> backend/.env
 fi
 echo "✅ Updated backend CORS"
 

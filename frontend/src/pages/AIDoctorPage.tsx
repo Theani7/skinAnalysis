@@ -133,7 +133,7 @@ export default function AIDoctorPage() {
         <div className="absolute top-0 inset-x-0 h-16 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-center z-10 md:justify-start md:px-6">
           <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
             <Bot className="w-5 h-5 text-primary-700" />
-            SkinAI Assistant
+            SkinSense Assistant
           </h1>
         </div>
 
@@ -145,7 +145,7 @@ export default function AIDoctorPage() {
             <div className="flex justify-center mb-10 mt-4">
               <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-2xl text-xs sm:text-sm text-gray-500 max-w-xl text-center">
                 <Info className="w-4 h-4 shrink-0 text-gray-400" />
-                <span>SkinAI Assistant can make mistakes. For serious medical concerns, please consult a certified dermatologist.</span>
+                <span>SkinSense Assistant can make mistakes. For serious medical concerns, please consult a certified dermatologist.</span>
               </div>
             </div>
 
@@ -215,7 +215,7 @@ export default function AIDoctorPage() {
               </button>
             </form>
             <div className="text-center mt-3">
-              <span className="text-[11px] text-gray-400">SkinAI may produce inaccurate information about people, places, or facts.</span>
+              <span className="text-[11px] text-gray-400">SkinSense may produce inaccurate information about people, places, or facts.</span>
             </div>
           </div>
         </div>

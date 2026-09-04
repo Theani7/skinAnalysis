@@ -103,17 +103,17 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
   doc.circle(10, 100, 25, 'F');
   doc.setGState(new (doc as any).GState({ opacity: 1 }));
 
-  // ── Logo wordmark (Skin + AI in different weights) ──
+  // ── Logo wordmark (Skin + Sense in different weights) ──
   font('bold', 32);
   color(white);
   doc.text('Skin', margin, 32);
   const skinWidth = doc.getTextWidth('Skin');
 
   doc.setFillColor(brandLight[0], brandLight[1], brandLight[2]);
-  // "AI" in brand highlight color
+  // "Sense" in brand highlight color
   doc.setTextColor(255, 200, 210); // soft rose-white
   font('bold', 32);
-  doc.text('AI', margin + skinWidth, 32);
+  doc.text('Sense', margin + skinWidth, 32);
 
   // Subtitle tag
   font('normal', 9);
@@ -603,17 +603,17 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
     // Footer background strip
     fillRect(0, pageHeight - 22, pageWidth, 22, brandDeep);
 
-    // SkinAI logo wordmark
+    // SkinSense logo wordmark
     font('bold', 9); color(white);
     doc.text('Skin', margin, pageHeight - 10);
     const sw = doc.getTextWidth('Skin');
     doc.setTextColor(255, 180, 190);
     font('bold', 9);
-    doc.text('AI', margin + sw, pageHeight - 10);
+    doc.text('Sense', margin + sw, pageHeight - 10);
 
     // Tagline
     font('normal', 6); color(ghost);
-    doc.text('AI-Powered Dermatological Analysis', margin + sw + doc.getTextWidth('AI') + 4, pageHeight - 10);
+    doc.text('AI-Powered Dermatological Analysis', margin + sw + doc.getTextWidth('Sense') + 4, pageHeight - 10);
 
     // Disclaimer
     font('normal', 5); color(ghost);
@@ -628,6 +628,6 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
   }
 
   // ── Save ──
-  const filename = `SkinAI_Report_${sessionId}_${now.toISOString().split('T')[0]}.pdf`;
+  const filename = `SkinSense_Report_${sessionId}_${now.toISOString().split('T')[0]}.pdf`;
   doc.save(filename);
 }

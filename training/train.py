@@ -1,5 +1,5 @@
 """
-SkinAI — YOLOv8 5-Class Skin Issue Detector Training
+SkinSense — YOLOv8 5-Class Skin Issue Detector Training
 Dataset: Skin Issues v6 (Roboflow) — Acne, Black-heads, Large Pores, Pigmentation, Rosacea
 
 Usage in Google Colab:
@@ -18,7 +18,7 @@ MODEL_BASE = "yolov8n.pt"                # nano — fast, good for mobile/web
 EPOCHS = 100
 IMG_SIZE = 640
 BATCH = 16
-NAME = "skinai_v2_5class"
+NAME = "skinsense_v2_5class"
 PROJECT = "runs/detect"
 PATIENCE = 20                            # early stopping patience
 # ────────────────────────────────────────────────────────────────────────

@@ -1,12 +1,12 @@
-# SkinAI Technical Details & Architecture Document (Extended)
+# SkinSense Technical Details & Architecture Document (Extended)
 
-This document provides a highly granular technical deep dive into the SkinAI platform. It is intended for software engineers, ML engineers, and dev-ops seeking to understand the exact implementation details, data flows, and architectural decisions made across the entire stack.
+This document provides a highly granular technical deep dive into the SkinSense platform. It is intended for software engineers, ML engineers, and dev-ops seeking to understand the exact implementation details, data flows, and architectural decisions made across the entire stack.
 
 ---
 
 ## 1. System Architecture Overview
 
-SkinAI operates on a modern client-server architecture decoupled via REST APIs and Server-Sent Events (SSE). 
+SkinSense operates on a modern client-server architecture decoupled via REST APIs and Server-Sent Events (SSE). 
 
 - **Frontend**: A Single Page Application (SPA) built with React 18, TypeScript, and Vite.
 - **Backend**: An asynchronous Python API built with FastAPI, utilizing OpenCV and PyTorch (YOLOv8) for computer vision tasks.
@@ -34,7 +34,7 @@ The application utilizes a custom, lightweight hash/state-based routing mechanis
 State is largely managed through React Contexts to avoid prop drilling:
 - **`AuthContext.tsx`**: 
   - Manages JWT tokens, login state, and user profiles.
-  - Persists the token to `localStorage` as `skinai_token`.
+  - Persists the token to `localStorage` as `skinsense_token`.
   - Automatically intercepts API calls to append the Bearer token.
 - **`ChatContext.tsx`**: 
   - Manages AI Doctor chat sessions.

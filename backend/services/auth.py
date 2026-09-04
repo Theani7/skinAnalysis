@@ -1,5 +1,5 @@
 """
-Authentication service for SkinAI.
+Authentication service for SkinSense.
 JWT-based auth with bcrypt password hashing.
 Uses SQLAlchemy async sessions for user persistence.
 """
@@ -23,16 +23,16 @@ from services.models import User
 
 # ── Config ──
 
-_secret = os.getenv("SKINAI_JWT_SECRET")
+_secret = os.getenv("SKINSENSE_JWT_SECRET")
 if not _secret:
-    raise RuntimeError("SKINAI_JWT_SECRET environment variable is required")
+    raise RuntimeError("SKINSENSE_JWT_SECRET environment variable is required")
 SECRET_KEY: str = _secret
 
-_WEAK_SECRETS = {"secret", "change-me", "change-in-production", "skinai-dev-secret-change-in-production-2024", "your-secret-key", "generate-a-strong-random-secret-here"}
-_env = os.getenv("SKINAI_ENV", "development")
+_WEAK_SECRETS = {"secret", "change-me", "change-in-production", "skinsense-dev-secret-change-in-production-2024", "your-secret-key", "generate-a-strong-random-secret-here"}
+_env = os.getenv("SKINSENSE_ENV", "development")
 if len(SECRET_KEY) < 32 or (_env != "test" and SECRET_KEY.lower().strip() in _WEAK_SECRETS):
     raise RuntimeError(
-        f"SKINAI_JWT_SECRET is weak or predictable (length={len(SECRET_KEY)}). "
+        f"SKINSENSE_JWT_SECRET is weak or predictable (length={len(SECRET_KEY)}). "
         "Generate a strong secret: python3 -c \"import secrets; print(secrets.token_urlsafe(48))\""
     )
 

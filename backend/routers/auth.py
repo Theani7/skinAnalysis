@@ -13,7 +13,7 @@ from services.auth import (
 from services.database import get_db
 from utils import _check_rate_limit
 
-logger = logging.getLogger("skinai")
+logger = logging.getLogger("skinsense")
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.path.join(BACKEND_DIR, "uploads")
 PROCESSED_DIR = os.path.join(BACKEND_DIR, "processed")

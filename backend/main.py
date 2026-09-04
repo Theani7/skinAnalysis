@@ -1,5 +1,5 @@
 """
-SkinAI Backend - FastAPI Application
+SkinSense Backend - FastAPI Application
 
 Main entry point for the acne detection API.
 Provides endpoints for image upload, processing, and AI analysis.
@@ -23,7 +23,7 @@ from services.database import init_db
 from services.logging_config import setup_logging
 from services.predictor import predictor
 
-setup_logging(os.getenv("SKINAI_ENV", "development"))
+setup_logging(os.getenv("SKINSENSE_ENV", "development"))
 logger = logging.getLogger(__name__)
 
 
@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="SkinAI API",
+    title="SkinSense API",
     description="API for acne detection and skin analysis",
     version="3.0.0",
     lifespan=lifespan,
@@ -86,7 +86,7 @@ async def request_id_middleware(request: Request, call_next):
 
 # ── CORS ──
 
-CORS_ORIGINS = os.getenv("SKINAI_CORS_ORIGINS", "http://localhost:3000,http://localhost:3001,http://localhost:5173").split(",")
+CORS_ORIGINS = os.getenv("SKINSENSE_CORS_ORIGINS", "http://localhost:3000,http://localhost:3001,http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -111,7 +111,7 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 @app.get("/")
 async def root():
     """Health check endpoint."""
-    return {"message": "SkinAI API v3.0", "status": "healthy"}
+    return {"message": "SkinSense API v3.0", "status": "healthy"}
 
 
 @app.get("/health")

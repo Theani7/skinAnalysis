@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="https://via.placeholder.com/150/880d1e/FFFFFF?text=SkinAI" alt="SkinAI Logo" width="120" height="120" />
+  <img src="https://via.placeholder.com/150/880d1e/FFFFFF?text=SkinSense" alt="SkinSense Logo" width="120" height="120" />
   
-  <h1>SkinAI: AI-Powered Clinical Skin Analysis</h1>
+  <h1>SkinSense: AI-Powered Clinical Skin Analysis</h1>
   
   <p>
     An advanced, clinical-grade skin analysis platform leveraging multi-spectral computer vision and deep learning to detect acne, pigmentation, and hydration issues from facial images.
@@ -61,7 +61,7 @@
 
 ## 🧠 AI Detection Pipeline
 
-SkinAI employs a highly optimized, multi-step computer vision pipeline:
+SkinSense employs a highly optimized, multi-step computer vision pipeline:
 
 1. **Face Detection** — YOLO-face detects face regions, applying elliptical masking + skin-color refinement to isolate the canvas.
 2. **Acne Detection** — A custom YOLOv8n detector (`best.pt`) runs on each face crop (falling back to full image if necessary).
@@ -95,7 +95,7 @@ git lfs pull
 
 # 3. Setup Backend Environment
 cp backend/.env.example backend/.env
-# Note: Edit backend/.env and add a SKINAI_JWT_SECRET and GROQ_API_KEY
+# Note: Edit backend/.env and add a SKINSENSE_JWT_SECRET and GROQ_API_KEY
 
 # 4. Install all dependencies (Frontend + Backend Venv)
 bun run setup
@@ -168,4 +168,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## ⚠️ Disclaimer
 
-*SkinAI is designed for educational and informational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.*
+*SkinSense is designed for educational and informational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.*

@@ -77,7 +77,7 @@ docs/superpowers/
 # AI assistant context
 GEMINI.md
 AGENTS.md
-backend/skinai.db*
+backend/skinsense.db*
 backend/yolo26n.pt
 Skin Issues.v6i.yolov8/
 SkinIssues.v6i.yolov8/

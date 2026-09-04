@@ -1,5 +1,5 @@
 """
-Structured JSON logging for SkinAI backend.
+Structured JSON logging for SkinSense backend.
 Provides consistent, machine-readable logs for production observability.
 """
 

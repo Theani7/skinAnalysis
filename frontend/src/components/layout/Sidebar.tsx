@@ -40,7 +40,7 @@ export default function Sidebar({
     {
       title: 'Tools & Care',
       items: [
-        { id: 'doctor', label: 'SkinAI Assistant', icon: Bot },
+        { id: 'doctor', label: 'SkinSense Assistant', icon: Bot },
         { id: 'routine', label: 'My Routine', icon: ListChecks },
         { id: 'saved-products', label: 'Saved Products', icon: Heart },
       ]
@@ -84,7 +84,7 @@ export default function Sidebar({
               <span className="font-logo text-xl font-bold tracking-tight text-primary-700">S</span>
             ) : (
               <span className="font-logo text-xl font-bold tracking-tight text-gray-900 lg:whitespace-nowrap overflow-hidden transition-opacity duration-300">
-                Skin<span className="text-primary-700">AI</span>
+                Skin<span className="text-primary-700">Sense</span>
               </span>
             )}
           </div>

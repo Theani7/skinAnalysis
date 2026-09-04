@@ -21,7 +21,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([{
     role: 'assistant',
-    content: 'Hello! I am your SkinAI Assistant. How can I help you today with your skin concerns?'
+    content: 'Hello! I am your SkinSense Assistant. How can I help you today with your skin concerns?'
   }]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -70,7 +70,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setActiveSessionId(newSession.id);
       setMessages([{
         role: 'assistant',
-        content: 'Hello! I am your SkinAI Assistant. How can I help you today with your skin concerns?'
+        content: 'Hello! I am your SkinSense Assistant. How can I help you today with your skin concerns?'
       }]);
     } catch (err) {
       console.error('Failed to create new chat:', err);
@@ -86,7 +86,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       } else {
         setMessages([{
           role: 'assistant',
-          content: 'Hello! I am your SkinAI Assistant. How can I help you today with your skin concerns?'
+          content: 'Hello! I am your SkinSense Assistant. How can I help you today with your skin concerns?'
         }]);
       }
     } catch (err) {

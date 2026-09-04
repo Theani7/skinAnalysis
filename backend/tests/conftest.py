@@ -1,5 +1,5 @@
 """
-Shared test fixtures for SkinAI backend tests.
+Shared test fixtures for SkinSense backend tests.
 Uses in-memory SQLite for fast, isolated test runs.
 """
 
@@ -13,8 +13,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Set JWT secret and environment before importing any app modules
-os.environ["SKINAI_JWT_SECRET"] = "test-secret-key-for-ci-only-32chars!!"
-os.environ["SKINAI_ENV"] = "test"
+os.environ["SKINSENSE_JWT_SECRET"] = "test-secret-key-for-ci-only-32chars!!"
+os.environ["SKINSENSE_ENV"] = "test"
 
 from main import app
 from services.database import Base, get_db
@@ -22,7 +22,7 @@ from utils import RATE_LIMITS
 
 # ── Database fixtures ──
 
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/skinai_test")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/skinsense_test")
 
 
 @pytest_asyncio.fixture

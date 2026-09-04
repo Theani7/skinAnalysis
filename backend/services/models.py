@@ -1,5 +1,5 @@
 """
-SQLAlchemy ORM models for SkinAI.
+SQLAlchemy ORM models for SkinSense.
 """
 
 import uuid

@@ -144,7 +144,7 @@ async def chat(
 ):
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
-        return {"response": "The SkinAI Assistant is currently offline for maintenance. Please try again later."}
+        return {"response": "The SkinSense Assistant is currently offline for maintenance. Please try again later."}
 
     session_result = await db.execute(
         select(ChatSession)
@@ -208,7 +208,7 @@ Please provide professional, empathetic, and expert advice. Keep your answers br
 If the user asks about their routine or products, reference the 'Suggested Routine' and 'Recommendations' provided in their scan results. Explain the purpose of those specific steps if needed.
 
 CRITICAL RULE: You are strictly a Skincare and Dermatological assistant. However, skin health is deeply connected to general wellness (hydration, diet, sleep, stress). If a user asks a general health question (like "how much water should I drink?"), you SHOULD answer it while tying it back to how it benefits their skin.
-If the user asks you to write code, solve math problems, write essays, translate text, or answer questions completely unrelated to health or skincare, you MUST politely refuse. Reply with a variation of: "I am a specialized SkinAI Assistant. I can only answer questions related to your skin health, skincare routine, and general wellness." Do NOT fulfill out-of-scope requests.
+If the user asks you to write code, solve math problems, write essays, translate text, or answer questions completely unrelated to health or skincare, you MUST politely refuse. Reply with a variation of: "I am a specialized SkinSense Assistant. I can only answer questions related to your skin health, skincare routine, and general wellness." Do NOT fulfill out-of-scope requests.
 """
 
     messages: list[Any] = [{"role": "system", "content": system_prompt}]

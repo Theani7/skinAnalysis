@@ -127,7 +127,7 @@ export default function ProfilePage({ user, onBack, onUserUpdate, onLogout }: Pr
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-display font-bold text-gray-900 tracking-tight">SkinAI Profile</h1>
+            <h1 className="text-2xl font-display font-bold text-gray-900 tracking-tight">SkinSense Profile</h1>
             <p className="text-sm text-gray-500">Manage your account and personalization settings</p>
           </div>
         </div>

@@ -10,7 +10,7 @@ MAX_FILE_SIZE = 12 * 1024 * 1024
 RATE_LIMIT_MAX_REQUESTS = 30
 RATE_LIMIT_WINDOW = 60
 RATE_LIMITS: dict = {}
-logger = logging.getLogger("skinai")
+logger = logging.getLogger("skinsense")
 
 def _cleanup_rate_limit():
     current = time.time()

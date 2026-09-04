@@ -55,12 +55,12 @@ describe('Auth token management', () => {
   });
 
   it('returns null for invalid user JSON', () => {
-    localStorage.setItem('skinai_user', 'not-valid-json');
+    localStorage.setItem('skinsense_user', 'not-valid-json');
     expect(getStoredUser()).toBeNull();
   });
 
   it('returns null for user without required fields', () => {
-    localStorage.setItem('skinai_user', JSON.stringify({ name: 'Test' }));
+    localStorage.setItem('skinsense_user', JSON.stringify({ name: 'Test' }));
     expect(getStoredUser()).toBeNull();
   });
 });

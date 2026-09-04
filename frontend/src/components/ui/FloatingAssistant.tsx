@@ -83,7 +83,7 @@ export default function FloatingAssistant() {
                 <Bot className="w-4.5 h-4.5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm leading-tight">SkinAI Assistant</h3>
+                <h3 className="font-semibold text-sm leading-tight">SkinSense Assistant</h3>
                 <p className="text-[10px] text-primary-100 opacity-90">Powered by AI</p>
               </div>
             </div>

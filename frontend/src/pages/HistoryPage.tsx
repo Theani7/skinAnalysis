@@ -108,7 +108,7 @@ export default function HistoryPage({ onBack }: HistoryPageProps) {
             </button>
           )}
           <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-gray-900">History</h1>
-          <p className="text-gray-500 text-sm mt-1">Track your SkinAI improvements over time</p>
+          <p className="text-gray-500 text-sm mt-1">Track your SkinSense improvements over time</p>
         </div>
         {historyList.length >= 2 && (
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${scoreChange >= 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>

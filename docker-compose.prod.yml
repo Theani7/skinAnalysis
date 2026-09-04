@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
     environment:
-      - SKINAI_CORS_ORIGINS=${SKINAI_CORS_ORIGINS:-http://localhost:3000}
+      - SKINSENSE_CORS_ORIGINS=${SKINSENSE_CORS_ORIGINS:-http://localhost:3000}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

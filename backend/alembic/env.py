@@ -1,5 +1,5 @@
 """
-Alembic env.py for SkinAI database migrations.
+Alembic env.py for SkinSense database migrations.
 Supports async SQLAlchemy with aiosqlite.
 """
 

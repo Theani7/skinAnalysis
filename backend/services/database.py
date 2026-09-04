@@ -1,5 +1,5 @@
 """
-Database configuration and session management for SkinAI.
+Database configuration and session management for SkinSense.
 Uses SQLAlchemy async engine with SQLite backend.
 """
 
@@ -17,7 +17,7 @@ load_dotenv()
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:password@localhost:5432/skinai"
+    "postgresql+asyncpg://postgres:password@localhost:5432/skinsense"
 )
 
 engine = create_async_engine(DATABASE_URL, echo=False)

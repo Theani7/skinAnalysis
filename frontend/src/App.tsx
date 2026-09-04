@@ -20,7 +20,7 @@ import { ChatProvider } from './contexts/ChatContext';
 
 export type PageRoute = 'landing' | 'dashboard' | 'scan' | 'report' | 'history' | 'profile' | 'remote-scan' | 'mobile-capture' | 'saved-products' | 'routine' | 'lifestyle' | 'doctor' | 'not-found';
 
-const RESULT_STORAGE_KEY = 'skinai_last_result';
+const RESULT_STORAGE_KEY = 'skinsense_last_result';
 
 function getStoredResult(): AnalysisResponse | null {
   try {

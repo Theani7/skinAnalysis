@@ -186,7 +186,7 @@ export const analyzeImage = async (file: File): Promise<AnalysisResponse> => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const weatherStr = localStorage.getItem('skinai_weather');
+  const weatherStr = localStorage.getItem('skinsense_weather');
   if (weatherStr) {
     formData.append('weather', weatherStr);
   }
@@ -364,7 +364,7 @@ export const deleteChatSession = async (sessionId: string): Promise<void> => {
 
 export const streamSessionMessage = async (sessionId: string, content: string, onChunk: (text: string) => void): Promise<void> => {
   const token = getStoredToken();
-  const weatherStr = localStorage.getItem('skinai_weather');
+  const weatherStr = localStorage.getItem('skinsense_weather');
   const weather = weatherStr ? JSON.parse(weatherStr) : null;
   
   const rawDate = new Date().toISOString().split('T')[0];

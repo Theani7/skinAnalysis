@@ -59,7 +59,7 @@ export default function DashboardLayout({ children, currentRoute, onNavigate, us
             setShowOnboarding(false);
             if (user) {
               user.profile_data = data;
-              localStorage.setItem('skinai_user', JSON.stringify(user));
+              localStorage.setItem('skinsense_user', JSON.stringify(user));
             }
           }} 
         />

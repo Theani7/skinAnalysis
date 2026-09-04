@@ -41,7 +41,7 @@ export default function WeatherWidget() {
             weatherCode: data.current.weather_code,
           };
           setWeather(weatherPayload);
-          localStorage.setItem('skinai_weather', JSON.stringify(weatherPayload));
+          localStorage.setItem('skinsense_weather', JSON.stringify(weatherPayload));
           setError(null);
         } catch (err: any) {
           setError(err.message);

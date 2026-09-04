@@ -14,8 +14,8 @@ export interface AuthResponse {
   user: AuthUser;
 }
 
-const TOKEN_KEY = 'skinai_token';
-const USER_KEY = 'skinai_user';
+const TOKEN_KEY = 'skinsense_token';
+const USER_KEY = 'skinsense_user';
 
 export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
