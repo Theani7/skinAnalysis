@@ -113,23 +113,6 @@ function HeroOrbs() {
   );
 }
 
-/* ── Hero badge ────────────────────────────────────────────────────── */
-function HeroBadge() {
-  const [show, setShow] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setShow(true), 100); return () => clearTimeout(t); }, []);
-  return (
-    <div style={{
-      opacity: show ? 1 : 0,
-      transform: show ? 'none' : 'translateY(16px)',
-      transition: 'opacity 0.6s ease, transform 0.6s ease',
-    }}>
-      <span className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700">
-        <span className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse" aria-hidden="true" />
-        AI-powered dermatology
-      </span>
-    </div>
-  );
-}
 
 /* ── Main component ────────────────────────────────────────────────── */
 export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => void }) {
@@ -182,9 +165,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left: text */}
           <div className="lg:col-span-7 relative z-10">
-            <HeroBadge />
-
-            <h1 className="font-sans mt-6 text-5xl md:text-6xl font-bold tracking-tighter leading-[1.05] text-gray-900" style={heroItem(150)}>
+            <h1 className="font-sans text-5xl md:text-6xl font-bold tracking-tighter leading-[1.05] text-gray-900" style={heroItem(150)}>
               Your skin,<br />
               <span className="text-primary-700">quantified.</span>
             </h1>
@@ -369,7 +350,7 @@ export default function LandingPage({ onLogin, onSignup }: { onLogin: () => void
                 <span className="font-logo text-xl font-bold tracking-tight text-gray-900">Skin<span className="text-primary-700">Sense</span></span>
               </div>
               <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
-                Advanced AI-powered dermatology, making clinical-grade skin analysis accessible to everyone. Your journey to healthier skin starts here.
+                Making clinical-grade skin analysis accessible to everyone. Your journey to healthier skin starts here.
               </p>
             </div>
 
