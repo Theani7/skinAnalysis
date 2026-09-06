@@ -10,7 +10,7 @@ SkinSense operates on a modern client-server architecture decoupled via REST API
 
 - **Frontend**: A Single Page Application (SPA) built with React 18, TypeScript, and Vite.
 - **Backend**: An asynchronous Python API built with FastAPI, utilizing OpenCV and PyTorch (YOLOv8) for computer vision tasks.
-- **Database**: Local SQLite database accessed asynchronously via SQLAlchemy (`aiosqlite`) with Alembic for schema migrations.
+- **Database**: PostgreSQL accessed asynchronously via SQLAlchemy (`asyncpg`) with Alembic for schema migrations.
 - **AI Integrations**: 
   - On-device inference: `face-api.js` (Frontend)
   - Server-side inference: YOLOv8n (Backend)
@@ -73,7 +73,7 @@ State is largely managed through React Contexts to avoid prop drilling:
 - **CORS**: Configured strictly in `main.py` via `CORSMiddleware` to allow specific origins (`http://localhost:3000`).
 
 ### 3.3 Database Operations (`services/database.py` & `services/models.py`)
-- Uses `SQLAlchemy` with the `aiosqlite` async driver to ensure the FastAPI event loop is never blocked by database I/O.
+- Uses `SQLAlchemy` with the `asyncpg` async driver to ensure the FastAPI event loop is never blocked by database I/O.
 - The `AsyncSessionLocal` session maker provides a transactional context for API endpoints.
 - ORM classes (`User`, `Scan`, `ChatSession`, `ChatMessage`) define relationships using SQLAlchemy's `relationship` and `ForeignKey` paradigms.
 
@@ -132,7 +132,7 @@ The core analysis pipeline (`services/predictor.py`) orchestrates a sequential, 
 - **Streaming Response**:
   - The request is sent to the Groq API (`llama3-8b-8192` or `llama3-70b-8192`) with `stream=True`.
   - FastAPI's `StreamingResponse` yields the chunks in `Server-Sent Events (SSE)` format (`data: {"content": "..."}\n\n`).
-  - *Asynchronous DB Commit*: Once the generator finishes yielding chunks to the client, a new isolated async database session is spawned to commit the complete assistant response to the SQLite database.
+  - *Asynchronous DB Commit*: Once the generator finishes yielding chunks to the client, a new isolated async database session is spawned to commit the complete assistant response to the PostgreSQL database.
 
 ---
 
@@ -157,7 +157,7 @@ The continuous integration pipeline is strictly typed and verified:
 2. **Backend Validation**: 
    - `ruff check .` ensures PEP-8 compliance and strict import sorting.
    - `mypy . --ignore-missing-imports` ensures strict static typing across Python files.
-   - `pytest tests/` runs the test suite against an in-memory SQLite database (`sqlite+aiosqlite:///:memory:`) using `pytest-asyncio`.
+   - `pytest tests/` runs the test suite against a PostgreSQL database using `pytest-asyncio`.
 3. **Frontend Validation**: 
    - `npm run lint` executes ESLint rules.
    - `npx tsc --noEmit` validates TypeScript types without transpiling.
@@ -169,7 +169,7 @@ The continuous integration pipeline is strictly typed and verified:
 - **Production (`docker-compose.prod.yml`)**: 
   - Frontend is compiled to static assets and served natively by an `Nginx` container (alpine).
   - Backend is run via `Gunicorn` managing multiple `Uvicorn` worker processes for high concurrency.
-  - The SQLite database volume is persistently mounted to the host to prevent data loss upon container termination.
+  - The PostgreSQL database volume is persistently mounted to the host to prevent data loss upon container termination.
 
 ### 7.3 Git Large File Storage (LFS)
 To prevent repository bloat, binary artifacts are tracked via `.gitattributes`:

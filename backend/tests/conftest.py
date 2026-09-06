@@ -1,6 +1,6 @@
 """
 Shared test fixtures for SkinSense backend tests.
-Uses in-memory SQLite for fast, isolated test runs.
+Uses a fresh PostgreSQL database for fast, isolated test runs.
 """
 
 import asyncio

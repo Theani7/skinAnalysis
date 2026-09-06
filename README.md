@@ -54,7 +54,7 @@
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, Recharts |
 | **Backend** | FastAPI, Python 3.9+, OpenCV, Ultralytics YOLOv8 |
 | **AI / ML** | YOLOv8n (`best.pt`), YOLO-face (`YOLO-face.pt`), face-api.js, Groq (LLaMA 3) |
-| **Database** | SQLite with SQLAlchemy async (aiosqlite) |
+| **Database** | PostgreSQL with SQLAlchemy async (asyncpg) |
 | **Infrastructure** | Docker, GitHub Actions CI/CD |
 
 ---

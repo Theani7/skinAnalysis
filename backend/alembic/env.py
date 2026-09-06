@@ -1,6 +1,6 @@
 """
 Alembic env.py for SkinSense database migrations.
-Supports async SQLAlchemy with aiosqlite.
+Supports async SQLAlchemy with asyncpg.
 """
 
 import asyncio

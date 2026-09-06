@@ -1,6 +1,6 @@
 """
 Database configuration and session management for SkinSense.
-Uses SQLAlchemy async engine with SQLite backend.
+Uses SQLAlchemy async engine with PostgreSQL backend.
 """
 
 import logging
