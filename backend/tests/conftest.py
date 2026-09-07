@@ -22,7 +22,7 @@ from utils import RATE_LIMITS
 
 # ── Database fixtures ──
 
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/skinsense_test")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://postgres:password@127.0.0.1:5432/skinsense_test")
 
 
 @pytest_asyncio.fixture
