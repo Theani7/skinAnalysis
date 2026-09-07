@@ -49,7 +49,7 @@ def _detect_dryness(image: np.ndarray, skin_mask: np.ndarray) -> Dict:
         filtered = cv2.filter2D(gray, cv2.CV_32F, k)
         gabor_result = np.maximum(gabor_result, filtered)
 
-    gabor_norm = cv2.normalize(gabor_result, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+    gabor_norm = cv2.normalize(gabor_result, np.empty_like(gabor_result), 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
 
     # 2. Flakiness Detection (White Top-Hat)
     # Isolates small bright anomalies (flakes)

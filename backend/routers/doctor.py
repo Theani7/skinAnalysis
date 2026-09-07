@@ -220,7 +220,7 @@ If the user asks you to write code, solve math problems, write essays, translate
         async_client = AsyncGroq(api_key=api_key)
         models_to_try = ["openai/gpt-oss-120b", "qwen/qwen3.6-27b", "llama3-8b-8192"]
         chat_completion = None
-        last_error = None
+        last_error: Exception = RuntimeError("Failed to generate chat completion")
         for m in models_to_try:
             try:
                 chat_completion = await async_client.chat.completions.create(
