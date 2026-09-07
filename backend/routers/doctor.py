@@ -232,7 +232,7 @@ If the user asks you to write code, solve math problems, write essays, translate
             except Exception as e:
                 last_error = e
                 continue
-        
+
         if not chat_completion:
             raise last_error
 
