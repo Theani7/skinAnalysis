@@ -87,6 +87,14 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
     ln(margin, yy + 2, margin + doc.getTextWidth(title) + 4, brandMid, 1);
     return yy + 9;
   }
+  /** Draw text horizontally centered on cx. */
+  function textCenter(s: string, cx: number, yy: number) {
+    doc.text(s, cx - doc.getTextWidth(s) / 2, yy);
+  }
+  /** Baseline y that vertically centers `size`-pt text inside box (boxY, boxH). */
+  function vBaseline(boxY: number, boxH: number, size: number) {
+    return boxY + boxH / 2 + size * 0.12;
+  }
 
   // ═══════════════════════════════════════════════════════
   //  COVER PAGE — Full Brand Header
@@ -109,10 +117,8 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
   doc.text('Skin', margin, 32);
   const skinWidth = doc.getTextWidth('Skin');
 
-  doc.setFillColor(brandLight[0], brandLight[1], brandLight[2]);
-  // "Sense" in brand highlight color
+  // "Sense" in brand highlight color (same font/size as measured above)
   doc.setTextColor(255, 200, 210); // soft rose-white
-  font('bold', 32);
   doc.text('Sense', margin + skinWidth, 32);
 
   // Subtitle tag
@@ -129,15 +135,22 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
   fillRect(margin + 14, 50, 4, 4, brandLight, 2);
 
   // ── Report metadata grid ──
+  // NOTE: Right side is reserved for the score ring, so metadata uses
+  // only the left area to avoid overlap (see score ring below).
+  const ringCx = pageWidth - 42;
+  const ringCy = 46;
+  const ringR  = 18;
+  const ringReserved = (pageWidth - ringCx) + ringR + 8; // right zone kept clear
   const metaCols = [
     { label: 'SESSION ID', value: `#${sessionId}` },
     { label: 'GENERATED ON', value: dateStr },
     { label: 'TIME', value: timeStr },
-    { label: 'ANALYSIS TYPE', value: 'AI Skin Analysis' },
   ];
 
+  const metaAvailWidth = contentWidth - ringReserved;
+  const metaColW = metaAvailWidth / metaCols.length;
   metaCols.forEach((col, i) => {
-    const cx = margin + i * (contentWidth / 4);
+    const cx = margin + i * metaColW;
     font('bold', 6.5);
     color(ghost);
     doc.text(col.label, cx, 64);
@@ -148,24 +161,21 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
 
   // ── User info section (if available) ──
   if (userInfo?.name || userInfo?.email) {
-    ln(margin, 78, pageWidth - margin, [80, 40, 50], 0.3);
+    ln(margin, 82, pageWidth - margin, [80, 40, 50], 0.3);
     font('bold', 6.5);
     color(ghost);
-    doc.text('PREPARED FOR', margin, 85);
+    doc.text('PREPARED FOR', margin, 89);
     font('bold', 10);
     color(white);
-    doc.text(userInfo.name || 'User', margin, 92);
+    doc.text(userInfo.name || 'User', margin, 96);
     if (userInfo.email) {
       font('normal', 7.5);
       color(ghost);
-      doc.text(userInfo.email, margin, 98);
+      doc.text(userInfo.email, margin, 102);
     }
   }
 
-  // ── Score ring (top right) ──
-  const ringCx = pageWidth - 38;
-  const ringCy = 58;
-  const ringR  = 24;
+  // ── Score ring (top right, clear of metadata grid above) ──
   const ringStroke = 5;
 
   // Track circle
@@ -197,64 +207,81 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
     doc.line(x1, y1, x2, y2);
   }
 
-  // Score text
+  // Score text (horizontally centered in ring)
   font('bold', 20);
   color(white);
   const scoreStr = `${overallScore}`;
-  doc.text(scoreStr, ringCx - doc.getTextWidth(scoreStr) / 2, ringCy + 3);
+  textCenter(scoreStr, ringCx, ringCy + 3);
   font('normal', 6);
   color(ghost);
-  doc.text('/ 100', ringCx - 5, ringCy + 9);
+  textCenter('/ 100', ringCx, ringCy + 9);
   font('bold', 6);
   color(ghost);
-  doc.text('SCORE', ringCx - 6, ringCy + 15);
+  textCenter('SCORE', ringCx, ringCy + 15);
 
-  // ── Severity badge on light background ──
+  // Analysis type caption centered below the ring (was 4th metadata
+  // column, moved here to prevent overlap with the ring).
+  const analysisLabel = 'ANALYSIS TYPE';
+  const analysisValue = 'AI Skin Analysis';
+  font('bold', 6.5);
+  color(ghost);
+  textCenter(analysisLabel, ringCx, ringCy + ringR + 7);
+  font('bold', 8);
+  color(white);
+  textCenter(analysisValue, ringCx, ringCy + ringR + 12);
+
+  // ── Severity badge on light background (auto-width, centered text) ──
   y = 116;
   const sevColor = result.severity === 'Severe' ? rose : result.severity === 'Moderate' ? amber : emerald;
 
   fillRect(margin, y, contentWidth, 20, snow, 3);
   strokeRect(margin, y, contentWidth, 20, silver, 3);
 
-  fillRect(margin + 4, y + 4, 20, 12, sevColor, 2);
   font('bold', 7);
+  const sevText = result.severity.toUpperCase();
+  const sevBadgeW = Math.max(20, doc.getTextWidth(sevText) + 8);
+  const sevBadgeH = 12;
+  fillRect(margin + 4, y + 4, sevBadgeW, sevBadgeH, sevColor, 2);
   color(white);
-  doc.text(result.severity.toUpperCase(), margin + 6, y + 11.5);
+  textCenter(sevText, margin + 4 + sevBadgeW / 2, vBaseline(y + 4, sevBadgeH, 7));
 
+  const sevTextX = margin + 4 + sevBadgeW + 6;
   font('bold', 11);
   color(ink);
-  doc.text(`Severity: ${result.severity}`, margin + 30, y + 9);
+  doc.text(`Severity: ${result.severity}`, sevTextX, y + 9);
   font('normal', 8);
   color(muted);
-  doc.text(`${result.acne_count} acne lesion(s) detected. Confidence: ${overallScore}%`, margin + 30, y + 15);
+  doc.text(`${result.acne_count} acne lesion(s) detected. Confidence: ${overallScore}%`, sevTextX, y + 15);
 
   y = 145;
 
   // ═══════════════════════════════════════════════════════
-  //  EXECUTIVE SUMMARY
+  //  EXECUTIVE SUMMARY (dynamic height — never clips)
   // ═══════════════════════════════════════════════════════
 
   y = sectionHeader('Executive Summary', y);
 
-  fillRect(margin, y, contentWidth, 28, brandTint, 3);
-  strokeRect(margin, y, contentWidth, 28, [200, 150, 160], 3);
-  // Left brand stripe
-  fillRect(margin, y, 4, 28, brandMid, 0);
-  fillRect(margin, y, 4, 4, brandMid, 0);
-  fillRect(margin, y + 24, 4, 4, brandMid, 0);
-
   font('normal', 8.5);
-  color(slate);
-  const summary = doc.splitTextToSize(
+  const summaryLines = doc.splitTextToSize(
     `This AI-powered analysis detected ${result.acne_count} acne lesion(s) with ${result.severity.toLowerCase()} severity across the facial region. ` +
     `Pigmentation clarity: ${result.pigmentation_data?.clarity_score ?? 0}% with ${result.pigmentation_data?.spots_count ?? 0} spots in a ${result.pigmentation_data?.spatial_pattern ?? 'N/A'} pattern. ` +
     `Coverage: ${result.pigmentation_data?.normalized_coverage ?? 0}%. ` +
     `Hydration: ${result.dryness_data?.hydration_score ?? 0}% — Roughness: ${result.dryness_data?.roughness_score ?? 0}%. ` +
     `Overall skin health score: ${overallScore}/100.`,
-    contentWidth - 16
-  );
-  doc.text(summary, margin + 10, y + 8);
-  y += 35;
+    contentWidth - 20,
+  ) as string[];
+  const summaryLineH = 4.4;
+  const summaryBoxH = Math.max(22, summaryLines.length * summaryLineH + 10);
+  fillRect(margin, y, contentWidth, summaryBoxH, brandTint, 3);
+  strokeRect(margin, y, contentWidth, summaryBoxH, [200, 150, 160], 3);
+  // Left brand stripe
+  fillRect(margin, y, 4, summaryBoxH, brandMid, 0);
+  fillRect(margin, y, 4, 4, brandMid, 0);
+  fillRect(margin, y + summaryBoxH - 4, 4, 4, brandMid, 0);
+
+  color(slate);
+  doc.text(summaryLines, margin + 10, y + 8);
+  y += summaryBoxH + 7;
 
   // ═══════════════════════════════════════════════════════
   //  KEY METRICS — 4 Branded Cards
@@ -271,10 +298,11 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
   ];
 
   const cardW = (contentWidth - 12) / 4;
+  const metricCardH = 36;
   metrics.forEach((m, i) => {
     const cx = margin + i * (cardW + 4);
-    fillRect(cx, y, cardW, 36, white, 3);
-    strokeRect(cx, y, cardW, 36, silver, 3);
+    fillRect(cx, y, cardW, metricCardH, white, 3);
+    strokeRect(cx, y, cardW, metricCardH, silver, 3);
 
     // Top color bar
     fillRect(cx, y, cardW, 4, m.color, 0);
@@ -292,14 +320,14 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
 
     font('bold', 16);
     color(m.color);
-    doc.text(m.value, cx + 4, y + 31);
+    doc.text(m.value, cx + 4, y + 30);
 
     font('normal', 6);
     color(ghost);
-    doc.text(m.sub, cx + 4, y + 36);
+    doc.text(m.sub, cx + 4, y + 33.5);
   });
 
-  y += 44;
+  y += metricCardH + 8;
 
   // ═══════════════════════════════════════════════════════
   //  PIGMENTATION ANALYSIS
@@ -328,17 +356,23 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
 
     stats.forEach((s, i) => {
       const rowBg = i % 2 === 0 ? snow : white;
-      fillRect(margin, y, contentWidth, 8, rowBg, 0);
+      const rowH = 8;
+      fillRect(margin, y, contentWidth, rowH, rowBg, 0);
       font('normal', 8); color(muted);
       doc.text(s.label, margin + 5, y + 5.5);
       font('bold', 8); color(s.status === 'warn' ? amber : ink);
       doc.text(s.value, margin + 80, y + 5.5);
-      // Status badge
+      // Status badge (text centered inside badge)
       const sc = s.status === 'warn' ? amber : emerald;
-      fillRect(margin + contentWidth - 22, y + 1.5, 18, 5, s.status === 'warn' ? amberLight : emeraldLight, 2);
+      const badgeX = margin + contentWidth - 22;
+      const badgeW = 18;
+      const badgeH = 5;
+      const badgeY = y + 1.5;
+      fillRect(badgeX, badgeY, badgeW, badgeH, s.status === 'warn' ? amberLight : emeraldLight, 2);
+      const badgeText = s.status === 'warn' ? 'ATTENTION' : 'NORMAL';
       font('bold', 5.5); color(sc);
-      doc.text(s.status === 'warn' ? 'ATTENTION' : 'NORMAL', margin + contentWidth - 20, y + 5.2);
-      y += 8;
+      textCenter(badgeText, badgeX + badgeW / 2, vBaseline(badgeY, badgeH, 5.5));
+      y += rowH;
     });
 
     // Type distribution bar
@@ -356,20 +390,28 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
       let bx = barX;
       Object.entries(types).forEach(([type, count]) => {
         const cw = ((count as number) / total) * barW;
-        fillRect(bx, y, cw, barH, typeColors[type] || ghost, 0);
+        if (cw > 0.5) fillRect(bx, y, cw, barH, typeColors[type] || ghost, 0);
         bx += cw;
       });
       y += barH + 5;
+      // Legend (wraps to next line instead of overflowing the page)
       let lx = margin + 5;
+      const legendTop = y;
       font('normal', 6.5);
       Object.entries(types).forEach(([type, count]) => {
         const c = typeColors[type] || ghost;
+        const label = `${type.replace('_', ' ')} (${count})`;
+        const itemW = 4 + 2 + doc.getTextWidth(label) + 14;
+        if (lx + itemW > pageWidth - margin) {
+          lx = margin + 5;
+          y += 5;
+        }
         fillRect(lx, y - 2.5, 4, 4, c, 1.5);
         color(muted);
-        doc.text(`${type.replace('_', ' ')} (${count})`, lx + 6, y);
-        lx += doc.getTextWidth(`${type.replace('_', ' ')} (${count})`) + 14;
+        doc.text(label, lx + 6, y);
+        lx += doc.getTextWidth(label) + 14;
       });
-      y += 8;
+      y = Math.max(y + 8, legendTop + 8);
     }
     y += 6;
   }
@@ -395,7 +437,8 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
 
     Object.entries(result.spot_types).forEach(([type, count], i) => {
       const rowBg = i % 2 === 0 ? snow : white;
-      fillRect(margin, y, contentWidth, 9, rowBg, 0);
+      const rowH = 9;
+      fillRect(margin, y, contentWidth, rowH, rowBg, 0);
       font('normal', 8); color(ink);
       doc.text(type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' '), margin + 5, y + 6);
       font('bold', 8); color(brandMid);
@@ -403,20 +446,36 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
       const pct = totalSpots > 0 ? Math.round((count / totalSpots) * 100) : 0;
       font('normal', 8); color(muted);
       doc.text(`${pct}%`, margin + 95, y + 6);
-      const bw = 55; const fw = (count / maxCount) * bw;
+      const bw = 55; const fw = maxCount > 0 ? (count / maxCount) * bw : 0;
       fillRect(margin + 115, y + 2.5, bw, 4, silver, 1.5);
-      fillRect(margin + 115, y + 2.5, fw, 4, brandMid, 1.5);
-      y += 9;
+      if (fw > 0.5) fillRect(margin + 115, y + 2.5, fw, 4, brandMid, 1.5);
+      y += rowH;
     });
     y += 8;
   }
 
   // ═══════════════════════════════════════════════════════
-  //  DAILY ROUTINE
+  //  DAILY ROUTINE (wrapped text + dynamic row heights)
   // ═══════════════════════════════════════════════════════
 
   if (result.routine) {
-    checkPage(80);
+    // Pre-compute wrapped rows so the whole two-column block fits / breaks cleanly.
+    const halfW = (contentWidth - 4) / 2;
+    const prodMaxW = halfW - 24;
+    const actionMaxW = halfW - 24;
+    type RoutineRow = { step: number; product: string; actionLines: string[]; h: number };
+    const buildRows = (steps: Array<{ step: number; product: string; action: string }>): RoutineRow[] =>
+      steps.map((step) => {
+        font('normal', 7);
+        const actionLines = doc.splitTextToSize(step.action || '', actionMaxW) as string[];
+        const h = Math.max(12, 6 + actionLines.length * 3.6);
+        return { step: step.step, product: step.product, actionLines, h };
+      });
+    const amRows = buildRows(result.routine.morning);
+    const pmRows = buildRows(result.routine.evening);
+    const amTotal = amRows.reduce((a, r) => a + r.h + 1, 0);
+    const pmTotal = pmRows.reduce((a, r) => a + r.h + 1, 0);
+    checkPage(24 + Math.max(amTotal, pmTotal) + (result.routine.tips.length > 0 ? 20 : 0));
     y = sectionHeader('Your Daily Skincare Routine', y);
 
     // AM header
@@ -424,7 +483,7 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
     doc.setDrawColor(amber[0], amber[1], amber[2]); doc.setLineWidth(0.4);
     doc.roundedRect(margin, y, contentWidth / 2 - 3, 10, 3, 3, 'S');
     font('bold', 9); color(amber);
-    doc.text('☀  MORNING ROUTINE', margin + 5, y + 6.5);
+    doc.text('MORNING ROUTINE', margin + 5, y + 6.5);
 
     // PM header
     const pmX0 = margin + contentWidth / 2 + 3;
@@ -432,60 +491,54 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
     doc.setDrawColor(brandMid[0], brandMid[1], brandMid[2]); doc.setLineWidth(0.4);
     doc.roundedRect(pmX0, y, contentWidth / 2 - 3, 10, 3, 3, 'S');
     font('bold', 9); color(brandMid);
-    doc.text('🌙  EVENING ROUTINE', pmX0 + 5, y + 6.5);
+    doc.text('EVENING ROUTINE', pmX0 + 5, y + 6.5);
     y += 14;
 
-    const halfW = (contentWidth - 4) / 2;
+    const drawRoutineCol = (x0: number, rows: RoutineRow[], accent: number[], accentBg: number[]) => {
+      let ry = y;
+      rows.forEach((row, idx) => {
+        fillRect(x0, ry, halfW, row.h, idx % 2 === 0 ? snow : white, 2);
+        fillRect(x0, ry, 4, row.h, accentBg, 0);
+        // Step number (centered in 7x7 circle, vertically centered in row)
+        const numBoxY = ry + (row.h - 7) / 2;
+        fillRect(x0 + 7, numBoxY, 7, 7, accent, 3.5);
+        font('bold', 7); color(white);
+        textCenter(`${row.step}`, x0 + 10.5, vBaseline(numBoxY, 7, 7));
+        // Product (single line, clipped to column)
+        font('bold', 8); color(ink);
+        const prodLines = doc.splitTextToSize(row.product || '', prodMaxW) as string[];
+        doc.text(prodLines[0] || '', x0 + 17, ry + 5.5);
+        // Action (all wrapped lines, not just the first)
+        font('normal', 7); color(muted);
+        doc.text(row.actionLines, x0 + 17, ry + 10);
+        ry += row.h + 1;
+      });
+      return ry;
+    };
 
-    let amY = y;
-    result.routine.morning.forEach((step, idx) => {
-      checkPage(14);
-      fillRect(margin, amY, halfW, 12, idx % 2 === 0 ? snow : white, 2);
-      fillRect(margin, amY, 4, 12, amberLight, 0);
-      // Step number
-      fillRect(margin + 7, amY + 2, 7, 7, amber, 3.5);
-      font('bold', 7); color(white);
-      doc.text(`${step.step}`, margin + 9, amY + 7.5);
-      font('bold', 8); color(ink);
-      doc.text(step.product, margin + 17, amY + 5);
-      font('normal', 7); color(muted);
-      const aLines = doc.splitTextToSize(step.action, halfW - 20);
-      doc.text(aLines[0] || '', margin + 17, amY + 9.5);
-      amY += 13;
-    });
+    const amEnd = drawRoutineCol(margin, amRows, amber, amberLight);
+    const pmEnd = drawRoutineCol(pmX0, pmRows, brandMid, brandTint);
+    y = Math.max(amEnd, pmEnd) + 4;
 
-    let pmY = y;
-    result.routine.evening.forEach((step, idx) => {
-      checkPage(14);
-      fillRect(pmX0, pmY, halfW, 12, idx % 2 === 0 ? snow : white, 2);
-      fillRect(pmX0, pmY, 4, 12, brandTint, 0);
-      fillRect(pmX0 + 7, pmY + 2, 7, 7, brandMid, 3.5);
-      font('bold', 7); color(white);
-      doc.text(`${step.step}`, pmX0 + 9, pmY + 7.5);
-      font('bold', 8); color(ink);
-      doc.text(step.product, pmX0 + 17, pmY + 5);
-      font('normal', 7); color(muted);
-      const aLines = doc.splitTextToSize(step.action, halfW - 20);
-      doc.text(aLines[0] || '', pmX0 + 17, pmY + 9.5);
-      pmY += 13;
-    });
-
-    y = Math.max(amY, pmY) + 4;
-
-    // Tips
+    // Tips (all lines rendered, bar grows with text)
     if (result.routine.tips.length > 0) {
-      checkPage(12 + result.routine.tips.length * 7);
+      const tipBlocks = result.routine.tips.map((tip) => {
+        font('normal', 7.5);
+        const lines = doc.splitTextToSize(tip, contentWidth - 14) as string[];
+        return { lines, h: lines.length * 4 + 5 };
+      });
+      const tipsNeeded = 12 + tipBlocks.reduce((a, b) => a + b.h + 2, 0);
+      checkPage(tipsNeeded);
       fillRect(margin, y, contentWidth, 8, brandDeep, 2);
       font('bold', 8); color(white);
       doc.text('PRO TIPS & LIFESTYLE', margin + 5, y + 5.5);
       y += 10;
-      result.routine.tips.forEach((tip) => {
-        checkPage(10);
-        fillRect(margin, y, 4, 7, brandMid, 0);
+      tipBlocks.forEach((block) => {
+        checkPage(block.h + 2);
+        fillRect(margin, y, 4, block.h, brandMid, 0);
         font('normal', 7.5); color(slate);
-        const tipLines = doc.splitTextToSize(tip, contentWidth - 12);
-        doc.text(tipLines[0] || '', margin + 8, y + 5);
-        y += tipLines.length > 1 ? 12 : 9;
+        doc.text(block.lines, margin + 8, y + 5);
+        y += block.h + 2;
       });
       y += 4;
     }
@@ -493,7 +546,7 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
   }
 
   // ═══════════════════════════════════════════════════════
-  //  RECOMMENDATIONS
+  //  RECOMMENDATIONS (dynamic card heights, wrapped text)
   // ═══════════════════════════════════════════════════════
 
   if (result.recommendations && result.recommendations.length > 0) {
@@ -501,63 +554,70 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
     y = sectionHeader('Personalized Recommendations', y);
 
     result.recommendations.forEach((rec, i) => {
-      checkPage(30);
+      font('bold', 10);
+      const titleLines = doc.splitTextToSize(rec.title || '', contentWidth - 40) as string[];
+      font('normal', 7.5);
+      const descLines = doc.splitTextToSize(rec.description || '', contentWidth - 32) as string[];
+      font('normal', 5.5);
+      const whyLines = rec.why ? (doc.splitTextToSize(`WHY: ${rec.why}`, contentWidth - 36) as string[]) : [];
+      const whyH = whyLines.length > 0 ? whyLines.length * 3.4 + 3 : 0;
+      const cardH = Math.max(26, 10 + titleLines.length * 5 + descLines.length * 4 + whyH + 4);
+      checkPage(cardH + 2);
       const priorityColor = rec.priority === 'high' ? rose : rec.priority === 'medium' ? amber : emerald;
       const priorityBg    = rec.priority === 'high' ? roseLight : rec.priority === 'medium' ? amberLight : emeraldLight;
 
-      card(margin, y, contentWidth, 26);
-      fillRect(margin, y, 5, 26, priorityColor, 0);
+      card(margin, y, contentWidth, cardH);
+      fillRect(margin, y, 5, cardH, priorityColor, 0);
       fillRect(margin, y, 5, 3, priorityColor, 0);
-      fillRect(margin, y + 23, 5, 3, priorityColor, 0);
+      fillRect(margin, y + cardH - 3, 5, 3, priorityColor, 0);
 
-      // Number
-      fillRect(margin + 9, y + 3, 9, 9, priorityColor, 4.5);
+      // Number (centered in 9x9 badge)
+      const numBoxY = y + 3;
+      fillRect(margin + 9, numBoxY, 9, 9, priorityColor, 4.5);
       font('bold', 9); color(white);
-      doc.text(`${i + 1}`, margin + 12, y + 10);
+      textCenter(`${i + 1}`, margin + 13.5, vBaseline(numBoxY, 9, 9));
 
-      // Priority + category badges
-      fillRect(margin + 22, y + 3.5, 18, 5, priorityBg, 2);
+      // Priority badge (text centered)
+      const priBadgeX = margin + 22;
+      const priBadgeW = 18;
+      const priBadgeH = 5;
+      const priBadgeY = y + 3.5;
+      fillRect(priBadgeX, priBadgeY, priBadgeW, priBadgeH, priorityBg, 2);
       font('bold', 6); color(priorityColor);
-      doc.text(rec.priority.toUpperCase(), margin + 24, y + 7.2);
+      textCenter(rec.priority.toUpperCase(), priBadgeX + priBadgeW / 2, vBaseline(priBadgeY, priBadgeH, 6));
       font('normal', 6); color(ghost);
-      doc.text(rec.category.toUpperCase(), margin + 44, y + 7.2);
+      doc.text(rec.category.toUpperCase(), priBadgeX + priBadgeW + 4, y + 7.2);
 
-      // Title
+      // Title (wrapped)
       font('bold', 10); color(ink);
-      doc.text(rec.title, margin + 22, y + 15);
+      doc.text(titleLines, margin + 22, y + 15);
 
-      // Description
+      // Description (all lines, not just the first)
       font('normal', 7.5); color(muted);
-      const descLines = doc.splitTextToSize(rec.description, contentWidth - 32);
-      doc.text(descLines[0] || '', margin + 22, y + 20.5);
+      const descY = y + 15 + titleLines.length * 5;
+      doc.text(descLines, margin + 22, descY + 1.5);
 
-      // Why strip
-      if (rec.why) {
-        fillRect(margin + 22, y + 22, contentWidth - 30, 3, brandTint, 1);
-        font('bold', 5.5); color(brandMid);
-        doc.text('WHY: ', margin + 24, y + 24.5);
+      // Why strip (wrapped, grows with text)
+      if (whyLines.length > 0) {
+        const whyY = descY + 1.5 + descLines.length * 4 + 1;
+        fillRect(margin + 22, whyY, contentWidth - 30, whyH, brandTint, 1);
         font('normal', 5.5); color(brandMid);
-        doc.text(rec.why.substring(0, 80), margin + 33, y + 24.5);
+        doc.text(whyLines, margin + 24, whyY + 4);
       }
-      y += 28;
+      y += cardH + 2;
     });
   }
 
   // ═══════════════════════════════════════════════════════
-  //  CLINICAL INTERPRETATION
+  //  CLINICAL INTERPRETATION (dynamic height — content never overflows card)
   // ═══════════════════════════════════════════════════════
 
   checkPage(60);
   y += 4;
   y = sectionHeader('Clinical Interpretation', y);
 
-  card(margin, y, contentWidth, 48);
-  fillRect(margin, y, 5, 48, brandMid, 0);
-  fillRect(margin, y, 5, 3, brandMid, 0);
-  fillRect(margin, y + 45, 5, 3, brandMid, 0);
-
-  font('normal', 8.5); color(slate);
-  const interpText = doc.splitTextToSize(
+  font('normal', 8.5);
+  const interpLines = doc.splitTextToSize(
     `Primary findings indicate ${result.severity.toLowerCase()} inflammatory activity and ` +
     `${result.dryness_data && result.dryness_data.hydration_score < 60 ? 'significant trans-epidermal moisture loss' : 'stable barrier function'}. ` +
     `Multi-spectral analysis identifies ${result.pigmentation_data?.spots_count ?? 0} pigment clusters in a ${result.pigmentation_data?.spatial_pattern ?? 'N/A'} pattern. ` +
@@ -565,32 +625,48 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
     `Sebaceous activity is ${result.acne_count > 5 ? 'elevated — targeted sebum-regulating ingredients are recommended' : 'within optimal parameters'}. ` +
     `Melanin distribution clarity at ${result.pigmentation_data?.clarity_score ?? 0}%. ` +
     `Overall skin health score: ${overallScore}/100.`,
-    contentWidth - 20
-  );
-  doc.text(interpText, margin + 10, y + 8);
-  let interY = y + 8 + interpText.length * 4.5;
+    contentWidth - 20,
+  ) as string[];
+  const interpLineH = 4.5;
 
-  font('bold', 9); color(brandDeep);
-  doc.text('Priority Action Items', margin + 10, interY);
-  interY += 6;
-
+  font('bold', 9);
+  const actionTitle = 'Priority Action Items';
   const actions = [
     `Acne: ${result.acne_count > 10 ? 'Seek professional dermatological consultation immediately' : result.acne_count > 0 ? 'Apply targeted topical treatments (Niacinamide, Salicylic Acid)' : 'Maintain current routine — skin appears clear'}`,
     `Pigmentation: ${result.pigmentation_data && result.pigmentation_data.clarity_score < 70 ? 'Introduce retinol-based treatments and SPF 50+ daily' : 'Apply Vitamin C serum and maintain daily sunscreen use'}`,
     `Hydration: ${result.dryness_data && result.dryness_data.hydration_score < 60 ? 'Prioritize ceramide-based moisturizers and hyaluronic acid serums' : 'Maintain current hydration routine — levels appear healthy'}`,
   ];
+  font('normal', 7.5);
+  const actionBlocks = actions.map((a) => doc.splitTextToSize(a, contentWidth - 28) as string[]);
+  const actionsH = actionBlocks.reduce((acc, lines) => acc + lines.length * 4 + 4, 0);
+  const interpBoxH = 8 + interpLines.length * interpLineH + 8 + 6 + actionsH + 6;
+  checkPage(interpBoxH + 4);
 
-  actions.forEach((a, i) => {
-    checkPage(10);
-    fillRect(margin + 10, interY - 1, 5, 5, brandMid, 2.5);
+  card(margin, y, contentWidth, interpBoxH);
+  fillRect(margin, y, 5, interpBoxH, brandMid, 0);
+  fillRect(margin, y, 5, 3, brandMid, 0);
+  fillRect(margin, y + interpBoxH - 3, 5, 3, brandMid, 0);
+
+  font('normal', 8.5); color(slate);
+  doc.text(interpLines, margin + 10, y + 8);
+  let interY = y + 8 + interpLines.length * interpLineH + 4;
+
+  font('bold', 9); color(brandDeep);
+  doc.text(actionTitle, margin + 10, interY);
+  interY += 6;
+
+  actionBlocks.forEach((aLines, i) => {
+    const blockH = aLines.length * 4 + 4;
+    checkPage(blockH + 2);
+    const numY = interY - 1;
+    fillRect(margin + 10, numY, 5, 5, brandMid, 2.5);
     font('bold', 7); color(white);
-    doc.text(`${i + 1}`, margin + 11.5, interY + 2.5);
+    textCenter(`${i + 1}`, margin + 12.5, vBaseline(numY, 5, 7));
     font('normal', 7.5); color(slate);
-    const aLines = doc.splitTextToSize(a, contentWidth - 25);
     doc.text(aLines, margin + 18, interY + 2.5);
-    interY += aLines.length * 4 + 4;
+    interY += blockH;
   });
-  y += 52;
+  y += interpBoxH + 4;
 
   // ═══════════════════════════════════════════════════════
   //  FOOTER — Branded on every page
@@ -603,17 +679,17 @@ export function generateClinicalReportPDF(result: AnalysisResponse, userInfo?: P
     // Footer background strip
     fillRect(0, pageHeight - 22, pageWidth, 22, brandDeep);
 
-    // SkinSense logo wordmark
+    // SkinSense logo wordmark (measure "Sense" BEFORE changing font for tagline)
     font('bold', 9); color(white);
     doc.text('Skin', margin, pageHeight - 10);
     const sw = doc.getTextWidth('Skin');
     doc.setTextColor(255, 180, 190);
-    font('bold', 9);
     doc.text('Sense', margin + sw, pageHeight - 10);
+    const senseW = doc.getTextWidth('Sense');
 
-    // Tagline
+    // Tagline (uses cached 9pt width so it starts after the logo, not overlapped)
     font('normal', 6); color(ghost);
-    doc.text('AI-Powered Dermatological Analysis', margin + sw + doc.getTextWidth('Sense') + 4, pageHeight - 10);
+    doc.text('AI-Powered Dermatological Analysis', margin + sw + senseW + 4, pageHeight - 10);
 
     // Disclaimer
     font('normal', 5); color(ghost);
