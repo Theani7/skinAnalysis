@@ -2,12 +2,17 @@ import axios from 'axios';
 import { getStoredToken, clearAuth } from './auth';
 
 const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-const envApiUrl = import.meta.env.VITE_API_URL;
-export const API_BASE_URL = (envApiUrl && envApiUrl.trim() !== '')
-  ? envApiUrl
-  : (host === 'localhost' || host === '127.0.0.1'
-      ? `http://${host}:8000`
-      : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000'));
+const isLocal = host === 'localhost' || host === '127.0.0.1';
+const rawEnvApiUrl = import.meta.env.VITE_API_URL;
+// Sanitize stale 8001 port in local .env if present
+const envApiUrl = (rawEnvApiUrl || '').replace(':8001', ':8000').trim();
+
+// On remote Cloudflare tunnel or mobile devices, use window.location.origin so requests route through Vite proxy
+export const API_BASE_URL = (!isLocal && typeof window !== 'undefined')
+  ? window.location.origin
+  : (envApiUrl !== ''
+      ? envApiUrl
+      : (typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:8000'));
 
 const api = axios.create({
   baseURL: API_BASE_URL,
