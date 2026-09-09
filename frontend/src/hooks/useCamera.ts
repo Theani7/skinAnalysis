@@ -1,14 +1,22 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
+export interface CameraDevice {
+  deviceId: string;
+  label: string;
+}
+
 interface UseCameraReturn {
   videoRef: React.RefObject<HTMLVideoElement>;
   canvasRef: React.RefObject<HTMLCanvasElement>;
   stream: MediaStream | null;
   isActive: boolean;
   error: string | null;
-  startCamera: (facingMode?: 'user' | 'environment') => Promise<void>;
+  devices: CameraDevice[];
+  selectedDeviceId: string | null;
+  startCamera: (deviceIdOrFacingMode?: string) => Promise<void>;
   stopCamera: () => void;
   capturePhoto: () => Promise<Blob | null>;
+  switchCamera: (deviceId: string) => Promise<void>;
 }
 
 export function useCamera(): UseCameraReturn {
@@ -17,21 +25,71 @@ export function useCamera(): UseCameraReturn {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [devices, setDevices] = useState<CameraDevice[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
 
-  const startCamera = useCallback(async (facingMode: 'user' | 'environment' = 'user') => {
+  const updateDevices = useCallback(async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    try {
+      const allDevices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = allDevices
+        .filter(d => d.kind === 'videoinput')
+        .map((d, index) => ({
+          deviceId: d.deviceId,
+          label: d.label || `Camera ${index + 1}`,
+        }));
+      setDevices(videoInputs);
+    } catch (e) {
+      console.error('Failed to enumerate video devices:', e);
+    }
+  }, []);
+
+  const stopCamera = useCallback(() => {
+    setStream(prevStream => {
+      if (prevStream) {
+        prevStream.getTracks().forEach(track => track.stop());
+      }
+      return null;
+    });
+    setIsActive(false);
+  }, []);
+
+  const startCamera = useCallback(async (deviceIdOrFacingMode?: string) => {
     try {
       setError(null);
+      let videoConstraint: MediaTrackConstraints = {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      };
+
+      if (deviceIdOrFacingMode === 'environment') {
+        videoConstraint.facingMode = 'environment';
+      } else if (deviceIdOrFacingMode === 'user') {
+        videoConstraint.facingMode = 'user';
+      } else if (deviceIdOrFacingMode) {
+        videoConstraint.deviceId = { exact: deviceIdOrFacingMode };
+      } else if (selectedDeviceId) {
+        videoConstraint.deviceId = { exact: selectedDeviceId };
+      } else {
+        videoConstraint.facingMode = 'user';
+      }
+
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
+        video: videoConstraint,
         audio: false,
       });
 
       setStream(mediaStream);
       setIsActive(true);
+
+      const videoTrack = mediaStream.getVideoTracks()[0];
+      const activeDeviceId = videoTrack?.getSettings()?.deviceId;
+      if (activeDeviceId) {
+        setSelectedDeviceId(activeDeviceId);
+      }
+
+      // Enumerate devices now that permission is granted (labels are now visible)
+      await updateDevices();
 
       if (videoRef.current) {
         const video = videoRef.current;
@@ -51,17 +109,21 @@ export function useCamera(): UseCameraReturn {
       const message = err instanceof Error ? err.message : 'Unable to access camera';
       setError(message);
     }
-  }, []);
+  }, [selectedDeviceId, updateDevices]);
 
-  const stopCamera = useCallback(() => {
-    setStream(prevStream => {
-      if (prevStream) {
-        prevStream.getTracks().forEach(track => track.stop());
-      }
-      return null;
-    });
-    setIsActive(false);
-  }, []);
+  const switchCamera = useCallback(async (newDeviceId: string) => {
+    stopCamera();
+    setSelectedDeviceId(newDeviceId);
+    await startCamera(newDeviceId);
+  }, [stopCamera, startCamera]);
+
+  useEffect(() => {
+    if (!navigator.mediaDevices) return;
+    navigator.mediaDevices.addEventListener('devicechange', updateDevices);
+    return () => {
+      navigator.mediaDevices.removeEventListener('devicechange', updateDevices);
+    };
+  }, [updateDevices]);
 
   const capturePhoto = useCallback((): Promise<Blob | null> => {
     return new Promise((resolve) => {
@@ -116,8 +178,11 @@ export function useCamera(): UseCameraReturn {
     stream,
     isActive,
     error,
+    devices,
+    selectedDeviceId,
     startCamera,
     stopCamera,
     capturePhoto,
+    switchCamera,
   };
 }

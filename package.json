@@ -4,7 +4,7 @@
   "description": "A mobile-friendly web application for skin disease detection and management",
   "main": "backend/main.py",
   "scripts": {
-    "dev:backend": "cd backend && ./venv/bin/python -m uvicorn main:app --reload",
+    "dev:backend": "cd backend && ./venv/bin/python -m uvicorn main:app --port 8001 --reload",
     "dev:frontend": "cd frontend && bun run dev",
     "dev": "concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
     "dev:remote": "bash start_tunnels.sh && concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
