@@ -6,8 +6,8 @@ const envApiUrl = import.meta.env.VITE_API_URL;
 export const API_BASE_URL = (envApiUrl && envApiUrl.trim() !== '')
   ? envApiUrl
   : (host === 'localhost' || host === '127.0.0.1'
-      ? `http://${host}:8001`
-      : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8001'));
+      ? `http://${host}:8000`
+      : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000'));
 
 const api = axios.create({
   baseURL: API_BASE_URL,
